@@ -1,3 +1,6 @@
+ยืมคืน v4 เพิ่มกรอกข้อมูลเพิ่มสำหรับเครื่อง standby
+
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -1284,18 +1287,37 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 });
 
-function buildEqCards(){var grid=document.getElementById('eqCardGrid');if(!grid)return;EQL.forEach(function(name,i){var card=document.createElement('div');card.id='eqcard_'+i;card.style.cssText='border:2px solid var(--bd);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .18s;background:var(--bg);position:relative;min-height:54px;display:flex;flex-direction:column;justify-content:center;gap:6px';card.innerHTML='<div style="font-size:13px;font-weight:600;color:var(--tx);line-height:1.4;padding-right:22px">'+name+'</div>'+(name==='อื่นๆ'?'<input type="text" id="oth_'+i+'" placeholder="ระบุรายละเอียด..." onclick="event.stopPropagation()" style="font-size:12px;padding:5px 8px;width:100%;border:1px solid var(--bd);border-radius:4px;background:var(--s1);color:var(--tx)">':'')+'<div id="eqcheck_'+i+'" style="display:none;position:absolute;top:8px;right:8px;width:22px;height:22px;background:var(--ac);border-radius:50%;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:700">✓</div>';card.addEventListener('click',function(){selEq(i);});grid.appendChild(card);});}
+function buildEqCards(){var grid=document.getElementById('eqCardGrid');if(!grid)return;EQL.forEach(function(name,i){var card=document.createElement('div');card.id='eqcard_'+i;card.style.cssText='border:2px solid var(--bd);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .18s;background:var(--bg);position:relative;min-height:54px;display:flex;flex-direction:column;justify-content:center;gap:6px';card.innerHTML='<div style="font-size:13px;font-weight:600;color:var(--tx);line-height:1.4;padding-right:22px">'+name+'</div>'+(name==='อื่นๆ'?'<input type="text" id="oth_'+i+'" placeholder="ระบุรายละเอียด..." onclick="event.stopPropagation()" style="font-size:12px;padding:5px 8px;width:100%;border:1px solid var(--bd);border-radius:4px;background:var(--s1);color:var(--tx)">':'')
+      +(['Ventilator','HFNC'].indexOf(name)>=0?
+        '<div id="vhpanel_'+i+'" onclick="event.stopPropagation()" style="display:none;margin-top:10px;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.25);border-radius:7px;padding:12px">'
+          +'<div style="font-size:10px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px">🔩 รายละเอียดเพิ่มเติมลงเฉพาะเครื่อง standby</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+            +'<div>'
+              +'<label style="font-size:11px;color:var(--mu);font-weight:700;display:block;margin-bottom:4px">หมายเลขเครื่อง (No.)</label>'
+              +'<input type="text" id="vheqno_'+i+'" placeholder="เช่น V-05, 12 ..." onclick="event.stopPropagation()" style="width:100%;padding:6px 8px;font-size:13px;background:var(--bg);border:1px solid rgba(0,200,255,.4);border-radius:5px;color:var(--tx)">'
+            +'</div>'
+            +'<div>'
+              +'<label style="font-size:11px;color:var(--mu);font-weight:700;display:block;margin-bottom:4px">Flow Meter No.</label>'
+              +'<input type="text" id="vhfmno_'+i+'" placeholder="เช่น 15, FM-03 ..." onclick="event.stopPropagation()" style="width:100%;padding:6px 8px;font-size:13px;background:var(--bg);border:1px solid rgba(0,200,255,.4);border-radius:5px;color:var(--tx)">'
+            +'</div>'
+          +'</div>'
+        +'</div>'
+      :'')
+      +'<div id="eqcheck_'+i+'" style="display:none;position:absolute;top:8px;right:8px;width:22px;height:22px;background:var(--ac);border-radius:50%;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:700">✓</div>';card.addEventListener('click',function(){selEq(i);});grid.appendChild(card);});}
 function selEq(i){
   // deselect standby
   _standbySelected=false;
   var sc=document.getElementById('standbyCard');var sv=document.getElementById('standbyCheck');var sp=document.getElementById('standbyPanel');
   if(sc){sc.style.borderColor='var(--wn)';sc.style.background='rgba(245,158,11,.05)';}
   if(sv)sv.style.display='none';if(sp)sp.style.display='none';
-  // select this card
-  EQL.forEach(function(_,j){var card=document.getElementById('eqcard_'+j),chk=document.getElementById('eqcheck_'+j);if(card){card.style.borderColor='var(--bd)';card.style.background='var(--bg)';card.style.boxShadow='';}if(chk)chk.style.display='none';});
+  // select this card — hide all vhpanels first
+  EQL.forEach(function(_,j){var card=document.getElementById('eqcard_'+j),chk=document.getElementById('eqcheck_'+j);if(card){card.style.borderColor='var(--bd)';card.style.background='var(--bg)';card.style.boxShadow='';}if(chk)chk.style.display='none';var vhp=document.getElementById('vhpanel_'+j);if(vhp)vhp.style.display='none';});
   var card=document.getElementById('eqcard_'+i),chk=document.getElementById('eqcheck_'+i);
   if(card){card.style.borderColor='var(--ac)';card.style.background='rgba(0,200,255,.06)';card.style.boxShadow='0 0 0 1px var(--ac)';}
   if(chk)chk.style.display='flex';
+  // show VH panel for Ventilator / HFNC
+  var vhp=document.getElementById('vhpanel_'+i);
+  if(vhp){vhp.style.display='block';setTimeout(function(){var el=document.getElementById('vheqno_'+i);if(el)el.focus();},80);}
   _selEqIdx=i;
 }
 function buildAccTable(){document.getElementById('accBody').innerHTML=ACCS.map(function(a){var inp;if(a.no){inp='<div style="display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:var(--mu);font-weight:600;white-space:nowrap">No.</span><input type="number" id="accno_'+a.id+'" placeholder="0" min="0" style="width:80px;padding:4px 6px;font-size:13px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)"></div>';}else if(a.det){inp='<input type="text" id="accno_'+a.id+'" placeholder="'+(a.id==='a4'?'ระบุหมายเลข/รายละเอียด...':'รายละเอียด...')+'" style="width:160px;padding:4px 6px;font-size:12px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">';}else{inp='-';}return'<tr><td style="padding:5px 7px;border-bottom:1px solid var(--bd)"><input type="checkbox" id="acc_'+a.id+'" onchange="toggleAcc(\''+a.id+'\',\''+a.n.replace(/'/g,"\\'")+'\')"></td><td style="padding:5px 7px;border-bottom:1px solid var(--bd);font-size:13px">'+a.n+'</td><td style="padding:5px 7px;border-bottom:1px solid var(--bd)">'+inp+'</td></tr>';}).join('');}
@@ -1388,7 +1410,21 @@ async function submitLoan(){
     // ── regular eq path ──
     if(_selEqIdx<0){bigToast('กรุณาเลือกรายการเครื่องมือ 1 รายการ','error');return;}
     var name=EQL[_selEqIdx];var oEl=document.getElementById('oth_'+_selEqIdx);
-    equipmentList=[{name:name,qty:1,detail:oEl?oEl.value.trim():''}];
+    // ── Ventilator / HFNC extra fields ──
+    var _vhEqNo='',_vhFmNo='';
+    var _VH_NAMES=['Ventilator','HFNC'];
+    if(_VH_NAMES.indexOf(name)>=0){
+      var _vhEqNoEl=document.getElementById('vheqno_'+_selEqIdx);
+      var _vhFmNoEl=document.getElementById('vhfmno_'+_selEqIdx);
+      _vhEqNo=_vhEqNoEl?_vhEqNoEl.value.trim():'';
+      _vhFmNo=_vhFmNoEl?_vhFmNoEl.value.trim():'';
+    }
+    var _vhParts=[];
+    if(_vhEqNo)_vhParts.push('No.'+_vhEqNo);
+    if(_vhFmNo)_vhParts.push('Flow Meter No.'+_vhFmNo);
+    var _baseDetail=oEl?oEl.value.trim():'';
+    var _fullDetail=_vhParts.length?(_vhParts.join(' | ')+(_baseDetail?' | '+_baseDetail:'')):_baseDetail;
+    equipmentList=[{name:name,qty:1,detail:_fullDetail}];
   }
   try{
     var id=await API.submitLoan({loanDate,borrowerName,deptCode,deptName,patientName,equipmentList});
@@ -1401,7 +1437,7 @@ function clearLoan(){
   var oi=document.getElementById('deptOther');if(oi){oi.style.display='none';oi.value='';}
   // clear regular eq cards
   _selEqIdx=-1;
-  EQL.forEach(function(_,i){var card=document.getElementById('eqcard_'+i),chk=document.getElementById('eqcheck_'+i);if(card){card.style.borderColor='var(--bd)';card.style.background='var(--bg)';card.style.boxShadow='';}if(chk)chk.style.display='none';var o=document.getElementById('oth_'+i);if(o)o.value='';});
+  EQL.forEach(function(_,i){var card=document.getElementById('eqcard_'+i),chk=document.getElementById('eqcheck_'+i);if(card){card.style.borderColor='var(--bd)';card.style.background='var(--bg)';card.style.boxShadow='';}if(chk)chk.style.display='none';var o=document.getElementById('oth_'+i);if(o)o.value='';var vhp=document.getElementById('vhpanel_'+i);if(vhp)vhp.style.display='none';var vhn=document.getElementById('vheqno_'+i);if(vhn)vhn.value='';var vhf=document.getElementById('vhfmno_'+i);if(vhf)vhf.value='';});
   // clear standby
   clearStandby();
   setToday();
