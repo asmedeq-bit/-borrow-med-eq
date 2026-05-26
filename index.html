@@ -161,66 +161,7 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
   <div class="card">
     <div class="ctitle">🔧 เลือกรายการเครื่องมือแพทย์ <span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0">(เลือกได้ 1 รายการ — คลิกที่การ์ด)</span></div>
 
-    <!-- STANDBY CARD — special, always visible at top -->
-    <div id="standbyCard" onclick="toggleStandby()" style="border:2px solid var(--wn);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .18s;background:rgba(245,158,11,.05);position:relative;margin-bottom:12px;display:flex;align-items:center;gap:12px">
-      <div style="width:36px;height:36px;background:rgba(245,158,11,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">⏸</div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;color:var(--wn)">เครื่อง Standby</div>
-        <div style="font-size:11px;color:var(--mu);margin-top:2px">จ่ายเครื่อง Standby ให้แผนก (ยังไม่ใช้กับผู้ป่วย)</div>
-      </div>
-      <div id="standbyCheck" style="display:none;width:24px;height:24px;background:var(--wn);border-radius:50%;align-items:center;justify-content:center;font-size:13px;color:#000;font-weight:700;flex-shrink:0">✓</div>
-    </div>
-
-    <!-- STANDBY DETAIL PANEL -->
-    <div id="standbyPanel" style="display:none;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:14px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;color:var(--wn);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">⏸ รายละเอียด Standby</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div class="fg">
-          <label>ประเภทเครื่อง Standby *</label>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <label onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:8px 14px;flex:1;transition:all .15s;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--tx)" id="sbyVentLabel">
-              <input type="radio" name="standbyType" id="sbyVent" value="Ventilator" onchange="onStandbyTypeChange()" style="accent-color:var(--wn);width:16px;height:16px">
-              🫁 Ventilator
-            </label>
-            <label onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:8px 14px;flex:1;transition:all .15s;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--tx)" id="sbyHfncLabel">
-              <input type="radio" name="standbyType" id="sbyHfnc" value="HFNC" onchange="onStandbyTypeChange()" style="accent-color:var(--wn);width:16px;height:16px">
-              💨 HFNC
-            </label>
-          </div>
-        </div>
-        <div class="fg">
-          <label>หมายเลขเครื่อง (No.) *</label>
-          <input type="text" id="sbyEqNo" placeholder="เช่น 12, V-05 ..." onclick="event.stopPropagation()" style="border-color:rgba(245,158,11,.4)">
-        </div>
-      </div>
-      <!-- Flow meter section — shows only when type selected -->
-      <div id="sbyFlowSection" style="display:none">
-        <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Oxygen Flow Meter ที่ติดมากับเครื่อง</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div style="background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:10px" id="sbyFmPtoBlock">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <input type="checkbox" id="sbyFmPto" onclick="event.stopPropagation()" style="accent-color:var(--wn);width:16px;height:16px">
-              <label for="sbyFmPto" style="font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;color:var(--tx)">Flow meter pipeline<br><span style="font-weight:400;color:var(--mu)">with Power Take Off</span></label>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:11px;color:var(--mu);white-space:nowrap;font-weight:700">No.</span>
-              <input type="number" id="sbyFmPtoNo" min="0" placeholder="0" onclick="event.stopPropagation()" style="width:80px;padding:4px 8px;font-size:13px;border-color:rgba(245,158,11,.3)">
-            </div>
-          </div>
-          <div style="background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:10px" id="sbyFm70Block">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <input type="checkbox" id="sbyFm70" onclick="event.stopPropagation()" style="accent-color:var(--wn);width:16px;height:16px">
-              <label for="sbyFm70" style="font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;color:var(--tx)">Flow meter pipeline<br><span style="font-weight:400;color:var(--mu)">70 LPM</span></label>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:11px;color:var(--mu);white-space:nowrap;font-weight:700">No.</span>
-              <input type="number" id="sbyFm70No" min="0" placeholder="0" onclick="event.stopPropagation()" style="width:80px;padding:4px 8px;font-size:13px;border-color:rgba(245,158,11,.3)">
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="sbySummary" style="display:none;margin-top:10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--wn);font-weight:600"></div>
-    </div>
+    
 
     <!-- DIVIDER -->
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
