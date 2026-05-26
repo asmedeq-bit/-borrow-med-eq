@@ -2847,7 +2847,7 @@ function closeM(id){document.getElementById(id).classList.remove('on');}
 function toast(msg,type){if(!type)type='success';var w=document.getElementById('tw');var t=document.createElement('div');t.className='toast '+type;t.textContent={success:'✅',error:'❌',warning:'⚠️'}[type]+' '+msg;w.appendChild(t);setTimeout(function(){t.remove();},4000);}
 function bigToast(msg,type){if(!type)type='success';var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';var colors={success:['var(--ok)','rgba(16,185,129,.15)'],error:['var(--er)','rgba(239,68,68,.15)'],warning:['var(--wn)','rgba(245,158,11,.15)']};var ic={success:'✅',error:'❌',warning:'⚠️'};var c=colors[type]||colors.success;var box=document.createElement('div');box.style.cssText='background:var(--s1);border:2px solid '+c[0]+';border-radius:12px;padding:32px 40px;text-align:center;max-width:420px;width:100%';var lines=msg.split('\n');box.innerHTML='<div style="font-size:48px;margin-bottom:14px">'+ic[type]+'</div><div style="font-size:22px;font-weight:700;color:'+c[0]+';margin-bottom:8px;line-height:1.4">'+lines[0]+'</div>'+(lines.slice(1).map(function(l){return'<div style="font-size:15px;color:var(--mu);margin-top:6px">'+l+'</div>';}).join(''))+'<button style="margin-top:22px;background:'+c[0]+';color:'+(type==='warning'?'#000':'#fff')+';border:none;border-radius:7px;padding:10px 28px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--fn)" onclick="this.closest(\'[data-bt]\').remove()">ตกลง</button>';overlay.setAttribute('data-bt','1');overlay.appendChild(box);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);if(type==='success')setTimeout(function(){if(overlay.parentNode)overlay.remove();},3000);}
 </script>
-  // ═══════════════════════════════════════════════════════════════════
+<script>// ═══════════════════════════════════════════════════════════════════
 // PATCH v2: สถานะเครื่องมือแพทย์
 // - Dashboard: ตารางสถานะ + % คอลัมน์
 // - หน้าลงบันทึก: แสดง Standby badge ใน action row
@@ -3233,7 +3233,7 @@ new MutationObserver(function(){
   if(ac&&ac.style.display!=='none'&&!document.getElementById('atab-inv'))injectInvAdminTab();
 }).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
 
-})();
-     </script> 
+})();</script>
+</body>
 </body>
 </html>
