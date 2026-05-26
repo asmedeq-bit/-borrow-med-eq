@@ -2847,5 +2847,393 @@ function closeM(id){document.getElementById(id).classList.remove('on');}
 function toast(msg,type){if(!type)type='success';var w=document.getElementById('tw');var t=document.createElement('div');t.className='toast '+type;t.textContent={success:'✅',error:'❌',warning:'⚠️'}[type]+' '+msg;w.appendChild(t);setTimeout(function(){t.remove();},4000);}
 function bigToast(msg,type){if(!type)type='success';var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';var colors={success:['var(--ok)','rgba(16,185,129,.15)'],error:['var(--er)','rgba(239,68,68,.15)'],warning:['var(--wn)','rgba(245,158,11,.15)']};var ic={success:'✅',error:'❌',warning:'⚠️'};var c=colors[type]||colors.success;var box=document.createElement('div');box.style.cssText='background:var(--s1);border:2px solid '+c[0]+';border-radius:12px;padding:32px 40px;text-align:center;max-width:420px;width:100%';var lines=msg.split('\n');box.innerHTML='<div style="font-size:48px;margin-bottom:14px">'+ic[type]+'</div><div style="font-size:22px;font-weight:700;color:'+c[0]+';margin-bottom:8px;line-height:1.4">'+lines[0]+'</div>'+(lines.slice(1).map(function(l){return'<div style="font-size:15px;color:var(--mu);margin-top:6px">'+l+'</div>';}).join(''))+'<button style="margin-top:22px;background:'+c[0]+';color:'+(type==='warning'?'#000':'#fff')+';border:none;border-radius:7px;padding:10px 28px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--fn)" onclick="this.closest(\'[data-bt]\').remove()">ตกลง</button>';overlay.setAttribute('data-bt','1');overlay.appendChild(box);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);if(type==='success')setTimeout(function(){if(overlay.parentNode)overlay.remove();},3000);}
 </script>
+  // ═══════════════════════════════════════════════════════════════════
+// PATCH v2: สถานะเครื่องมือแพทย์
+// - Dashboard: ตารางสถานะ + % คอลัมน์
+// - หน้าลงบันทึก: แสดง Standby badge ใน action row
+// - Admin: แท็บจัดการสถานะเครื่องมือ
+// ═══════════════════════════════════════════════════════════════════
+(function(){
+
+// ── CSS เพิ่มเติม ──────────────────────────────────────────────────
+var style=document.createElement('style');
+style.textContent=[
+  '.pct-bar{display:inline-block;height:4px;border-radius:2px;vertical-align:middle;margin-left:4px}',
+  '.pct-lbl{font-size:10px;color:var(--mu);font-family:var(--mo)}',
+  '.inv-pct{display:flex;align-items:center;gap:4px;justify-content:center}',
+  '#invTableCard table td,#invTableCard table th{transition:background .12s}',
+  '.standby-rec-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;color:#f59e0b;vertical-align:middle;margin-left:4px}'
+].join('');
+document.head.appendChild(style);
+
+// ── INV DATA ──────────────────────────────────────────────────────
+var _INV_DEFAULT=[
+  {name:'Ventilator',total:74,inactive:25,forDept:5},
+  {name:'Ventilator transfer',total:15,inactive:1,forDept:5},
+  {name:'HFNC',total:78,inactive:25,forDept:0},
+  {name:'HFNC transfer',total:2,inactive:0,forDept:0},
+  {name:'BiPAP',total:5,inactive:2,forDept:0},
+  {name:'BIRD',total:12,inactive:0,forDept:1},
+  {name:'Infusion pump',total:223,inactive:13,forDept:28},
+  {name:'Infusion pump for chemo',total:15,inactive:0,forDept:0},
+  {name:'Syringe pump',total:44,inactive:0,forDept:14},
+  {name:'PCA',total:5,inactive:0,forDept:0},
+  {name:'Enteral feeding pump',total:22,inactive:0,forDept:0},
+  {name:'Oxygen flow meter pipeline',total:267,inactive:0,forDept:203},
+  {name:'Oxygen flow meter regulator',total:10,inactive:0,forDept:0},
+  {name:'Continuous suction pipeline',total:255,inactive:1,forDept:113},
+  {name:'Intermittent suction pipeline',total:15,inactive:2,forDept:0},
+  {name:'thoracic suction pipeline',total:13,inactive:0,forDept:0},
+  {name:'PEEP VALVE',total:4,inactive:0,forDept:0},
+  {name:'CPAP VALVE',total:15,inactive:0,forDept:0},
+  {name:'Heated probe',total:2,inactive:0,forDept:0}
+];
+function _invGet(){try{var v=localStorage.getItem('meq_inventory');return v?JSON.parse(v):JSON.parse(JSON.stringify(_INV_DEFAULT));}catch(e){return JSON.parse(JSON.stringify(_INV_DEFAULT));}}
+function _invSet(d){try{localStorage.setItem('meq_inventory',JSON.stringify(d));}catch(e){}}
+window._EQ_INV=_invGet();
+
+// ── % bar helper ────────────────────────────────────────────────
+function pBar(pct,color){
+  var w=Math.min(100,Math.max(0,pct));
+  return '<div class="inv-pct">'
+    +'<div class="pct-bar" style="width:'+Math.round(w*0.4)+'px;background:'+color+'"></div>'
+    +'<span class="pct-lbl">'+w.toFixed(1)+'%</span>'
+    +'</div>';
+}
+
+// ── On Loan from live data ───────────────────────────────────────
+function getOnLoanByName(){
+  var map={};
+  if(!window.expanded)return map;
+  (window.expanded()||[]).forEach(function(item){
+    if(item.status==='ACTIVE'){var n=(item.eq&&item.eq.name)||'';if(n)map[n]=(map[n]||0)+1;}
+  });
+  return map;
+}
+
+// ── Render dashboard table ───────────────────────────────────────
+window.renderInventoryTable=function(){
+  var cont=document.getElementById('invTableCont');if(!cont)return;
+  var inv=window._EQ_INV;
+  var olMap=getOnLoanByName();
+
+  var rows=inv.map(function(eq){
+    var T=eq.total||0,I=eq.inactive||0,F=eq.forDept||0;
+    var A=Math.max(0,T-I-F);
+    var OL=0;
+    Object.keys(olMap).forEach(function(k){if(k.trim().toLowerCase()===eq.name.trim().toLowerCase())OL=olMap[k];});
+    var AV=Math.max(0,A-OL);
+
+    // % of Total
+    var pA  = T>0?A/T*100:0;
+    var pI  = T>0?I/T*100:0;
+    var pFD = T>0?F/T*100:0;
+    // % of Active
+    var pOL = A>0?OL/A*100:0;
+    var pAV = A>0?AV/A*100:0;
+
+    var avColor=AV>5?'var(--ok)':AV>0?'var(--wn)':'var(--er)';
+    var olColor=OL>0?'var(--ac)':'var(--mu)';
+
+    return '<tr onmouseover="this.style.background=\'rgba(255,255,255,.03)\'" onmouseout="this.style.background=\'transparent\'">'
+      +'<td style="font-size:12px;font-weight:600;padding:6px 10px;border-bottom:1px solid var(--bd)">'+eq.name+'</td>'
+      +'<td style="text-align:center;font-family:var(--mo);padding:6px 8px;border-bottom:1px solid var(--bd)">'+T+'</td>'
+      // Active
+      +'<td style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--bd)">'
+        +'<div style="font-family:var(--mo);font-weight:700;color:var(--ok)">'+A+'</div>'
+        +pBar(pA,'var(--ok)')
+      +'</td>'
+      // Inactive
+      +'<td style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--bd)">'
+        +'<div style="font-family:var(--mo);font-weight:700;color:var(--er)">'+I+'</div>'
+        +pBar(pI,'var(--er)')
+      +'</td>'
+      // For Dept
+      +'<td style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--bd)">'
+        +'<div style="font-family:var(--mo);font-weight:700;color:#f59e0b">'+F+'</div>'
+        +pBar(pFD,'#f59e0b')
+      +'</td>'
+      // On Loan
+      +'<td style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--bd)">'
+        +'<div style="font-family:var(--mo);font-weight:700;color:'+olColor+'">'+OL+'</div>'
+        +(A>0?pBar(pOL,'var(--ac)'):'<span class="pct-lbl">—</span>')
+      +'</td>'
+      // Available
+      +'<td style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--bd)">'
+        +'<div style="font-family:var(--mo);font-size:13px;font-weight:700;color:'+avColor+'">'+AV+'</div>'
+        +(A>0?pBar(pAV,avColor):'<span class="pct-lbl">—</span>')
+      +'</td>'
+      +'</tr>';
+  }).join('');
+
+  // Totals
+  var tT=0,tA=0,tI=0,tF=0,tOL=0,tAV=0;
+  inv.forEach(function(eq){
+    var T=eq.total||0,I=eq.inactive||0,F=eq.forDept||0;
+    var A=Math.max(0,T-I-F);
+    var OL=0;
+    Object.keys(olMap).forEach(function(k){if(k.trim().toLowerCase()===eq.name.trim().toLowerCase())OL=olMap[k];});
+    tT+=T;tA+=A;tI+=I;tF+=F;tOL+=OL;tAV+=Math.max(0,A-OL);
+  });
+  var tpA=tT>0?tA/tT*100:0,tpI=tT>0?tI/tT*100:0,tpF=tT>0?tF/tT*100:0;
+  var tpOL=tA>0?tOL/tA*100:0,tpAV=tA>0?tAV/tA*100:0;
+
+  cont.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">'
+    +'<div style="font-size:11px;color:var(--mu)">🕐 อัปเดตล่าสุด: <span id="invLastUpdate" style="color:var(--ac)">'+new Date().toLocaleString('th-TH')+'</span></div>'
+    +'<button class="btn bg sm" onclick="refreshInventoryTable()">🔄 รีเฟรช</button></div>'
+    +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+    +'<thead><tr style="background:var(--s2)">'
+    +'<th style="text-align:left;padding:7px 10px;color:var(--mu);font-size:10px;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Medical Equipment</th>'
+    +'<th style="text-align:center;padding:7px 8px;color:var(--mu);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">Total</th>'
+    +'<th style="text-align:center;padding:7px 8px;color:var(--ok);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">Active<br><span style="color:var(--mu);font-weight:400">% of Total</span></th>'
+    +'<th style="text-align:center;padding:7px 8px;color:var(--er);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">Inactive<br><span style="color:var(--mu);font-weight:400">% of Total</span></th>'
+    +'<th style="text-align:center;padding:7px 8px;color:#f59e0b;font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">For Dept Use<br><span style="color:var(--mu);font-weight:400">% of Total</span></th>'
+    +'<th style="text-align:center;padding:7px 8px;color:var(--ac);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">On Loan<br><span style="color:var(--mu);font-weight:400">% of Active</span></th>'
+    +'<th style="text-align:center;padding:7px 8px;color:var(--ok);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">Available<br><span style="color:var(--mu);font-weight:400">% of Active</span></th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'<tfoot><tr style="background:linear-gradient(135deg,rgba(0,200,255,.08),rgba(124,58,237,.06));border-top:2px solid var(--ac)">'
+    +'<td style="padding:8px 10px;font-weight:700;font-size:12px;color:var(--ac)">รวมทั้งหมด</td>'
+    +'<td style="text-align:center;font-family:var(--mo);font-weight:700;padding:8px">'+tT+'</td>'
+    +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:var(--ok)">'+tA+'</div>'+pBar(tpA,'var(--ok)')+'</td>'
+    +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:var(--er)">'+tI+'</div>'+pBar(tpI,'var(--er)')+'</td>'
+    +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:#f59e0b">'+tF+'</div>'+pBar(tpF,'#f59e0b')+'</td>'
+    +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:var(--ac)">'+tOL+'</div>'+pBar(tpOL,'var(--ac)')+'</td>'
+    +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;font-size:14px;color:var(--ok)">'+tAV+'</div>'+pBar(tpAV,'var(--ok)')+'</td>'
+    +'</tr></tfoot></table></div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;padding:8px 12px;background:var(--s2);border-radius:6px;font-size:11px;color:var(--mu)">'
+    +'<span>🟢 <b style="color:var(--ok)">Active</b> = Total−Inactive−ForDept &nbsp;|&nbsp; % of Total</span>'
+    +'<span>🔴 <b style="color:var(--er)">Inactive</b> % of Total</span>'
+    +'<span>🟡 <b style="color:#f59e0b">For Dept</b> % of Total</span>'
+    +'<span>🔵 <b style="color:var(--ac)">On Loan</b> = ข้อมูลยืมจริง &nbsp;|&nbsp; % of Active</span>'
+    +'<span>✅ <b style="color:var(--ok)">Available</b> = Active−OnLoan &nbsp;|&nbsp; % of Active</span>'
+    +'</div>';
+};
+
+window.refreshInventoryTable=function(){
+  window._EQ_INV=_invGet();renderInventoryTable();
+  var el=document.getElementById('invLastUpdate');
+  if(el)el.textContent=new Date().toLocaleString('th-TH');
+  if(window.toast)window.toast('รีเฟรชสถานะเครื่องมือแล้ว','success');
+};
+
+setInterval(function(){
+  var d=document.getElementById('pg-dash');
+  if(d&&d.classList.contains('on'))renderInventoryTable();
+},5*60*1000);
+
+// ── Patch updateDash ─────────────────────────────────────────────
+var _origUD=window.updateDash;
+window.updateDash=function(){
+  if(_origUD)_origUD.apply(this,arguments);
+  setTimeout(function(){
+    var dc=document.getElementById('dashCont');if(!dc)return;
+    if(!document.getElementById('invTableCard')){
+      var card=document.createElement('div');
+      card.id='invTableCard';card.className='card';
+      card.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
+        +'<div class="ctitle" style="margin:0">📋 สถานะเครื่องมือแพทย์</div>'
+        +'<button class="btn bp sm" onclick="refreshInventoryTable()">🔄 รีเฟรช</button></div>'
+        +'<div id="invTableCont"><div class="lding"><div class="spin"></div></div></div>';
+      dc.appendChild(card);
+    }
+    renderInventoryTable();
+  },300);
+};
+
+// ════════════════════════════════════════════════════════════════
+// หน้าลงบันทึก: เพิ่ม Standby badge ใน record row ที่มีชื่อ Standby
+// patch renderRec เพื่อเพิ่ม cancel button สำหรับ ACTIVE item
+// ════════════════════════════════════════════════════════════════
+var _origRenderRec=window.renderRec;
+window.renderRec=function(){
+  if(_origRenderRec)_origRenderRec.apply(this,arguments);
+  // หลัง render เสร็จ inject Standby badge เข้าไปใน rows ที่ยังไม่มี
+  setTimeout(function(){
+    var rows=document.querySelectorAll('#recBody tr.item-row');
+    rows.forEach(function(row){
+      // ดู text ใน td ที่ 2 (ชื่อเครื่องมือ)
+      var cells=row.querySelectorAll('td');
+      if(cells.length<2)return;
+      var nameCell=cells[1];
+      var txt=nameCell.textContent||'';
+      if(txt.toLowerCase().includes('standby')&&!nameCell.querySelector('.standby-rec-badge')){
+        var badge=document.createElement('span');
+        badge.className='standby-rec-badge';
+        badge.innerHTML='⏸ STANDBY';
+        // หา strong tag ชื่อเครื่อง
+        var strong=nameCell.querySelector('strong');
+        if(strong)strong.parentNode.insertBefore(badge,strong.nextSibling);
+        else nameCell.appendChild(badge);
+      }
+      // เพิ่ม cancel button สำหรับ ACTIVE items
+      var actionCell=cells[cells.length-1];
+      var hasCancel=actionCell.querySelector('[data-act="cancelItem"]');
+      if(!hasCancel){
+        var borrowBtn=actionCell.querySelector('[data-act="borrow"]');
+        if(borrowBtn){
+          // มี borrow = PENDING → เพิ่มปุ่มยกเลิกรายการ
+          var key=borrowBtn.getAttribute('data-key');
+          var cancelBtn=document.createElement('button');
+          cancelBtn.className='abt';
+          cancelBtn.setAttribute('data-act','cancelItem');
+          cancelBtn.setAttribute('data-key',key);
+          cancelBtn.style.cssText='border-color:var(--er);color:var(--er);font-size:11px;margin-left:4px';
+          cancelBtn.textContent='✕ ยกเลิก';
+          cancelBtn.onclick=function(){
+            var k=this.getAttribute('data-key');
+            cancelRecordItem(k);
+          };
+          actionCell.appendChild(cancelBtn);
+        }
+      }
+    });
+  },100);
+};
+
+// ── ยกเลิกรายการ PENDING ────────────────────────────────────────
+window.cancelRecordItem=async function(key){
+  if(!window._rMap)return;
+  var item=window._rMap[key];
+  if(!item)return;
+  var eqName=item.eq?item.eq.name:'รายการนี้';
+  if(!confirm('ยกเลิกรายการ "'+eqName+'" ใน '+item.loan.LoanID+' ?'))return;
+  try{
+    // ถ้า loan มีแค่ item เดียว → cancel loan ทั้งใบ
+    var eqList=item.loan.EquipmentList||[];
+    if(eqList.length<=1){
+      await window.API.cancelLoan(item.loan.LoanID);
+      if(window.toast)window.toast('ยกเลิกใบยืม '+item.loan.LoanID+' แล้ว','success');
+    } else {
+      // mark ใน equipment_list ว่า cancelled
+      var newList=eqList.map(function(e,i){
+        return i===item.idx?Object.assign({},e,{cancelled:true}):e;
+      });
+      await window.API.updateLoan(item.loan.LoanID,{equipment_list:newList});
+      if(window.toast)window.toast('ยกเลิกรายการ "'+eqName+'" แล้ว','success');
+    }
+    if(window.loadAll)window.loadAll();
+  }catch(e){
+    if(window.toast)window.toast('ยกเลิกไม่สำเร็จ: '+e.message,'error');
+  }
+};
+
+// ════════════════════════════════════════════════════════════════
+// ADMIN: Equipment Inventory Manager tab
+// ════════════════════════════════════════════════════════════════
+function buildInvRows(inv){
+  return inv.map(function(eq,i){
+    return '<tr onmouseover="this.style.background=\'rgba(245,158,11,.04)\'" onmouseout="this.style.background=\'transparent\'">'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd)">'
+        +'<input class="inline-edit" style="width:220px;font-size:12px" value="'+eq.name.replace(/"/g,'&quot;')+'" onchange="invUpdateName('+i+',this.value)">'
+      +'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
+        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center" value="'+(eq.total||0)+'" onchange="invUpdate('+i+',\'total\',this.value)">'
+      +'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
+        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center;border-color:var(--er)" value="'+(eq.inactive||0)+'" onchange="invUpdate('+i+',\'inactive\',this.value)">'
+      +'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
+        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center;border-color:#f59e0b" value="'+(eq.forDept||0)+'" onchange="invUpdate('+i+',\'forDept\',this.value)">'
+      +'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
+        +'<button class="abt" style="font-size:11px;border-color:var(--er);color:var(--er)" onclick="invRemove('+i+')">✕ ลบ</button>'
+      +'</td></tr>';
+  }).join('');
+}
+
+function buildInvAdminHTML(){
+  var inv=_invGet();
+  return '<div class="card">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
+    +'<div class="ctitle" style="margin:0;color:#f59e0b">📊 จัดการสถานะเครื่องมือแพทย์</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+    +'<button class="btn bg sm" onclick="invReload()">🔄 โหลด</button>'
+    +'<button class="btn badm sm" onclick="invSave()">✅ บันทึก</button></div></div>'
+    +'<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:var(--mu)">'
+    +'Active = Total−Inactive−ForDept &nbsp;|&nbsp; On Loan = อัตโนมัติ &nbsp;|&nbsp; Available = Active−OnLoan &nbsp;|&nbsp; % คำนวณอัตโนมัติ'
+    +'</div>'
+    +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'
+    +'<thead><tr style="background:var(--s2)">'
+    +'<th style="text-align:left;padding:8px 10px;font-size:10px;color:var(--mu);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">ชื่อเครื่องมือ</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Total ✏️</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--er);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Inactive ✏️</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:#f59e0b;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">For Dept Use ✏️</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--mu);font-weight:700;border-bottom:2px solid var(--bd)">จัดการ</th>'
+    +'</tr></thead>'
+    +'<tbody id="invAdminBody">'+buildInvRows(inv)+'</tbody></table></div>'
+    +'<div style="margin-top:14px;padding:14px;background:var(--s2);border-radius:8px">'
+    +'<div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:10px">➕ เพิ่มรายการเครื่องมือใหม่</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">'
+    +'<div class="fg"><label>ชื่อเครื่องมือ *</label><input type="text" id="newInvName" placeholder="เช่น New Device" style="min-width:180px"></div>'
+    +'<div class="fg"><label>Total</label><input type="number" min="0" id="newInvTotal" value="0" style="width:80px;text-align:center"></div>'
+    +'<div class="fg"><label>Inactive</label><input type="number" min="0" id="newInvInactive" value="0" style="width:80px;text-align:center"></div>'
+    +'<div class="fg"><label>For Dept Use</label><input type="number" min="0" id="newInvForDept" value="0" style="width:80px;text-align:center"></div>'
+    +'<button class="btn badm" style="margin-bottom:3px" onclick="invAdd()">➕ เพิ่ม</button>'
+    +'</div></div></div>';
+}
+
+window.invUpdate=function(i,field,val){var inv=_invGet();if(!inv[i])return;inv[i][field]=parseInt(val,10)||0;_invSet(inv);window._EQ_INV=inv;};
+window.invUpdateName=function(i,val){var inv=_invGet();if(!inv[i])return;inv[i].name=(val||'').trim();_invSet(inv);window._EQ_INV=inv;};
+window.invAdd=function(){
+  var name=(document.getElementById('newInvName').value||'').trim();
+  if(!name){if(window.toast)window.toast('กรุณาระบุชื่อเครื่องมือ','error');return;}
+  var inv=_invGet();
+  inv.push({name:name,total:parseInt(document.getElementById('newInvTotal').value,10)||0,inactive:parseInt(document.getElementById('newInvInactive').value,10)||0,forDept:parseInt(document.getElementById('newInvForDept').value,10)||0});
+  _invSet(inv);window._EQ_INV=inv;
+  document.getElementById('newInvName').value='';
+  document.getElementById('newInvTotal').value='0';
+  document.getElementById('newInvInactive').value='0';
+  document.getElementById('newInvForDept').value='0';
+  var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows(_invGet());
+  if(window.toast)window.toast('เพิ่มรายการสำเร็จ','success');
+};
+window.invRemove=function(i){
+  var inv=_invGet();if(!inv[i])return;
+  if(!confirm('ลบ "'+inv[i].name+'" ?'))return;
+  inv.splice(i,1);_invSet(inv);window._EQ_INV=inv;invReload();
+};
+window.invSave=function(){_invSet(_invGet());window._EQ_INV=_invGet();renderInventoryTable();if(window.toast)window.toast('บันทึกสำเร็จ!','success');};
+window.invReload=function(){window._EQ_INV=_invGet();var p=document.getElementById('adm-inv-mgr');if(p)p.innerHTML=buildInvAdminHTML();};
+
+function injectInvAdminTab(){
+  var ac=document.getElementById('adminContent');if(!ac||document.getElementById('atab-inv'))return;
+  var tabs=ac.querySelector('.admin-tabs');
+  if(tabs){
+    var btn=document.createElement('button');
+    btn.className='atab';btn.id='atab-inv';
+    btn.setAttribute('onclick','showAdminTab(\'inv-mgr\',this)');
+    btn.innerHTML='📊 จัดการสถานะเครื่องมือ';
+    tabs.appendChild(btn);
+  }
+  var panel=document.createElement('div');
+  panel.className='admin-sub';panel.id='adm-inv-mgr';
+  panel.innerHTML=buildInvAdminHTML();
+  ac.appendChild(panel);
+}
+
+var _origSAT=window.showAdminTab;
+window.showAdminTab=function(id,el){
+  if(id==='inv-mgr'){
+    document.querySelectorAll('.admin-sub').forEach(function(s){s.classList.remove('on');});
+    document.querySelectorAll('.atab').forEach(function(t){t.classList.remove('on');});
+    var p=document.getElementById('adm-inv-mgr');if(p)p.classList.add('on');
+    if(el)el.classList.add('on');invReload();
+  } else {if(_origSAT)_origSAT.apply(this,arguments);}
+};
+
+var _origCAP=window.checkAdminPin;
+window.checkAdminPin=function(){
+  if(_origCAP)_origCAP.apply(this,arguments);
+  setTimeout(function(){var ac=document.getElementById('adminContent');if(ac&&ac.style.display!=='none')injectInvAdminTab();},400);
+};
+new MutationObserver(function(){
+  var ac=document.getElementById('adminContent');
+  if(ac&&ac.style.display!=='none'&&!document.getElementById('atab-inv'))injectInvAdminTab();
+}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
+
+})();
+     </script> 
 </body>
 </html>
