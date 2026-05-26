@@ -1,4 +1,4 @@
-ยืมคืน v4 เพิ่มกรอกข้อมูลเพิ่มสำหรับเครื่อง standby
+ยืมคืน v3 ไม่มี standby
 
 
 <!DOCTYPE html>
@@ -1315,7 +1315,7 @@ function selEq(i){
   var card=document.getElementById('eqcard_'+i),chk=document.getElementById('eqcheck_'+i);
   if(card){card.style.borderColor='var(--ac)';card.style.background='rgba(0,200,255,.06)';card.style.boxShadow='0 0 0 1px var(--ac)';}
   if(chk)chk.style.display='flex';
-  // show VH panel for Ventilator / HFNC
+  // show VH panel for Ventilator / HFNC only
   var vhp=document.getElementById('vhpanel_'+i);
   if(vhp){vhp.style.display='block';setTimeout(function(){var el=document.getElementById('vheqno_'+i);if(el)el.focus();},80);}
   _selEqIdx=i;
@@ -1410,10 +1410,9 @@ async function submitLoan(){
     // ── regular eq path ──
     if(_selEqIdx<0){bigToast('กรุณาเลือกรายการเครื่องมือ 1 รายการ','error');return;}
     var name=EQL[_selEqIdx];var oEl=document.getElementById('oth_'+_selEqIdx);
-    // ── Ventilator / HFNC extra fields ──
+    // ── Ventilator / HFNC extra fields (ไม่บังคับ) ──
     var _vhEqNo='',_vhFmNo='';
-    var _VH_NAMES=['Ventilator','HFNC'];
-    if(_VH_NAMES.indexOf(name)>=0){
+    if(['Ventilator','HFNC'].indexOf(name)>=0){
       var _vhEqNoEl=document.getElementById('vheqno_'+_selEqIdx);
       var _vhFmNoEl=document.getElementById('vhfmno_'+_selEqIdx);
       _vhEqNo=_vhEqNoEl?_vhEqNoEl.value.trim():'';
