@@ -2020,7 +2020,88 @@ function renderSum(r){
         +'</div>';
     })();
 
-  sc.innerHTML=chartHtml+dayTableHtml+avgHtml+origHtml;
+  // ─── ข้อมูลการยืมเครื่องมือทั้งหมด (bar chart + table) ───
+  var ALL_STAT_LABEL={PENDING:'รอดำเนินการจ่าย',ACTIVE:'ยืม',RETURNED:'คืน',ACC_PENDING:'คืน (อุปกรณ์ค้าง)',CANCELLED:'ยกเลิก'};
+  var ALL_STAT_BADGE={PENDING:'bp2',ACTIVE:'ba',RETURNED:'br2',ACC_PENDING:'bap',CANCELLED:'bc2'};
+
+  // กรองตาม filter ทั้งหมด
+  var allLoansRows=expFiltered.filter(function(item){return item.status!=='CANCELLED';});
+  allLoansRows=allLoansRows.slice().sort(function(a,b){
+    return(b.loan.LoanDate||'').localeCompare(a.loan.LoanDate||'');
+  });
+
+  // ── สถิติรวม ──
+  var alStat={PENDING:0,ACTIVE:0,RETURNED:0,ACC_PENDING:0};
+  allLoansRows.forEach(function(item){if(alStat[item.status]!==undefined)alStat[item.status]++;});
+
+  // ── Horizontal bar chart: จำนวนการยืมแยกตามเครื่องมือ ──
+  var eqCountAll={};
+  allLoansRows.forEach(function(item){
+    var n=S(item.eq.name);
+    eqCountAll[n]=(eqCountAll[n]||0)+1;
+  });
+  var eqBarArr=Object.entries(eqCountAll).sort(function(a,b){return b[1]-a[1];});
+  var maxBarVal=eqBarArr.length>0?eqBarArr[0][1]:1;
+  var BAR_COLORS=['#00c8ff','#7c3aed','#10b981','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#34d399','#fbbf24','#f87171','#22d3ee','#a78bfa','#fb923c','#4ade80','#c084fc','#fb7185','#38bdf8','#facc15','#e879f9','#a3e635'];
+
+  var barChartHtml='';
+  if(eqBarArr.length===0){
+    barChartHtml='<div style="text-align:center;padding:20px;color:var(--mu)">ไม่มีข้อมูล</div>';
+  }else{
+    var barRows=eqBarArr.map(function(e,i){
+      var pct=maxBarVal>0?e[1]/maxBarVal*100:0;
+      var col=BAR_COLORS[i%BAR_COLORS.length];
+      return'<div class="al-bar-row" data-eq="'+e[0].replace(/"/g,'&quot;')+'" style="display:flex;align-items:center;gap:0;padding:3px 0;cursor:pointer;border-radius:4px;transition:background .12s" title="'+e[0]+': '+e[1]+' รายการ — คลิกเพื่อกรอง">'        +'<div style="width:180px;text-align:right;padding-right:12px;font-size:12px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0">'+e[0]+'</div>'        +'<div style="flex:1;display:flex;align-items:center;gap:8px">'          +'<div style="height:22px;background:'+col+';border-radius:0 4px 4px 0;min-width:4px;transition:width .4s ease" class="al-bar-fill" style="width:0"></div>'          +'<span style="font-size:12px;font-weight:700;font-family:var(--mo);color:'+col+';min-width:28px">'+e[1]+'</span>'        +'</div>'        +'</div>';
+    }).join('');
+    barChartHtml='<div id="alBarCont" style="padding:8px 0">'+barRows+'</div>'
+      +'<div style="font-size:11px;color:var(--mu);margin-top:4px;padding-left:180px">💡 คลิกที่แถวเพื่อกรองตารางด้านล่าง</div>';
+  }
+
+  // ── filter badges ──
+  var alFilters=[];
+  if(fDateS||fDateE)alFilters.push('📅 '+(fDateS||'...')+' – '+(fDateE||'...'));
+  if(fDept)alFilters.push('🏥 '+fDept);
+  if(fEq)alFilters.push('🔧 '+fEq);
+  if(fStat)alFilters.push('● '+(ALL_STAT_LABEL[fStat]||fStat));
+  var alFilterBadge=alFilters.length
+    ?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+alFilters.map(function(f){return'<span style="background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.25);border-radius:12px;padding:2px 10px;font-size:11px;color:var(--ac)">'+f+'</span>';}).join('')+'</div>'
+    :'';
+
+  // ── summary stat cards ──
+  var alSummaryHtml='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'    +'<div style="background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--ac)">'+allLoansRows.length+'</div><div style="font-size:10px;color:var(--mu)">ทั้งหมด</div></div>'    +'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--wn)">'+alStat.PENDING+'</div><div style="font-size:10px;color:var(--mu)">รอดำเนินการ</div></div>'    +'<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--ok)">'+alStat.ACTIVE+'</div><div style="font-size:10px;color:var(--mu)">กำลังยืม</div></div>'    +'<div style="background:rgba(139,148,158,.08);border:1px solid rgba(139,148,158,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--mu)">'+alStat.RETURNED+'</div><div style="font-size:10px;color:var(--mu)">คืนแล้ว</div></div>'    +'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:#f59e0b">'+alStat.ACC_PENDING+'</div><div style="font-size:10px;color:var(--mu)">อุปกรณ์ค้าง</div></div>'    +'</div>';
+
+  // ── ตาราง ──
+  var alTableHtml='';
+  if(allLoansRows.length===0){
+    alTableHtml='<div style="text-align:center;padding:30px;color:var(--mu)">ไม่มีข้อมูลที่ตรงเงื่อนไข</div>';
+  }else{
+    var alRows=allLoansRows.map(function(item){
+      var now2=new Date();
+      var ld=item.loan.LoanDate||'-';
+      var startD=ld!=='-'?new Date(ld):null;
+      var endD=item.borrow&&item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now2;
+      var days=startD&&(item.status==='ACTIVE'||item.status==='RETURNED'||item.status==='ACC_PENDING')?Math.max(0,Math.round((endD-startD)/86400000)):'-';
+      var dC=typeof days==='number'&&days>30?'var(--er)':typeof days==='number'&&days>14?'var(--wn)':'var(--ok)';
+      var eqNo=item.borrow?S(item.borrow.EquipmentNo||'—'):'—';
+      var detail=item.eq&&item.eq.detail?(' <span style="font-size:10px;color:var(--mu)">'+item.eq.detail+'</span>'):'';
+      var giver=item.borrow?S(item.borrow.GiverName||'—'):'—';
+      var receiver=item.borrow?S(item.borrow.ReceiverName||'—'):'—';
+      var retDate=item.borrow&&item.borrow.ReturnDate?S(item.borrow.ReturnDate):'—';
+      var retRemark=item.borrow&&item.borrow.ReturnRemark?('<br><span style="font-size:10px;color:var(--mu)">'+S(item.borrow.ReturnRemark)+'</span>'):'';
+      var lid=S(item.loan.LoanID);
+      var eqName=S(item.eq.name);
+      var searchTxt=(lid+' '+S(item.loan.BorrowerName)+' '+S(item.loan.DeptName)+' '+S(item.loan.PatientName)+' '+eqName+' '+eqNo+' '+giver+' '+receiver).toLowerCase();
+      return'<tr class="alrow" data-lid="'+lid+'" data-eq="'+eqName.replace(/"/g,'&quot;')+'" data-search="'+searchTxt.replace(/"/g,'&quot;')+'" style="cursor:pointer">'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-family:var(--mo);font-size:10px;color:var(--ac)">'+lid+'<br><span style="color:var(--mu)">#'+item.idx+'</span></td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);white-space:nowrap;font-size:12px">'+ld+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd)"><strong>'+S(item.loan.BorrowerName)+'</strong></td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd)"><strong>'+S(item.loan.DeptName)+'</strong></td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-size:12px">'+S(item.loan.PatientName)+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd)"><strong>'+eqName+'</strong>'+detail+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-family:var(--mo);font-size:12px;color:var(--ac)">'+eqNo+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-size:12px">'+giver+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-size:12px">'+retDate+retRemark+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-size:12px">'+receiver+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);font-weight:700;color:'+dC+'">'+days+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd)"><span class="badge '+(ALL_STAT_BADGE[item.status]||'bp2')+'">'+(ALL_STAT_LABEL[item.status]||item.status)+'</span></td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);text-align:center"><button class="abt alview" data-lid="'+lid+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">👁</button></td>'        +'</tr>';
+    }).join('');
+    alTableHtml='<div style="overflow-x:auto"><table class="dt" id="alTable">'      +'<thead><tr>'      +'<th style="white-space:nowrap;font-size:10px">LoanID/#</th>'      +'<th style="white-space:nowrap;font-size:10px">วันที่ยืม</th>'      +'<th style="font-size:10px">ผู้ยืม</th>'      +'<th style="font-size:10px">แผนก</th>'      +'<th style="font-size:10px">ผู้ป่วย</th>'      +'<th style="font-size:10px">เครื่องมือ</th>'      +'<th style="white-space:nowrap;font-size:10px">หมายเลขเครื่อง</th>'      +'<th style="font-size:10px">ผู้ให้ยืม</th>'      +'<th style="white-space:nowrap;font-size:10px">วันที่คืน</th>'      +'<th style="font-size:10px">ผู้รับคืน</th>'      +'<th style="text-align:center;font-size:10px">วัน</th>'      +'<th style="font-size:10px">สถานะ</th>'      +'<th style="width:36px"></th>'      +'</tr></thead>'      +'<tbody id="alTbody">'+alRows+'</tbody></table></div>';
+  }
+
+  // ── search bar + count ──
+  var alSearchBarHtml='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">'    +'<input type="text" id="alSearch" placeholder="🔍 ค้นหา LoanID, ผู้ยืม, ผู้ป่วย, แผนก, หมายเลขเครื่อง..." oninput="alFilterRows(this.value)" style="flex:1;min-width:240px;font-size:12px;padding:6px 10px;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx)">'    +'<span id="alCount" style="font-size:11px;color:var(--mu);white-space:nowrap;min-width:80px">'+allLoansRows.length+' รายการ</span>'    +'<button class="btn bg sm" id="alClearEqFilter" style="display:none" onclick="alClearEqFilter()">✕ ล้าง filter bar</button>'    +'</div>';
+
+  var allLoansHtml='<div class="card" style="margin-top:4px">'    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'      +'<div class="ctitle" style="margin:0">📋 ข้อมูลการยืมเครื่องมือทั้งหมด</div>'      +'<div style="display:flex;gap:4px">'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;csv&quot;)">CSV</button>'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;xlsx&quot;)">XLS</button>'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;pdf&quot;)">PDF</button>'      +'</div>'    +'</div>'    +alFilterBadge    +alSummaryHtml    +'<div class="card" style="background:var(--bg);border-color:rgba(0,200,255,.15);margin-bottom:14px;padding:14px 16px">'      +'<div style="font-size:11px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📊 จำนวนการยืมแยกตามเครื่องมือ</div>'      +barChartHtml    +'</div>'    +'</div>';
+
+  sc.innerHTML=chartHtml+dayTableHtml+avgHtml+origHtml+allLoansHtml;
 
   if(sc._svh)sc.removeEventListener('click',sc._svh);
   sc._svh=function(e){
@@ -2029,6 +2110,12 @@ function renderSum(r){
     // avg tile click
     var tile=e.target.closest('.avg-tile');
     if(tile&&tile.dataset.eq){sumFilterByEq(tile.dataset.eq);return;}
+    // all loans table — view button
+    var vbtn=e.target.closest('.alview');
+    if(vbtn&&vbtn.dataset.lid){e.stopPropagation();viewDet(vbtn.dataset.lid);return;}
+    // all loans table row click
+    var alrow=e.target.closest('.alrow');
+    if(alrow&&alrow.dataset.lid){viewDet(alrow.dataset.lid);return;}
     var btn=e.target.closest('.svb');if(!btn||!btn.dataset.key)return;
     var d=_sMap[btn.dataset.key];if(!d)return;
     if(d.type==='eq'){
@@ -2040,10 +2127,97 @@ function renderSum(r){
   // avg tile hover via event delegation
   if(sc._moh)sc.removeEventListener('mouseover',sc._moh);
   if(sc._mol)sc.removeEventListener('mouseout',sc._mol);
-  sc._moh=function(e){var t=e.target.closest('.avg-tile');if(t){t.style.boxShadow='0 0 0 2px rgba(0,200,255,.3)';t.style.transform='translateY(-2px)';}};
-  sc._mol=function(e){var t=e.target.closest('.avg-tile');if(t){t.style.boxShadow='';t.style.transform='';}};
+  sc._moh=function(e){
+    var t=e.target.closest('.avg-tile');if(t){t.style.boxShadow='0 0 0 2px rgba(0,200,255,.3)';t.style.transform='translateY(-2px)';}
+    var r=e.target.closest('.alrow');if(r)r.style.background='rgba(0,200,255,.04)';
+  };
+  sc._mol=function(e){
+    var t=e.target.closest('.avg-tile');if(t){t.style.boxShadow='';t.style.transform='';}
+    var r=e.target.closest('.alrow');if(r)r.style.background='';
+  };
   sc.addEventListener('mouseover',sc._moh);
   sc.addEventListener('mouseout',sc._mol);
+
+  // ── animate horizontal bars (requestAnimationFrame) ──
+  setTimeout(function(){
+    var cont=document.getElementById('alBarCont');
+    if(!cont)return;
+    var fills=cont.querySelectorAll('.al-bar-fill');
+    // ต้องคำนวณ width จาก parent flex
+    var rows2=cont.querySelectorAll('.al-bar-row');
+    rows2.forEach(function(row,i){
+      var fill=row.querySelector('.al-bar-fill');
+      if(!fill)return;
+      // ดึง pct จาก title
+      var title=row.getAttribute('title')||'';
+      var m=title.match(/: (\d+) รายการ/);
+      if(!m)return;
+      var val=parseInt(m[1]);
+      // หา max จากทุก row
+      var allVals=[];
+      rows2.forEach(function(r){
+        var t2=r.getAttribute('title')||'';
+        var m2=t2.match(/: (\d+) รายการ/);
+        if(m2)allVals.push(parseInt(m2[1]));
+      });
+      var mx=Math.max.apply(null,allVals)||1;
+      var pct=val/mx*100;
+      // get container width
+      var contW=fill.parentElement?fill.parentElement.getBoundingClientRect().width-40:300;
+      var targetW=Math.round(pct/100*contW);
+      fill.style.width='0px';
+      fill.style.transition='none';
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          fill.style.transition='width .5s ease';
+          fill.style.width=Math.max(4,targetW)+'px';
+        });
+      });
+    });
+  },80);
+
+  // ── bar row click: filter ตาราง ──
+  if(sc._barh)sc.removeEventListener('click',sc._barh);
+  sc._barh=function(e){
+    var row=e.target.closest('.al-bar-row');if(!row)return;
+    var eq=row.dataset.eq;if(!eq)return;
+    // highlight selected bar
+    sc.querySelectorAll('.al-bar-row').forEach(function(r){r.style.background='';});
+    row.style.background='rgba(0,200,255,.08)';
+    // filter alTbody
+    var tbody=document.getElementById('alTbody');if(!tbody)return;
+    var rows=tbody.querySelectorAll('.alrow');
+    var shown=0;
+    rows.forEach(function(tr){
+      var match=!eq||tr.dataset.eq===eq;
+      tr.style.display=match?'':'none';
+      if(match)shown++;
+    });
+    var cnt=document.getElementById('alCount');if(cnt)cnt.textContent=shown+' รายการ ('+eq+')';
+    var clrBtn=document.getElementById('alClearEqFilter');if(clrBtn)clrBtn.style.display='inline-flex';
+    // clear search
+    var srch=document.getElementById('alSearch');if(srch)srch.value='';
+  };
+  sc.addEventListener('click',sc._barh);
+
+  // ── bar row hover ──
+  if(sc._barmoh)sc.removeEventListener('mouseover',sc._barmoh);
+  if(sc._barmol)sc.removeEventListener('mouseout',sc._barmol);
+  sc._barmoh=function(e){var r=e.target.closest('.al-bar-row');if(r)r.style.background='rgba(0,200,255,.06)';};
+  sc._barmol=function(e){var r=e.target.closest('.al-bar-row');if(r&&r.style.background!=='rgba(0,200,255,.08)')r.style.background='';};
+  sc.addEventListener('mouseover',sc._barmoh);
+  sc.addEventListener('mouseout',sc._barmol);
+}
+
+function alClearEqFilter(){
+  var tbody=document.getElementById('alTbody');
+  if(tbody)tbody.querySelectorAll('.alrow').forEach(function(tr){tr.style.display='';});
+  var cnt=document.getElementById('alCount');
+  if(cnt&&tbody)cnt.textContent=tbody.querySelectorAll('.alrow').length+' รายการ';
+  var btn=document.getElementById('alClearEqFilter');if(btn)btn.style.display='none';
+  var sc=document.getElementById('sumCont');
+  if(sc)sc.querySelectorAll('.al-bar-row').forEach(function(r){r.style.background='';});
+  var srch=document.getElementById('alSearch');if(srch)srch.value='';
 }
 
 function sumFilterByEq(eqName){
@@ -2066,6 +2240,23 @@ function filterAllByEqNo(eqNo){
 }
 
 
+function alFilterRows(q){
+  var ql=(q||'').toLowerCase().trim();
+  var tbody=document.getElementById('alTbody');if(!tbody)return;
+  var rows=tbody.querySelectorAll('.alrow');
+  var shown=0;
+  rows.forEach(function(tr){
+    var match=!ql||tr.dataset.search.includes(ql);
+    tr.style.display=match?'':'none';
+    if(match)shown++;
+  });
+  var cnt=document.getElementById('alCount');
+  if(cnt)cnt.textContent=shown+' รายการ'+(ql?' (ค้นหา: "'+ql+'"）':'');
+  // clear bar highlight when searching
+  var sc=document.getElementById('sumCont');
+  if(ql&&sc)sc.querySelectorAll('.al-bar-row').forEach(function(r){r.style.background='';});
+  var btn=document.getElementById('alClearEqFilter');if(btn)btn.style.display=ql?'none':'none';
+}
 function filterEqDays(q){var ql=(q||'').toLowerCase().trim();var rows=document.querySelectorAll('#eqDaysTbody .eqdrow');rows.forEach(function(tr){var match=!ql||tr.dataset.eqno.includes(ql)||tr.dataset.eqname.includes(ql);tr.style.display=match?'':'none';});}
 function filterAllByEq(eqName){showPg('all',document.querySelectorAll('.nt')[4]);setTimeout(function(){var sel=document.getElementById('allEq');if(sel){sel.value=eqName;renderAll();}},100);}
 function filterAllByDate(dateStr){showPg('all',document.querySelectorAll('.nt')[4]);setTimeout(function(){var ds=document.getElementById('allDateS');var de=document.getElementById('allDateE');if(ds)ds.value=dateStr;if(de)de.value=dateStr;renderAll();},100);}
