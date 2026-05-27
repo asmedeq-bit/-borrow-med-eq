@@ -1680,7 +1680,7 @@ function localDateStr(d){
   return _bkkFmt.format(d instanceof Date?d:new Date(d));
 }
 function bangkokNow(){return new Date();}
-function renderSum(r){
+async function renderSum(r){
   var now=new Date(),sc=document.getElementById('sumCont');var _sMap={};
   if(!loans){sc.innerHTML='<div class="lding"><div class="spin"></div> กำลังโหลด...</div>';return;}
 
@@ -1814,62 +1814,135 @@ function renderSum(r){
   }
   var dailyActiveByEq={};
   var datesForAvg=rangeDates.slice().reverse().slice(0,30);
-  expFiltered.forEach(function(item){
-    if(item.status==='PENDING'||item.status==='CANCELLED')return;
-    if(!item.loan.LoanDate)return;
-    var n=S(item.eq.name);
-    var loanD=item.loan.LoanDate;
-    // ACTIVE = ใช้งานอยู่จนถึงวันนี้ (local date), ไม่ใช่ computeRangeE ที่อาจมาจาก filter
-    var todayLocal=localDateStr(now);
-    var retD=item.borrow&&item.borrow.ReturnDate?item.borrow.ReturnDate:(item.status==='ACTIVE'||item.status==='ACC_PENDING'?todayLocal:computeRangeE);
-    rangeDates.forEach(function(d){
-      if(d>=loanD&&d<=retD){
-        if(!dailyActiveByEq[n])dailyActiveByEq[n]={};
-        dailyActiveByEq[n][d]=(dailyActiveByEq[n][d]||0)+1;
-      }
+
+  // ── โหลด daily_snapshots จาก Supabase (ถ้ามี) ────────────────
+  // ใช้ snapshot ก่อน ถ้าไม่มีค่อย fallback คำนวณเอง
+  var _snapLoaded=false;
+  try {
+    var _snapQS='select=snapshot_date,equipment_name,active_count'
+      +'&snapshot_date=gte.'+computeRangeS
+      +'&snapshot_date=lte.'+computeRangeE
+      +'&order=snapshot_date.asc&limit=2000';
+    var _snapRes=await fetch(SUPABASE_URL+'/rest/v1/daily_snapshots?'+_snapQS,{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}
     });
+    if(_snapRes.ok){
+      var _snapData=await _snapRes.json();
+      if(Array.isArray(_snapData)&&_snapData.length>0){
+        _snapData.forEach(function(row){
+          var n=row.equipment_name;
+          var d=row.snapshot_date;
+          if(!dailyActiveByEq[n])dailyActiveByEq[n]={};
+          dailyActiveByEq[n][d]=row.active_count;
+        });
+        _snapLoaded=true;
+        console.log('[renderSum] Using daily_snapshots:',_snapData.length,'rows');
+      }
+    }
+  } catch(e){ console.warn('[renderSum] snapshot fetch failed, using fallback',e); }
+
+  // ── Fallback: คำนวณจาก borrow_records ถ้าไม่มี snapshot ──────
+  if(!_snapLoaded){
+    console.log('[renderSum] No snapshots found, calculating from borrow_records');
+    expFiltered.forEach(function(item){
+      if(item.status==='PENDING'||item.status==='CANCELLED')return;
+      if(!item.loan.LoanDate)return;
+      var n=S(item.eq.name);
+      var loanD=item.loan.LoanDate;
+      var todayLocal=localDateStr(now);
+      var retD;
+      if(item.status==='ACTIVE'||item.status==='ACC_PENDING'){
+        retD=todayLocal;
+      } else if(item.status==='RETURNED'){
+        if(!item.borrow||!item.borrow.ReturnDate)return;
+        retD=item.borrow.ReturnDate;
+      } else { return; }
+      rangeDates.forEach(function(d){
+        if(d>=loanD&&d<=retD){
+          if(!dailyActiveByEq[n])dailyActiveByEq[n]={};
+          dailyActiveByEq[n][d]=(dailyActiveByEq[n][d]||0)+1;
+        }
+      });
+    });
+  }
+
+  // ── วันนี้ใช้ข้อมูล live (expFiltered) เสมอ ──────────────────
+  // เพราะ snapshot บันทึกตอนเที่ยงคืน แต่ข้อมูลอาจเปลี่ยนระหว่างวัน
+  var todayStr2=localDateStr(now);
+  expFiltered.forEach(function(item){
+    if(item.status!=='ACTIVE'&&item.status!=='ACC_PENDING')return;
+    var n=S(item.eq.name);
+    if(!dailyActiveByEq[n])dailyActiveByEq[n]={};
+    // override วันนี้ด้วย live count เสมอ
+    if(!dailyActiveByEq[n][todayStr2])dailyActiveByEq[n][todayStr2]=0;
   });
-  var eqNamesAvg=Object.keys(dailyActiveByEq).sort(function(a,b){
+  // นับ live count วันนี้
+  var _liveToday={};
+  expFiltered.forEach(function(item){
+    if(item.status!=='ACTIVE'&&item.status!=='ACC_PENDING')return;
+    var n=S(item.eq.name);
+    _liveToday[n]=(_liveToday[n]||0)+1;
+  });
+  Object.keys(_liveToday).forEach(function(n){
+    if(!dailyActiveByEq[n])dailyActiveByEq[n]={};
+    dailyActiveByEq[n][todayStr2]=_liveToday[n];
+  });
+
+    var eqNamesAvg=Object.keys(dailyActiveByEq).sort(function(a,b){
     var ta=Object.values(dailyActiveByEq[a]).reduce(function(s,v){return s+v;},0);
     var tb=Object.values(dailyActiveByEq[b]).reduce(function(s,v){return s+v;},0);
     return tb-ta;
   });
+    // หา Active total จาก _EQ_INV สำหรับ Utilization
+  var _invMap={};
+  if(window._EQ_INV)window._EQ_INV.forEach(function(eq){
+    var A=Math.max(0,(eq.total||0)-(eq.inactive||0)-(eq.forDept||0));
+    _invMap[eq.name.trim().toLowerCase()]=A;
+  });
+
   var eqAvgStats=eqNamesAvg.map(function(n){
     var dayData=dailyActiveByEq[n]||{};
     var sumActive=Object.values(dayData).reduce(function(s,v){return s+v;},0);
     var daysWithUsage=Object.keys(dayData).length;
-    var avgByRange=(sumActive/totalDays).toFixed(2);
+    var avgByRange=totalDays>0?(sumActive/totalDays).toFixed(2):'0.00'; // เฉลี่ยต่อวัน = Σกำลังยืมแต่ละวัน ÷ totalDays
     var counts=Object.values(dayData);
     var maxDay=counts.length>0?Math.max.apply(null,counts):0;
     var todayStr=localDateStr(now);
     var todayCount=dayData[todayStr]||0;
-    return{name:n,sumActive:sumActive,daysWithUsage:daysWithUsage,avgByRange:avgByRange,maxDay:maxDay,todayCount:todayCount};
+    // MA7
+    var last7=rangeDates.slice(-7);
+    var sum7=last7.reduce(function(s,d){return s+(dayData[d]||0);},0);
+    var ma7=last7.length>0?(sum7/last7.length).toFixed(2):'0.00';
+    // Utilization
+    var activeTotal=_invMap[n.trim().toLowerCase()]||0;
+    var utilPct=activeTotal>0?parseFloat((todayCount/activeTotal*100).toFixed(1)):null;
+    // Trend
+    var trend=parseFloat(ma7)>parseFloat(avgByRange)?'up':parseFloat(ma7)<parseFloat(avgByRange)?'down':'flat';
+    return{name:n,sumActive:sumActive,daysWithUsage:daysWithUsage,
+      avgByRange:avgByRange,maxDay:maxDay,todayCount:todayCount,
+      ma7:ma7,utilPct:utilPct,activeTotal:activeTotal,trend:trend};
   });
   var rangeLabel=computeRangeS+' ถึง '+computeRangeE;
   // แสดงเวลาปัจจุบัน Bangkok
   var _bkkTime=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now);
   var _bkkDate=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',year:'numeric',month:'short',day:'numeric'}).format(now);
-    var avgHtml='<div class="card">'    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">'    +'<div class="ctitle" style="margin:0">📊 ค่าเฉลี่ยจำนวนการใช้งานเครื่องมือแพทย์'    +'<span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px">'+rangeLabel+' ('+totalDays+' วัน)</span></div>'    +'<div style="font-size:11px;color:var(--mu);display:flex;align-items:center;gap:6px">'      +'<span style="color:var(--ok);font-size:10px">●</span>'      +'<span style="color:var(--ac);font-family:var(--mo);font-weight:700">'+_bkkDate+' '+_bkkTime+'</span>'      +'<span style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:1px 8px;color:var(--ok)">🔄 Bangkok realtime</span>'    +'</div>'    +'</div>'    +'<div style="margin-bottom:10px;font-size:12px;padding:7px 10px;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);border-radius:5px;color:var(--mu)">'
-      +'💡 <strong style="color:var(--tx)">วิธีคิด:</strong> นับจำนวนเครื่องที่กำลังใช้งาน (active) ในแต่ละวัน → รวมทุกวันใน range → หารด้วย '+totalDays+' วัน'
+    var avgHtml='<div class="card">'    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">'    +'<div class="ctitle" style="margin:0">📊 ค่าเฉลี่ยจำนวนการใช้งานเครื่องมือแพทย์'    +'<span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px">'+rangeLabel+' ('+totalDays+' วัน)</span></div>'    +'<div style="font-size:11px;color:var(--mu);display:flex;align-items:center;gap:6px">'      +'<span style="color:var(--ok);font-size:10px">●</span>'      +'<span style="color:var(--ac);font-family:var(--mo);font-weight:700">'+_bkkDate+' '+_bkkTime+'</span>'      +'<span id="snapBadge" style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:1px 8px;color:var(--ok)">🔄 Bangkok realtime</span>'    +'</div>'    +'</div>'    +'<div style="margin-bottom:10px;font-size:12px;padding:7px 10px;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);border-radius:5px;color:var(--mu)">'
+      +'💡 <strong style="color:var(--tx)">วิธีคิด:</strong> รวมจำนวนเครื่องที่ <strong style="color:var(--ok)">กำลังยืมอยู่</strong> ในแต่ละวัน → หารด้วย <strong style="color:var(--ac)">'+totalDays+' วัน</strong> = เฉลี่ยต่อวันที่ใช้งานได้จริง'
     +'</div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:14px">'
     +eqAvgStats.map(function(e,i){
       var col=barColors[i%barColors.length];
       var maxAvg=eqAvgStats.length>0?parseFloat(eqAvgStats[0].avgByRange)||1:1;
       var barW=Math.round((parseFloat(e.avgByRange)/maxAvg)*100);
-      return'<div class="avg-tile" data-eq="'+e.name.replace(/"/g,"&quot;")+'" style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px 12px;border-left:3px solid '+col+';cursor:pointer;transition:all .15s">'        +'<div style="font-size:11px;color:var(--mu);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.name+'</div>'        +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">'          +'<span style="font-size:24px;font-weight:700;font-family:var(--mo);color:'+col+'">'+e.avgByRange+'</span>'          +'<span style="font-size:11px;color:var(--mu)">เครื่อง/วัน</span>'        +'</div>'        +'<div style="height:4px;background:var(--bg);border-radius:2px;overflow:hidden;margin-bottom:5px">'          +'<div style="height:100%;width:'+barW+'%;background:'+col+';border-radius:2px"></div>'        +'</div>'        +'<div style="font-size:10px;color:var(--mu)">วันนี้ <span style="color:var(--ac);font-weight:700">'+e.todayCount+'</span> | สูงสุด <span style="color:var(--wn)">'+e.maxDay+'</span>/วัน | <span style="color:var(--ac);font-size:9px">คลิก →</span></div>'        +'</div>';
+      var trendIcon=e.trend==='up'?'<span style="color:var(--er)">▲</span>':e.trend==='down'?'<span style="color:var(--ok)">▼</span>':'<span style="color:var(--mu)">─</span>';
+      var utilStr=e.utilPct!==null?('<span style="color:'+(e.utilPct>=80?'var(--er)':e.utilPct>=60?'var(--wn)':'var(--ok)')+'">'+e.utilPct+'%</span>'):'<span style="color:var(--mu)">—</span>';
+      var avgTooltip='Σกำลังยืม/วัน = '+e.sumActive+' | จำนวนวัน = '+totalDays+' วัน | avg = '+e.avgByRange;
+      return'<div class="avg-tile" data-eq="'+e.name.replace(/"/g,"&quot;")+'" title="'+avgTooltip+'" style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px 12px;border-left:3px solid '+col+';cursor:pointer;transition:all .15s">'        +'<div style="font-size:11px;color:var(--mu);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.name+'</div>'        +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px">'          +'<span style="font-size:22px;font-weight:700;font-family:var(--mo);color:'+col+'">'+e.avgByRange+'</span>'          +'<span style="font-size:10px;color:var(--mu)">avg/วัน</span>'          +trendIcon        +'</div>'        +'<div style="height:3px;background:var(--bg);border-radius:2px;overflow:hidden;margin-bottom:6px">'          +'<div style="height:100%;width:'+barW+'%;background:'+col+';border-radius:2px"></div>'        +'</div>'        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:10px">'          +'<div style="color:var(--mu)">วันนี้: <span style="color:var(--ac);font-weight:700">'+e.todayCount+'</span></div>'          +'<div style="color:var(--mu)">Peak: <span style="color:var(--wn);font-weight:700">'+e.maxDay+'</span></div>'          +'<div style="color:var(--mu)">MA7: <span style="color:var(--ac2);font-weight:700">'+e.ma7+'</span></div>'          +'<div style="color:var(--mu)">Util: '+utilStr+'</div>'        +'</div>'        +'<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--bd);font-size:10px;color:var(--mu);font-family:var(--mo)">'          +'Σ'+e.sumActive+' ÷ '+totalDays+'วัน'        +'</div>'        +'</div>';
     }).join('')
     +'</div>'
     +'<div class="dtw"><table class="dt">'
     +'<thead><tr>'
-    +'<th>ชนิดเครื่องมือ</th>'
-    +'<th style="text-align:center;white-space:nowrap">วันนี้<br>(เครื่อง)</th>'
-    +'<th style="text-align:center;white-space:nowrap">สูงสุด<br>(เครื่อง/วัน)</th>'
-    +'<th style="text-align:center;white-space:nowrap">วันที่มีการใช้<br>(จาก '+totalDays+' วัน)</th>'
-    +'<th style="text-align:center;white-space:nowrap">ค่าเฉลี่ย<br><span style="font-weight:400;font-size:9px;color:var(--ok)">เครื่อง/วัน</span></th>'
-    +'<th style="text-align:center">แนวโน้ม (10 วันล่าสุด)</th>'
-    +'<th style="text-align:center">รายละเอียด</th>'
-    +'</tr></thead><tbody>'
+        +'<th>ชนิดเครื่องมือ</th>'    +'<th style="text-align:center;white-space:nowrap;color:var(--ac)">วันนี้<br><span style="font-size:9px;font-weight:400">(เครื่อง)</span></th>'    +'<th style="text-align:center;white-space:nowrap;color:var(--wn)">Peak<br><span style="font-size:9px;font-weight:400">สูงสุด/วัน</span></th>'    +'<th style="text-align:center;white-space:nowrap;color:var(--ok)">Avg<br><span style="font-size:9px;font-weight:400">เครื่อง/วัน</span></th>'    +'<th style="text-align:center;white-space:nowrap;color:var(--ac2)">MA7<br><span style="font-size:9px;font-weight:400">เฉลี่ย 7 วัน</span></th>'    +'<th style="text-align:center;white-space:nowrap">Utilization<br><span style="font-size:9px;font-weight:400">วันนี้/Active</span></th>'    +'<th style="text-align:center;white-space:nowrap">วันที่มีการใช้<br><span style="font-size:9px;font-weight:400">(จาก '+totalDays+' วัน)</span></th>'    +'<th style="text-align:center">แนวโน้ม (10 วัน)</th>'    +'<th style="text-align:center">ดู</th>'    +'</tr></thead><tbody>'
     +eqAvgStats.map(function(e,i){
       var col=barColors[i%barColors.length];
       var spark10=datesForAvg.slice(0,10).reverse().map(function(d){
@@ -1897,20 +1970,19 @@ function renderSum(r){
             +'<title>'+datesForAvg.slice(0,10).reverse()[idx]+': '+v+' เครื่อง</title>';
         }).join('')
         +'</svg>';
-      var ak='avg_'+e.name.replace(/[^a-zA-Z0-9]/g,'_');_sMap[ak]={type:'eq',eq:e.name};
+            var ak='avg_'+e.name.replace(/[^a-zA-Z0-9]/g,'_');_sMap[ak]={type:'eq',eq:e.name};
       var todayColor=e.todayCount>0?'var(--ok)':'var(--mu)';
-      return'<tr>'
-        +'<td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+col+';margin-right:6px"></span><strong>'+e.name+'</strong></td>'
-        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:'+todayColor+'">'+e.todayCount+'</td>'
-        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+e.maxDay+'</td>'
-        +'<td style="text-align:center;font-family:var(--mo)">'+e.daysWithUsage+'</td>'
-        +'<td style="text-align:center;font-family:var(--mo);color:var(--ac);font-weight:700;font-size:16px">'+e.avgByRange+'</td>'
-        +'<td style="text-align:center">'+sparkSvg+'</td>'
-        +'<td style="text-align:center"><button class="abt svb" data-key="'+ak+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">ดูรายการ</button></td>'
-        +'</tr>';
-    }).join('')+(eqAvgStats.length===0?'<tr><td colspan="7" style="text-align:center;color:var(--mu)">ไม่มีข้อมูล</td></tr>':'')
+      var ma7Color=parseFloat(e.ma7)>parseFloat(e.avgByRange)?'var(--er)':parseFloat(e.ma7)<parseFloat(e.avgByRange)?'var(--ok)':'var(--ac2)';
+      var trendTxt=e.trend==='up'?'▲ เพิ่ม':e.trend==='down'?'▼ ลด':'─ คงที่';
+      var trendC=e.trend==='up'?'var(--er)':e.trend==='down'?'var(--ok)':'var(--mu)';
+      var utilCell=e.utilPct!==null
+        ?('<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'            +'<span style="font-family:var(--mo);font-weight:700;font-size:13px;color:'+(e.utilPct>=80?'var(--er)':e.utilPct>=60?'var(--wn)':'var(--ok)')+'">'+e.utilPct+'%</span>'            +'<div style="width:56px;height:4px;background:var(--bg);border-radius:2px;overflow:hidden">'              +'<div style="height:100%;width:'+Math.min(100,e.utilPct)+'%;background:'+(e.utilPct>=80?'var(--er)':e.utilPct>=60?'var(--wn)':'var(--ok)')+';border-radius:2px"></div>'            +'</div>'            +'<span style="font-size:9px;color:var(--mu)">'+e.todayCount+'/'+(e.activeTotal||'?')+'</span>'          +'</div>')
+        :'<span style="color:var(--mu);font-size:10px">—</span>';
+            return'<tr class="avg-tbl-row">'
+        +'<td><div style="display:flex;align-items:center;gap:6px">'          +'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+col+';flex-shrink:0"></span>'          +'<strong>'+e.name+'</strong>'          +'<span style="font-size:10px;color:'+trendC+'">'+trendTxt+'</span>'        +'</div></td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:'+todayColor+'">'+e.todayCount+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;color:var(--wn)">'+e.maxDay+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.avgByRange+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;color:'+ma7Color+'">'+e.ma7+'</td>'        +'<td style="text-align:center;padding:6px 9px">'+utilCell+'</td>'        +'<td style="text-align:center;font-family:var(--mo)">'+e.daysWithUsage+'</td>'        +'<td style="text-align:center">'+sparkSvg+'</td>'        +'<td style="text-align:center"><button class="abt svb" data-key="'+ak+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">ดู</button></td>'        +'</tr>';
+    }).join('')+(eqAvgStats.length===0?'<tr><td colspan="9" style="text-align:center;color:var(--mu)">ไม่มีข้อมูล</td></tr>':'')
     +'</tbody></table></div>'
-    +'<div style="margin-top:8px;font-size:11px;color:var(--mu)">💡 "วันนี้" = จำนวนเครื่องที่กำลังยืมอยู่ในวันนี้ | "ค่าเฉลี่ย" = ผลรวมเครื่องที่ active แต่ละวัน ÷ '+totalDays+' วัน | กรอก "จากวันที่ - ถึงวันที่" แล้วกด 🔍 ดู เพื่อเลือกช่วงเวลา</div>'
+    +'<div style="margin-top:10px;padding:8px 12px;background:var(--s2);border-radius:6px;font-size:11px;color:var(--mu);line-height:1.8">'  +'<strong style="color:var(--ac)">Avg</strong> = ผลรวมเครื่อง active ÷ <u>วันที่มีการใช้งานจริง</u> (สูตร A) &nbsp;|&nbsp; '  +'<strong style="color:var(--ac2)">MA7</strong> = ค่าเฉลี่ย 7 วันล่าสุด (ถ้า MA7 > Avg = แนวโน้มเพิ่ม ▲) &nbsp;|&nbsp; '  +'<strong style="color:var(--wn)">Peak</strong> = จำนวนสูงสุดที่เคยใช้ในวันเดียว &nbsp;|&nbsp; '  +'<strong style="color:var(--ok)">Utilization</strong> = วันนี้ ÷ Active ทั้งหมด (ตั้งค่าใน Admin → จัดการสถานะเครื่องมือ)'  +'</div>'
     +'</div>';
 
   // ─── overMonth ───
@@ -2155,10 +2227,12 @@ function renderSum(r){
   sc._moh=function(e){
     var t=e.target.closest('.avg-tile');if(t){t.style.boxShadow='0 0 0 2px rgba(0,200,255,.3)';t.style.transform='translateY(-2px)';}
     var r=e.target.closest('.alrow');if(r)r.style.background='rgba(0,200,255,.04)';
+    var tr=e.target.closest('.avg-tbl-row');if(tr)tr.style.background='rgba(255,255,255,.02)';
   };
   sc._mol=function(e){
     var t=e.target.closest('.avg-tile');if(t){t.style.boxShadow='';t.style.transform='';}
     var r=e.target.closest('.alrow');if(r)r.style.background='';
+    var tr=e.target.closest('.avg-tbl-row');if(tr)tr.style.background='';
   };
   sc.addEventListener('mouseover',sc._moh);
   sc.addEventListener('mouseout',sc._mol);
