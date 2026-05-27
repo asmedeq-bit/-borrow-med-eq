@@ -1,3 +1,6 @@
+ยืมคืน v3 ไม่มี standby
+
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -1659,6 +1662,11 @@ function loadSum(){
   renderSum({avgUsage:{},overMonth:[],equipDays:{},circuitChange:[]});
 }
 
+function localDateStr(d){
+  // แปลง Date เป็น YYYY-MM-DD ตาม timezone เครื่อง (ไม่ใช่ UTC)
+  var pad=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
 function renderSum(r){
   var now=new Date(),sc=document.getElementById('sumCont');var _sMap={};
   if(!loans){sc.innerHTML='<div class="lding"><div class="spin"></div> กำลังโหลด...</div>';return;}
@@ -1782,14 +1790,14 @@ function renderSum(r){
   });
   allBorrowDates.sort();
   var computeRangeS=rangeS||(allBorrowDates.length>0?allBorrowDates[0]:'');
-  var computeRangeE=rangeE||(now.toISOString().split('T')[0]);
+  var computeRangeE=rangeE||localDateStr(now);
   if(!computeRangeS)computeRangeS=computeRangeE;
   var rangeStart=new Date(computeRangeS);
   var rangeEnd=new Date(computeRangeE);
   var totalDays=Math.max(1,Math.round((rangeEnd-rangeStart)/86400000)+1);
   var rangeDates=[];
   for(var dd=new Date(rangeStart);dd<=rangeEnd;dd.setDate(dd.getDate()+1)){
-    rangeDates.push(dd.toISOString().split('T')[0]);
+    rangeDates.push(localDateStr(dd));
   }
   var dailyActiveByEq={};
   var datesForAvg=rangeDates.slice().reverse().slice(0,30);
@@ -1798,7 +1806,9 @@ function renderSum(r){
     if(!item.loan.LoanDate)return;
     var n=S(item.eq.name);
     var loanD=item.loan.LoanDate;
-    var retD=item.borrow&&item.borrow.ReturnDate?item.borrow.ReturnDate:computeRangeE;
+    // ACTIVE = ใช้งานอยู่จนถึงวันนี้ (local date), ไม่ใช่ computeRangeE ที่อาจมาจาก filter
+    var todayLocal=localDateStr(now);
+    var retD=item.borrow&&item.borrow.ReturnDate?item.borrow.ReturnDate:(item.status==='ACTIVE'||item.status==='ACC_PENDING'?todayLocal:computeRangeE);
     rangeDates.forEach(function(d){
       if(d>=loanD&&d<=retD){
         if(!dailyActiveByEq[n])dailyActiveByEq[n]={};
@@ -1818,7 +1828,7 @@ function renderSum(r){
     var avgByRange=(sumActive/totalDays).toFixed(2);
     var counts=Object.values(dayData);
     var maxDay=counts.length>0?Math.max.apply(null,counts):0;
-    var todayStr=now.toISOString().split('T')[0];
+    var todayStr=localDateStr(now);
     var todayCount=dayData[todayStr]||0;
     return{name:n,sumActive:sumActive,daysWithUsage:daysWithUsage,avgByRange:avgByRange,maxDay:maxDay,todayCount:todayCount};
   });
