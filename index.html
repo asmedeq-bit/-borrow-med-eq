@@ -302,7 +302,20 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
 
 <!-- SUMMARY PAGE -->
 <div class="pg" id="pg-sum">
-  <div class="card"><div class="ctitle">📈 สรุปข้อมูล</div>
+
+  <!-- ══ GLOBAL FILTER ══ -->
+  <div class="card" style="border-color:rgba(0,200,255,.3);background:linear-gradient(135deg,rgba(0,200,255,.04),rgba(124,58,237,.03))">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div class="ctitle" style="margin:0">
+        🔵 Global Filter
+        <span style="font-size:10px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px">กรองทุก section พร้อมกัน</span>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="btn bg sm" onclick="dlPage('sum','csv')">CSV</button>
+        <button class="btn bg sm" onclick="dlPage('sum','xlsx')">XLS</button>
+        <button class="btn bg sm" onclick="dlPage('sum','pdf')">PDF</button>
+      </div>
+    </div>
     <div class="fbar">
       <div class="fg"><label>จากวันที่</label><input type="date" id="sumS" onchange="loadSum()"></div>
       <div class="fg"><label>ถึงวันที่</label><input type="date" id="sumE" onchange="loadSum()"></div>
@@ -317,14 +330,91 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
         </select>
       </div>
       <button class="btn bp sm" onclick="loadSum()">🔍 ดู</button>
-      <button class="btn bg sm" onclick="clearSumFilter()">✕ ล้าง</button>
-      <button class="btn bg sm" onclick="dlPage('sum','csv')">CSV</button>
-      <button class="btn bg sm" onclick="dlPage('sum','xlsx')">XLS</button>
-      <button class="btn bg sm" onclick="dlPage('sum','pdf')">PDF</button>
+      <button class="btn bg sm" onclick="clearSumFilter()">✕ ล้างทั้งหมด</button>
     </div>
-    <!-- active filter badges -->
-    <div id="sumFilterBadges" style="display:none;margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"></div>
+    <div id="sumFilterBadges" style="display:none;margin-top:8px;gap:6px;flex-wrap:wrap"></div>
   </div>
+
+  <!-- ══ SECTION OVERRIDE FILTERS ══ -->
+  <div class="card" style="padding:12px 16px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px">🎛 Filter เพิ่มเติมแต่ละ Section</span>
+      <span style="font-size:10px;color:var(--mu)">(override Global Filter เฉพาะ section นั้น)</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+
+      <!-- กราฟแท่ง -->
+      <div style="background:var(--s2);border-radius:7px;padding:10px 12px;border-left:3px solid var(--ac)">
+        <div style="font-size:11px;font-weight:700;color:var(--ac);margin-bottom:7px">📊 กราฟแท่ง</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="secBarEq" onchange="renderSum({})" style="flex:1;min-width:120px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ตาม Global —</option>
+          </select>
+          <button class="btn bg sm" style="font-size:10px;padding:3px 7px" onclick="document.getElementById('secBarEq').value='';renderSum({})">✕</button>
+        </div>
+      </div>
+
+      <!-- ตารางรายวัน -->
+      <div style="background:var(--s2);border-radius:7px;padding:10px 12px;border-left:3px solid var(--ac2)">
+        <div style="font-size:11px;font-weight:700;color:var(--ac2);margin-bottom:7px">📅 ตารางยืม-คืนรายวัน</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="secDayEq" onchange="renderSum({})" style="flex:1;min-width:120px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ตาม Global —</option>
+          </select>
+          <button class="btn bg sm" style="font-size:10px;padding:3px 7px" onclick="document.getElementById('secDayEq').value='';renderSum({})">✕</button>
+        </div>
+      </div>
+
+      <!-- ค่าเฉลี่ย -->
+      <div style="background:var(--s2);border-radius:7px;padding:10px 12px;border-left:3px solid var(--ok)">
+        <div style="font-size:11px;font-weight:700;color:var(--ok);margin-bottom:7px">📈 ค่าเฉลี่ยการใช้งาน</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <input type="date" id="secAvgS" onchange="renderSum({})" style="font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx);width:130px">
+          <input type="date" id="secAvgE" onchange="renderSum({})" style="font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx);width:130px">
+          <select id="secAvgEq" onchange="renderSum({})" style="flex:1;min-width:100px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ตาม Global —</option>
+          </select>
+          <button class="btn bg sm" style="font-size:10px;padding:3px 7px" onclick="['secAvgS','secAvgE','secAvgEq'].forEach(function(id){document.getElementById(id).value='';});renderSum({})">✕</button>
+        </div>
+      </div>
+
+      <!-- ยืมเกิน 1 เดือน -->
+      <div style="background:var(--s2);border-radius:7px;padding:10px 12px;border-left:3px solid var(--er)">
+        <div style="font-size:11px;font-weight:700;color:var(--er);margin-bottom:7px">⏰ ยืมเกิน 1 เดือน</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="secOvDept" onchange="renderSum({})" style="flex:1;min-width:120px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ตาม Global —</option>
+          </select>
+          <select id="secOvEq" onchange="renderSum({})" style="flex:1;min-width:120px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ตาม Global —</option>
+          </select>
+          <button class="btn bg sm" style="font-size:10px;padding:3px 7px" onclick="['secOvDept','secOvEq'].forEach(function(id){document.getElementById(id).value='';});renderSum({})">✕</button>
+        </div>
+      </div>
+
+      <!-- ข้อมูลทั้งหมด -->
+      <div style="background:var(--s2);border-radius:7px;padding:10px 12px;border-left:3px solid var(--wn)">
+        <div style="font-size:11px;font-weight:700;color:var(--wn);margin-bottom:7px">📋 ข้อมูลการยืมทั้งหมด</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="secAllDept" onchange="renderSum({})" style="flex:1;min-width:100px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ตาม Global —</option>
+          </select>
+          <select id="secAllEq" onchange="renderSum({})" style="flex:1;min-width:100px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ตาม Global —</option>
+          </select>
+          <select id="secAllStat" onchange="renderSum({})" style="flex:1;min-width:100px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ตาม Global —</option>
+            <option value="ACTIVE">ยืม</option>
+            <option value="RETURNED">คืน</option>
+            <option value="ACC_PENDING">อุปกรณ์ค้าง</option>
+          </select>
+          <button class="btn bg sm" style="font-size:10px;padding:3px 7px" onclick="['secAllDept','secAllEq','secAllStat'].forEach(function(id){document.getElementById(id).value='';});renderSum({})">✕</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <div id="sumCont"></div>
 </div>
 
@@ -1247,6 +1337,18 @@ function initSumFilters(){
   var es=document.getElementById('sumEq');
   if(ds&&ds.options.length<=1)DEPTS.forEach(function(d){ds.innerHTML+='<option value="'+d.n+'">'+d.n+'</option>';});
   if(es&&es.options.length<=1)EQL.forEach(function(e){es.innerHTML+='<option value="'+e+'">'+e+'</option>';});
+  // section override selects
+  var secSelects={
+    'secBarEq':'eq','secDayEq':'eq',
+    'secAvgEq':'eq',
+    'secOvDept':'dept','secOvEq':'eq',
+    'secAllDept':'dept','secAllEq':'eq'
+  };
+  Object.keys(secSelects).forEach(function(id){
+    var el=document.getElementById(id);if(!el||el.options.length>1)return;
+    if(secSelects[id]==='eq'){EQL.forEach(function(e){el.innerHTML+='<option value="'+e+'">'+e+'</option>';});}
+    else{DEPTS.forEach(function(d){el.innerHTML+='<option value="'+d.n+'">'+d.n+'</option>';});}
+  });
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1691,6 +1793,19 @@ async function renderSum(r){
   var fDateS=(document.getElementById('sumS')    ||{}).value||'';
   var fDateE=(document.getElementById('sumE')    ||{}).value||'';
 
+  // ── Section Override filters ──────────────────────────
+  var secBarEq  =(document.getElementById('secBarEq') ||{}).value||'';
+  var secDayEq  =(document.getElementById('secDayEq') ||{}).value||'';
+  var secAvgS   =(document.getElementById('secAvgS')  ||{}).value||'';
+  var secAvgE   =(document.getElementById('secAvgE')  ||{}).value||'';
+  var secAvgEq  =(document.getElementById('secAvgEq') ||{}).value||'';
+  var secOvDept =(document.getElementById('secOvDept')||{}).value||'';
+  var secOvEq   =(document.getElementById('secOvEq')  ||{}).value||'';
+  var secAllDept=(document.getElementById('secAllDept')||{}).value||'';
+  var secAllEq  =(document.getElementById('secAllEq') ||{}).value||'';
+  var secAllStat=(document.getElementById('secAllStat')||{}).value||'';
+  function secV(sv,gv){return sv||gv;}
+
   // ─── กราฟแท่ง: ยืมแยกตามรายการเครื่องมือ (ACTIVE) ───
   var exp=expanded();
   // กรองตาม filter
@@ -1703,8 +1818,10 @@ async function renderSum(r){
     if(fDateE&&ld&&ld>fDateE)return false;
     return true;
   });
+  // กราฟแท่ง — ใช้ secBarEq override
+  var expBar=secBarEq?expFiltered.filter(function(i){return S(i.eq.name)===secBarEq;}):expFiltered;
   var eqCount={};
-  expFiltered.forEach(function(item){
+  expBar.forEach(function(item){
     if(item.status==='ACTIVE'){
       var n=S(item.eq.name);eqCount[n]=(eqCount[n]||0)+1;
     }
@@ -1742,9 +1859,10 @@ async function renderSum(r){
       +'<div style="margin-top:8px;font-size:11px;color:var(--mu)">💡 คลิกที่แท่งกราฟเพื่อกรองข้อมูลในหน้าข้อมูลทั้งหมด | เลื่อนเมาส์เพื่อดู tooltip</div></div>';
   }
 
-  // ─── ตารางยืมคืนรายวัน ───
+  // ─── ตารางยืมคืนรายวัน — ใช้ secDayEq override ───
+  var expDay=secDayEq?expFiltered.filter(function(i){return S(i.eq.name)===secDayEq;}):expFiltered;
   var dayMap={};var allEqNames2={};
-  expFiltered.forEach(function(item){
+  expDay.forEach(function(item){
     if(!item.loan.LoanDate)return;
     var d=item.loan.LoanDate;
     if(!dayMap[d])dayMap[d]={borrow:{},ret:{},accPend:{}};
@@ -1796,8 +1914,21 @@ async function renderSum(r){
 
   var sumS_el=document.getElementById('sumS'),sumE_el=document.getElementById('sumE');
   var rangeS=sumS_el?sumS_el.value:'',rangeE=sumE_el?sumE_el.value:'';
+  // avg section — ใช้ secAvgS/E/Eq override
+  var expAvg=expFiltered;
+  if(secAvgEq)expAvg=expAvg.filter(function(i){return S(i.eq.name)===secAvgEq;});
+  var fAvgS=secAvgS||fDateS;
+  var fAvgE=secAvgE||fDateE;
+  if(secAvgS||secAvgE){
+    expAvg=expAvg.filter(function(item){
+      var ld=item.loan.LoanDate||'';
+      if(fAvgS&&ld&&ld<fAvgS)return false;
+      if(fAvgE&&ld&&ld>fAvgE)return false;
+      return true;
+    });
+  }
   var allBorrowDates=[];
-  expFiltered.forEach(function(item){
+  expAvg.forEach(function(item){
     if(item.status==='PENDING'||item.status==='CANCELLED')return;
     if(item.loan.LoanDate)allBorrowDates.push(item.loan.LoanDate);
   });
@@ -1844,7 +1975,7 @@ async function renderSum(r){
   // ── Fallback: คำนวณจาก borrow_records ถ้าไม่มี snapshot ──────
   if(!_snapLoaded){
     console.log('[renderSum] No snapshots found, calculating from borrow_records');
-    expFiltered.forEach(function(item){
+    expAvg.forEach(function(item){
       if(item.status==='PENDING'||item.status==='CANCELLED')return;
       if(!item.loan.LoanDate)return;
       var n=S(item.eq.name);
@@ -1994,9 +2125,11 @@ async function renderSum(r){
     if(daysUsed>30){overMonthLocal.push({LoanID:loan.LoanID,LoanDate:ld,DeptName:loan.DeptName,PatientName:loan.PatientName,EquipmentList:loan.EquipmentList||[],days:daysUsed});}
   });
   overMonthLocal.sort(function(a,b){return b.days-a.days;});
-  // กรองตาม fDept / fEq
-  if(fDept)overMonthLocal=overMonthLocal.filter(function(r){return S(r.DeptName)===fDept;});
-  if(fEq)overMonthLocal=overMonthLocal.filter(function(r){return(r.EquipmentList||[]).some(function(e){return S(e.name)===fEq;});});
+  // overMonth — ใช้ secOv override (หรือ global)
+  var _ovDept=secOvDept||fDept;
+  var _ovEq=secOvEq||fEq;
+  if(_ovDept)overMonthLocal=overMonthLocal.filter(function(r){return S(r.DeptName)===_ovDept;});
+  if(_ovEq)overMonthLocal=overMonthLocal.filter(function(r){return(r.EquipmentList||[]).some(function(e){return S(e.name)===_ovEq;});});
 
   var origHtml='<div class="card"><div class="ctitle">⏰ รายการยืมเกิน 1 เดือน <span style="font-size:11px;color:'+(overMonthLocal.length>0?'var(--er)':'var(--ok)')+';font-weight:600;text-transform:none;letter-spacing:0">'+(overMonthLocal.length>0?overMonthLocal.length+' รายการ':'ปกติ')+'</span></div>'
     +(overMonthLocal.length?'<div class="dtw"><table class="dt"><thead><tr><th>LoanID</th><th>วันที่ยืม</th><th>แผนก</th><th>ผู้ป่วย</th><th>เครื่องมือ</th><th style="text-align:center">จำนวนวัน</th><th style="text-align:center">รายละเอียด</th></tr></thead><tbody>'
@@ -2119,8 +2252,17 @@ async function renderSum(r){
   var ALL_STAT_LABEL={PENDING:'รอดำเนินการจ่าย',ACTIVE:'ยืม',RETURNED:'คืน',ACC_PENDING:'คืน (อุปกรณ์ค้าง)',CANCELLED:'ยกเลิก'};
   var ALL_STAT_BADGE={PENDING:'bp2',ACTIVE:'ba',RETURNED:'br2',ACC_PENDING:'bap',CANCELLED:'bc2'};
 
-  // กรองตาม filter ทั้งหมด
-  var allLoansRows=expFiltered.filter(function(item){return item.status!=='CANCELLED';});
+  // allLoans — ใช้ secAll overrides (หรือ global ถ้าไม่ได้ตั้ง)
+  var _allDept=secV(secAllDept,fDept);
+  var _allEq=secV(secAllEq,fEq);
+  var _allStat=secV(secAllStat,fStat);
+  var allLoansRows=expFiltered.filter(function(item){
+    if(item.status==='CANCELLED')return false;
+    if(_allDept&&S(item.loan.DeptName)!==_allDept)return false;
+    if(_allEq&&S(item.eq.name)!==_allEq)return false;
+    if(_allStat&&item.status!==_allStat)return false;
+    return true;
+  });
   allLoansRows=allLoansRows.slice().sort(function(a,b){
     return(b.loan.LoanDate||'').localeCompare(a.loan.LoanDate||'');
   });
