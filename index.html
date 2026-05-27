@@ -1,6 +1,3 @@
-ยืมคืน v3 ไม่มี standby
-
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -1215,6 +1212,20 @@ function initFilters(){['allDept','recDept','dailyDept'].forEach(function(id){va
 function clearDailyFilter(){['dailySearch','dailyDateS','dailyDateE'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});['dailyFilter','dailyDept'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});renderDaily();}
 function clearSumFilter(){['sumS','sumE'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});['sumDept','sumEq','sumStat'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});updateSumFilterBadges();loadSum();}
 
+// ── Realtime refresh หน้าสถิติ ─────────────────────────────────
+window._sumRealtimeTimer=null;
+function startSumRealtime(){
+  stopSumRealtime();
+  window._sumRealtimeTimer=setInterval(function(){
+    var pg=document.getElementById('pg-sum');
+    if(pg&&pg.classList.contains('on')){
+      renderSum({});
+    }
+  },60000); // ทุก 1 นาที
+}
+function stopSumRealtime(){
+  if(window._sumRealtimeTimer){clearInterval(window._sumRealtimeTimer);window._sumRealtimeTimer=null;}
+}
 function updateSumFilterBadges(){
   var dept=(document.getElementById('sumDept')||{}).value||'';
   var eq=(document.getElementById('sumEq')||{}).value||'';
@@ -1662,11 +1673,13 @@ function loadSum(){
   renderSum({avgUsage:{},overMonth:[],equipDays:{},circuitChange:[]});
 }
 
+// ── Timezone Bangkok (UTC+7) helpers ──────────────────────────
+var _bkkFmt=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok'});
 function localDateStr(d){
-  // แปลง Date เป็น YYYY-MM-DD ตาม timezone เครื่อง (ไม่ใช่ UTC)
-  var pad=function(n){return String(n).padStart(2,'0');};
-  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  // ล็อค Asia/Bangkok เสมอ ไม่ขึ้นกับ timezone ของเครื่องผู้ใช้
+  return _bkkFmt.format(d instanceof Date?d:new Date(d));
 }
+function bangkokNow(){return new Date();}
 function renderSum(r){
   var now=new Date(),sc=document.getElementById('sumCont');var _sMap={};
   if(!loans){sc.innerHTML='<div class="lding"><div class="spin"></div> กำลังโหลด...</div>';return;}
@@ -1833,10 +1846,10 @@ function renderSum(r){
     return{name:n,sumActive:sumActive,daysWithUsage:daysWithUsage,avgByRange:avgByRange,maxDay:maxDay,todayCount:todayCount};
   });
   var rangeLabel=computeRangeS+' ถึง '+computeRangeE;
-  var avgHtml='<div class="card">'
-    +'<div class="ctitle">📊 ค่าเฉลี่ยจำนวนการใช้งานเครื่องมือแพทย์ แยกตามรายการเครื่องมือ'
-    +'<span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px">'+rangeLabel+' ('+totalDays+' วัน)</span></div>'
-    +'<div style="margin-bottom:10px;font-size:12px;padding:7px 10px;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);border-radius:5px;color:var(--mu)">'
+  // แสดงเวลาปัจจุบัน Bangkok
+  var _bkkTime=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now);
+  var _bkkDate=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',year:'numeric',month:'short',day:'numeric'}).format(now);
+    var avgHtml='<div class="card">'    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">'    +'<div class="ctitle" style="margin:0">📊 ค่าเฉลี่ยจำนวนการใช้งานเครื่องมือแพทย์'    +'<span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px">'+rangeLabel+' ('+totalDays+' วัน)</span></div>'    +'<div style="font-size:11px;color:var(--mu);display:flex;align-items:center;gap:6px">'      +'<span style="color:var(--ok);font-size:10px">●</span>'      +'<span style="color:var(--ac);font-family:var(--mo);font-weight:700">'+_bkkDate+' '+_bkkTime+'</span>'      +'<span style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:1px 8px;color:var(--ok)">🔄 Bangkok realtime</span>'    +'</div>'    +'</div>'    +'<div style="margin-bottom:10px;font-size:12px;padding:7px 10px;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);border-radius:5px;color:var(--mu)">'
       +'💡 <strong style="color:var(--tx)">วิธีคิด:</strong> นับจำนวนเครื่องที่กำลังใช้งาน (active) ในแต่ละวัน → รวมทุกวันใน range → หารด้วย '+totalDays+' วัน'
     +'</div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:14px">'
@@ -2088,7 +2101,9 @@ function renderSum(r){
     var alRows=allLoansRows.map(function(item){
       var now2=new Date();
       var ld=item.loan.LoanDate||'-';
+      var todayLocal2=localDateStr(now2);
       var startD=ld!=='-'?new Date(ld):null;
+      var retDate2=item.borrow&&item.borrow.ReturnDate?item.borrow.ReturnDate:(item.status==='ACTIVE'||item.status==='ACC_PENDING'?todayLocal2:todayLocal2);
       var endD=item.borrow&&item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now2;
       var days=startD&&(item.status==='ACTIVE'||item.status==='RETURNED'||item.status==='ACC_PENDING')?Math.max(0,Math.round((endD-startD)/86400000)):'-';
       var dC=typeof days==='number'&&days>30?'var(--er)':typeof days==='number'&&days>14?'var(--wn)':'var(--ok)';
@@ -3059,10 +3074,12 @@ function showPg(page,el){
   document.querySelectorAll('.nt').forEach(function(t){t.classList.remove('on');});
   document.getElementById('pg-'+page).classList.add('on');
   if(el)el.classList.add('on');
+  // หยุด timer ถ้าออกจากหน้าสถิติ
+  if(page!=='sum'&&window.stopSumRealtime)stopSumRealtime();
   if(loans===null){loadAll();return;}
   if(page==='dash')updateDash();
   else if(page==='daily')renderDaily();
-  else if(page==='sum'){initSumFilters();loadSum();}
+  else if(page==='sum'){initSumFilters();loadSum();startSumRealtime();}
   else if(page==='rec')renderRec();
   else if(page==='all')renderAll();
   else if(page==='admin'&&_adminUnlocked){renderAdminLoans();renderAdminBorrows();}
