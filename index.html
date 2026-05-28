@@ -367,15 +367,18 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
 
       <!-- ค่าเฉลี่ย -->
       <div style="background:var(--s2);border-radius:7px;padding:10px 12px;border-left:3px solid var(--ok)">
-        <div style="font-size:11px;font-weight:700;color:var(--ok);margin-bottom:7px">📈 ค่าเฉลี่ยการใช้งาน</div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <input type="date" id="secAvgS" onchange="renderSum({})" style="font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx);width:130px">
-          <input type="date" id="secAvgE" onchange="renderSum({})" style="font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx);width:130px">
-          <select id="secAvgEq" onchange="renderSum({})" style="flex:1;min-width:100px;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
-            <option value="">— ตาม Global —</option>
+        <div style="font-size:11px;font-weight:700;color:var(--ok);margin-bottom:7px">📈 ค่าเฉลี่ยการใช้งาน (Snapshot)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px">
+          <input type="date" id="secAvgS" onchange="renderSum({})" placeholder="จากวันที่" style="font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+          <input type="date" id="secAvgE" onchange="renderSum({})" placeholder="ถึงวันที่" style="font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+        </div>
+        <div style="display:flex;gap:5px;align-items:center">
+          <select id="secAvgEq" onchange="renderSum({})" style="flex:1;font-size:12px;padding:4px 7px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+            <option value="">— ทุกเครื่องมือ —</option>
           </select>
           <button class="btn bg sm" style="font-size:10px;padding:3px 7px" onclick="['secAvgS','secAvgE','secAvgEq'].forEach(function(id){document.getElementById(id).value='';});renderSum({})">✕</button>
         </div>
+        <div style="margin-top:5px;font-size:10px;color:var(--mu)">ข้อมูลจาก daily_snapshots (Cron 23:59 น.)</div>
       </div>
 
       <!-- ยืมเกิน 1 เดือน -->
@@ -696,6 +699,8 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
         <button class="atab" id="ltab-staff" onclick="showListTab('staff',this)" style="font-size:11px">👤 ผู้ให้ยืม / ผู้รับคืน</button>
         <button class="atab" id="ltab-eq" onclick="showListTab('eq',this)" style="font-size:11px">🔧 รายการเครื่องมือ</button>
         <button class="atab" id="ltab-acc" onclick="showListTab('acc',this)" style="font-size:11px">📦 อุปกรณ์ประกอบ</button>
+        <button class="atab" id="ltab-eqnum" onclick="showListTab('eqnum',this)" style="font-size:11px">🔢 หมายเลขเครื่องมือ</button>
+        <button class="atab" id="ltab-retrem" onclick="showListTab('retrem',this)" style="font-size:11px">↩ เหตุผลการรับคืน</button>
       </div>
 
       <!-- DEPT LIST -->
@@ -911,6 +916,87 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
         </div>
       </div>
 
+
+      <!-- EQNUM LIST -->
+      <div id="lsec-eqnum" style="display:none">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+            <div class="ctitle" style="margin:0;color:#f59e0b">🔢 จัดการหมายเลขเครื่องมือ</div>
+            <div style="font-size:11px;color:var(--mu)">ใช้สำหรับ Dropdown หมายเลขเครื่องมือในหน้าบันทึกการยืม</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px">รายการปัจจุบัน <span id="eqnumCountBadge" style="background:rgba(0,200,255,.15);color:var(--ac);border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700"></span></div>
+              <div id="eqnumListArea" style="max-height:420px;overflow-y:auto;border:1px solid var(--bd);border-radius:6px"></div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn bg sm" onclick="moveEqnumItem(-1)">⬆ ขึ้น</button>
+                <button class="btn bg sm" onclick="moveEqnumItem(1)">⬇ ลง</button>
+                <button class="btn ber sm" onclick="deleteSelectedEqnum()">🗑 ลบ</button>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px">เพิ่มหมายเลขใหม่</div>
+              <div style="background:var(--s2);border-radius:8px;padding:14px;margin-bottom:10px">
+                <div class="fg" style="margin-bottom:10px"><label>หมายเลขเครื่องมือ *</label>
+                  <input type="text" id="newEqnumName" placeholder="เช่น O2FLO4, MEK6 ..." onkeydown="if(event.key==='Enter')addEqnumItem()">
+                </div>
+                <button class="btn badm" style="width:100%" onclick="addEqnumItem()">➕ เพิ่มหมายเลข</button>
+              </div>
+              <div style="margin-top:12px;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);border-radius:6px;padding:10px">
+                <div style="font-size:11px;font-weight:700;color:var(--ac);margin-bottom:6px">💡 นำเข้าหลายรายการพร้อมกัน</div>
+                <textarea id="bulkEqnumInput" rows="4" placeholder="พิมพ์หมายเลขทีละบรรทัด เช่น&#10;O2FLO4&#10;MEK6&#10;VEN1" style="font-size:12px;margin-bottom:6px"></textarea>
+                <button class="btn bp sm" onclick="bulkAddEqnums()">📥 นำเข้าทั้งหมด</button>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:6px;justify-content:flex-end">
+            <button class="btn badm sm" onclick="applyEqnumChanges()">✅ บันทึกการเปลี่ยนแปลง</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RETREM LIST -->
+      <div id="lsec-retrem" style="display:none">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+            <div class="ctitle" style="margin:0;color:#f59e0b">↩ จัดการเหตุผลการรับคืน</div>
+            <div style="font-size:11px;color:var(--mu)">ใช้สำหรับ Dropdown เหตุผลการคืนในหน้าบันทึกการคืน</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px">รายการปัจจุบัน <span id="retremCountBadge" style="background:rgba(16,185,129,.15);color:var(--ok);border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700"></span></div>
+              <div id="retremListArea" style="max-height:420px;overflow-y:auto;border:1px solid var(--bd);border-radius:6px"></div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn bg sm" onclick="moveRetremItem(-1)">⬆ ขึ้น</button>
+                <button class="btn bg sm" onclick="moveRetremItem(1)">⬇ ลง</button>
+                <button class="btn ber sm" onclick="deleteSelectedRetrem()">🗑 ลบ</button>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px">เพิ่มเหตุผลใหม่</div>
+              <div style="background:var(--s2);border-radius:8px;padding:14px;margin-bottom:10px">
+                <div class="fg" style="margin-bottom:8px"><label>ข้อความที่แสดง *</label>
+                  <input type="text" id="newRetremLabel" placeholder="เช่น ย้ายไป ICU">
+                </div>
+                <div class="fg" style="margin-bottom:10px"><label>ต้องกรอกรายละเอียดเพิ่ม?</label>
+                  <select id="newRetremDetail">
+                    <option value="0">ไม่ต้อง</option>
+                    <option value="1">ต้องกรอก</option>
+                  </select>
+                </div>
+                <button class="btn badm" style="width:100%" onclick="addRetremItem()">➕ เพิ่มเหตุผล</button>
+              </div>
+              <div style="margin-top:8px;padding:8px 10px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);border-radius:6px;font-size:11px;color:var(--mu)">
+                ⚠️ รายการ "อื่นๆ" จะแสดงช่องกรอกรายละเอียดเสมอ ไม่สามารถลบได้
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:6px;justify-content:flex-end">
+            <button class="btn badm sm" onclick="applyRetremChanges()">✅ บันทึกการเปลี่ยนแปลง</button>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /adm-lists-mgr -->
 
   </div><!-- /adminContent -->
@@ -932,7 +1018,12 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
         <div class="fg"><label>ผู้ให้ยืม *</label>
           <select id="giverSel" onchange="handleStaff('giver')"><option value="">— เลือกผู้ให้ยืม —</option></select>
           <input type="text" id="giverOth" class="sth" placeholder="ระบุชื่อ..."></div>
-        <div class="fg"><label>หมายเลขเครื่องมือ</label><input type="text" id="eqNo" placeholder="เลขทะเบียน"></div>
+        <div class="fg"><label>หมายเลขเครื่องมือ</label>
+          <div style="position:relative">
+            <input type="text" id="eqNo" list="eqNoList" placeholder="กรอกหรือเลือกหมายเลข..." autocomplete="off" style="width:100%">
+            <datalist id="eqNoList"></datalist>
+          </div>
+        </div>
       </div>
       <label style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">อุปกรณ์ประกอบ</label>
       <table style="width:100%;border-collapse:collapse"><thead><tr>
@@ -976,16 +1067,7 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
         <select id="receiverSel" onchange="handleStaff('receiver')"><option value="">— เลือกผู้รับคืน —</option></select>
         <input type="text" id="receiverOth" class="sth" placeholder="ระบุชื่อ..."></div>
       <div class="fg" style="margin-bottom:9px"><label>เหตุผลการคืน *</label>
-        <select id="retRemark" onchange="showRetDet()">
-          <option value="">เลือกเหตุผล</option>
-          <option value="OFF">OFF</option>
-          <option value="ย้ายไปหน่วยวิกฤต">ย้ายไปหน่วยวิกฤต</option>
-          <option value="DEAD">DEAD</option>
-          <option value="เครื่องมือชำรุด">เครื่องมืออุปกรณ์ชำรุดขัดข้อง</option>
-          <option value="ไม่ได้ใช้งาน">ไม่ได้ใช้งาน</option>
-          <option value="NA">NA</option>
-          <option value="อื่นๆ">อื่นๆ</option>
-        </select></div>
+        <select id="retRemark" onchange="showRetDet()"><option value="">เลือกเหตุผล</option></select></div>
       <div class="fg" id="retDetGrp" style="display:none;margin-bottom:9px">
         <label>รายละเอียดเพิ่มเติม *</label>
         <textarea id="retDet" rows="2" placeholder="ระบุรายละเอียด..."></textarea></div>
@@ -1260,6 +1342,8 @@ var API = {
 // ── DEFAULT DATA (overridden by localStorage if saved) ──────
 var _DEPTS_DEFAULT=[{c:'0001',n:'ER'},{c:'0002',n:'100/9'},{c:'0003',n:'100/6'},{c:'0004',n:'80/10'},{c:'0005',n:'80/9'},{c:'0006',n:'80/8'},{c:'0007',n:'ศช'},{c:'0008',n:'ศญ'},{c:'0009',n:'80/5'},{c:'0010',n:'80/2'},{c:'0011',n:'PICU'},{c:'0012',n:'80/1'},{c:'0013',n:'14/9.'},{c:'0014',n:'14/8.'},{c:'0015',n:'14/7.'},{c:'0016',n:'อญ'},{c:'0017',n:'อช'},{c:'0018',n:'CICU'},{c:'0019',n:'SICU'},{c:'0020',n:'MICU'},{c:'0021',n:'OPD MED'},{c:'0022',n:'OPD SURG'},{c:'0023',n:'แผนกไตเทียม'},{c:'0024',n:'วิสัญญี'},{c:'0025',n:'OR'},{c:'0026',n:'ห้องตรวจพิเศษศัลย์'},{c:'0027',n:'MIS'},{c:'0028',n:'กายภาพ'},{c:'0029',n:'ห้อง Intervention'},{c:'0030',n:'รังสี'},{c:'0031',n:'OPD chest'},{c:'0032',n:'OPD ortho'},{c:'0033',n:'OPD กุมาร'},{c:'0034',n:'OPD ตา'},{c:'0035',n:'OPD ENT'},{c:'0036',n:'OPD Uro'},{c:'0037',n:'ศูนย์สมองฯ'},{c:'0038',n:'ศูนย์แพทย์'},{c:'9999',n:'อื่นๆ'}];
 var _EQL_DEFAULT=['Ventilator','Ventilator transfer','HFNC','HFNC transfer','BiPAP','BIRD','Infusion pump','Infusion pump for chemo','Syringe pump','PCA','Enteral feeding pump','Oxygen flow meter pipeline','Oxygen flow meter regulator','Continuous suction pipeline','Intermittent suction pipeline','thoracic suction pipeline','PEEP VALVE','CPAP VALVE','Heated probe humidifier','อื่นๆ'];
+var _EQNUMS_DEFAULT=['O2FLO1','O2FLO2','O2FLO3','MEK1','MEK2','MEK3','MEK5'];
+var _RETREMARKS_DEFAULT=['OFF','ย้ายไปหน่วยวิกฤต','DEAD','เครื่องมืออุปกรณ์ชำรุดขัดข้อง','ไม่ได้ใช้งาน','NA','อื่นๆ'];
 var _ACCS_DEFAULT=[{id:'a1',n:'Oxygen flow meter pipeline with power take off',no:true},{id:'a2',n:'Oxygen flow meter pipeline 70 LPM',no:true},{id:'a3',n:'Self inflating bag',no:false},{id:'a4',n:'full face mask',det:true},{id:'a5',n:'Nasal cannula HFNC',no:true},{id:'a6',n:'อื่นๆ',det:true}];
 var _STAFF_DEFAULT=['ร.อ.วรชาติ','ร.อ. ประสิทธิ์','น.ต.วิทยา','พ.จ.อ.หญิง วนิดา','น.ต.หญิง นวิยา','น.ท.หญิง สุชาดา','น.ส.นิภาวรรณ','น.ส. ประนอม','อื่นๆ'];
 
@@ -1270,6 +1354,8 @@ var DEPTS=_lsGet('depts',_DEPTS_DEFAULT);
 var EQL=_lsGet('eql',_EQL_DEFAULT);
 var ACCS=_lsGet('accs',_ACCS_DEFAULT);
 var STAFF=_lsGet('staff',_STAFF_DEFAULT);
+var EQNUMS=_lsGet('eqnums',_EQNUMS_DEFAULT);
+var RETREMARKS=_lsGet('retremarks',_RETREMARKS_DEFAULT);
 
 // Working copies for list manager (edited before applying)
 var _wDepts=null,_wStaff=null,_wEql=null,_wAcc=null;
@@ -1282,7 +1368,7 @@ var _bulkPendingLoans=[],_bulkPendingBors=[];
 
 document.addEventListener('DOMContentLoaded',function(){
   if(SUPABASE_URL.includes('YOUR_PROJECT_ID')||SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY')){document.getElementById('cfgBanner').classList.add('on');}
-  setToday();buildEqCards();buildAccTable();
+  setToday();buildEqCards();buildAccTable();rebuildEqNoDatalist();rebuildRetRemarkSelect();
   buildSSL('deptList',DEPTS,function(c,n){pickDept('deptList',c,n);});
   buildSSL('trDeptList',DEPTS,function(c,n){pickDept('trDeptList',c,n);});
   buildStaff();initFilters();loadAll();
@@ -1309,7 +1395,7 @@ function startSumRealtime(){
   window._sumRealtimeTimer=setInterval(function(){
     var pg=document.getElementById('pg-sum');
     if(pg&&pg.classList.contains('on')){
-      renderSum({});
+      renderSum({}); // async — fire and forget OK for timer
     }
   },60000); // ทุก 1 นาที
 }
@@ -1487,6 +1573,10 @@ async function loadAll(){
     var[ld,bd]=await Promise.all([API.getAllLoans(),API.getAllBorrows()]);
     loans=ld;borrows=bd;
     renderRec();renderAll();renderDaily();updateDash();
+    // ถ้าหน้าสถิติเปิดอยู่ตอน loadAll เสร็จ → load ทันที
+    if(document.getElementById('pg-sum')&&document.getElementById('pg-sum').classList.contains('on')){
+      loadSum().then(function(){startSumRealtime();});
+    }
     if(document.getElementById('adm-loan-mgr')&&document.getElementById('adm-loan-mgr').classList.contains('on'))renderAdminLoans();
     if(document.getElementById('adm-borrow-mgr')&&document.getElementById('adm-borrow-mgr').classList.contains('on'))renderAdminBorrows();
     if(arTimer)clearTimeout(arTimer);
@@ -1769,10 +1859,10 @@ function updateDash(){
 // ============================================================
 // SUMMARY
 // ============================================================
-function loadSum(){
+async function loadSum(){
   initSumFilters();
   updateSumFilterBadges();
-  renderSum({avgUsage:{},overMonth:[],equipDays:{},circuitChange:[]});
+  await renderSum({avgUsage:{},overMonth:[],equipDays:{},circuitChange:[]});
 }
 
 // ── Timezone Bangkok (UTC+7) helpers ──────────────────────────
@@ -1784,7 +1874,7 @@ function localDateStr(d){
 function bangkokNow(){return new Date();}
 async function renderSum(r){
   var now=new Date(),sc=document.getElementById('sumCont');var _sMap={};
-  if(!loans){sc.innerHTML='<div class="lding"><div class="spin"></div> กำลังโหลด...</div>';return;}
+  if(!loans){sc.innerHTML='<div class="lding"><div class="spin"></div> กำลังโหลด...</div>';return Promise.resolve();}
 
   // ─── อ่าน filter ───────────────────────────────────────────
   var fDept =(document.getElementById('sumDept') ||{}).value||'';
@@ -2024,235 +2114,134 @@ async function renderSum(r){
     var tb=Object.values(dailyActiveByEq[b]).reduce(function(s,v){return s+v;},0);
     return tb-ta;
   });
-    // หา Active total จาก _EQ_INV สำหรับ Utilization
-  var _invMap={};
-  if(window._EQ_INV)window._EQ_INV.forEach(function(eq){
-    var A=Math.max(0,(eq.total||0)-(eq.inactive||0)-(eq.forDept||0));
-    _invMap[eq.name.trim().toLowerCase()]=A;
+
+    // ══════════════════════════════════════════════════════
+  // 📈 ค่าเฉลี่ย On Loan รายวัน (จาก Dashboard / daily_snapshots)
+  // ══════════════════════════════════════════════════════
+  var _avgEqFilter=secAvgEq||fEq||'';
+  var _avgDateS=secAvgS||fDateS||'';
+  var _avgDateE=secAvgE||fDateE||localDateStr(now);
+
+  // build snapMap
+  var snapMap={};
+  Object.keys(dailyActiveByEq).forEach(function(eqName){
+    if(_avgEqFilter&&eqName!==_avgEqFilter)return;
+    var dayData=dailyActiveByEq[eqName]||{};
+    Object.keys(dayData).forEach(function(d){
+      if(_avgDateS&&d<_avgDateS)return;
+      if(_avgDateE&&d>_avgDateE)return;
+      if(!snapMap[eqName])snapMap[eqName]={};
+      snapMap[eqName][d]=dayData[d];
+    });
   });
 
-  var eqAvgStats=eqNamesAvg.map(function(n){
-    var dayData=dailyActiveByEq[n]||{};
-    var sumActive=Object.values(dayData).reduce(function(s,v){return s+v;},0);
-    var daysWithUsage=Object.keys(dayData).length;
-    var avgByRange=totalDays>0?(sumActive/totalDays).toFixed(2):'0.00'; // เฉลี่ยต่อวัน = Σกำลังยืมแต่ละวัน ÷ totalDays
-    var counts=Object.values(dayData);
-    var maxDay=counts.length>0?Math.max.apply(null,counts):0;
-    var todayStr=localDateStr(now);
-    var todayCount=dayData[todayStr]||0;
-    // MA7
-    var last7=rangeDates.slice(-7);
-    var sum7=last7.reduce(function(s,d){return s+(dayData[d]||0);},0);
-    var ma7=last7.length>0?(sum7/last7.length).toFixed(2):'0.00';
-    // Utilization
-    var activeTotal=_invMap[n.trim().toLowerCase()]||0;
-    var utilPct=activeTotal>0?parseFloat((todayCount/activeTotal*100).toFixed(1)):null;
-    // Trend
-    var trend=parseFloat(ma7)>parseFloat(avgByRange)?'up':parseFloat(ma7)<parseFloat(avgByRange)?'down':'flat';
-    return{name:n,sumActive:sumActive,daysWithUsage:daysWithUsage,
-      avgByRange:avgByRange,maxDay:maxDay,todayCount:todayCount,
-      ma7:ma7,utilPct:utilPct,activeTotal:activeTotal,trend:trend};
+  // รวมข้อมูล inventory จาก Dashboard (_EQ_INV)
+  var _invFull={};
+  if(window._EQ_INV){
+    window._EQ_INV.forEach(function(eq){
+      var n=(eq.name||'').trim();
+      _invFull[n.toLowerCase()]={
+        name:n,
+        total:eq.total||0,
+        active:Math.max(0,(eq.total||0)-(eq.inactive||0)),
+        inactive:eq.inactive||0,
+        forDept:eq.forDept||0
+      };
+    });
+  }
+
+  var snapEqNames=Object.keys(snapMap).sort(function(a,b){
+    var sa=Object.values(snapMap[a]).reduce(function(s,v){return s+v;},0);
+    var sb=Object.values(snapMap[b]).reduce(function(s,v){return s+v;},0);
+    return sb-sa;
   });
-  var rangeLabel=computeRangeS+' ถึง '+computeRangeE;
-  // แสดงเวลาปัจจุบัน Bangkok
+
+  var BAR_COLORS2=['#00c8ff','#7c3aed','#10b981','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#34d399','#fbbf24','#f87171','#22d3ee','#a78bfa','#fb923c','#4ade80','#c084fc'];
+
+  var snapStats=snapEqNames.map(function(n,i){
+    var dayData=snapMap[n]||{};
+    var dates=Object.keys(dayData).sort();
+    var totalDaysS=dates.length;
+    var sumActiveS=dates.reduce(function(s,d){return s+(dayData[d]||0);},0);
+    var avgS=totalDaysS>0?(sumActiveS/totalDaysS).toFixed(2):'0.00';
+    var peakS=totalDaysS>0?Math.max.apply(null,dates.map(function(d){return dayData[d]||0;})):0;
+    var todayVal=dayData[localDateStr(now)]||0;
+    var last7=dates.slice(-7);
+    var ma7S=last7.length>0?(last7.reduce(function(s,d){return s+(dayData[d]||0);},0)/last7.length).toFixed(2):'0.00';
+    var trendS=parseFloat(ma7S)>parseFloat(avgS)?'up':parseFloat(ma7S)<parseFloat(avgS)?'down':'flat';
+    var inv=_invFull[n.toLowerCase()]||{total:0,active:0,inactive:0,forDept:0};
+    var utilPct=inv.active>0?parseFloat((todayVal/inv.active*100).toFixed(1)):null;
+    var availableNow=Math.max(0,(inv.active||0)-(inv.forDept||0)-todayVal);
+    var col=BAR_COLORS2[i%BAR_COLORS2.length];
+    return{name:n,avg:avgS,peak:peakS,todayVal:todayVal,ma7:ma7S,
+           sumActive:sumActiveS,totalDays:totalDaysS,trend:trendS,
+           utilPct:utilPct,inv:inv,availableNow:availableNow,col:col};
+  });
+
   var _bkkTime=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now);
   var _bkkDate=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',year:'numeric',month:'short',day:'numeric'}).format(now);
-    var avgHtml='<div class="card">'    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">'    +'<div class="ctitle" style="margin:0">📊 ค่าเฉลี่ยจำนวนการใช้งานเครื่องมือแพทย์'    +'<span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px">'+rangeLabel+' ('+totalDays+' วัน)</span></div>'    +'<div style="font-size:11px;color:var(--mu);display:flex;align-items:center;gap:6px">'      +'<span style="color:var(--ok);font-size:10px">●</span>'      +'<span style="color:var(--ac);font-family:var(--mo);font-weight:700">'+_bkkDate+' '+_bkkTime+'</span>'      +'<span id="snapBadge" style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:1px 8px;color:var(--ok)">🔄 Bangkok realtime</span>'    +'</div>'    +'</div>'    +'<div style="margin-bottom:10px;font-size:12px;padding:7px 10px;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);border-radius:5px;color:var(--mu)">'
-      +'💡 <strong style="color:var(--tx)">วิธีคิด:</strong> รวมจำนวนเครื่องที่ <strong style="color:var(--ok)">กำลังยืมอยู่</strong> ในแต่ละวัน → หารด้วย <strong style="color:var(--ac)">'+totalDays+' วัน</strong> = เฉลี่ยต่อวันที่ใช้งานได้จริง'
-    +'</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:14px">'
-    +eqAvgStats.map(function(e,i){
-      var col=barColors[i%barColors.length];
-      var maxAvg=eqAvgStats.length>0?parseFloat(eqAvgStats[0].avgByRange)||1:1;
-      var barW=Math.round((parseFloat(e.avgByRange)/maxAvg)*100);
-      var trendIcon=e.trend==='up'?'<span style="color:var(--er)">▲</span>':e.trend==='down'?'<span style="color:var(--ok)">▼</span>':'<span style="color:var(--mu)">─</span>';
-      var utilStr=e.utilPct!==null?('<span style="color:'+(e.utilPct>=80?'var(--er)':e.utilPct>=60?'var(--wn)':'var(--ok)')+'">'+e.utilPct+'%</span>'):'<span style="color:var(--mu)">—</span>';
-      var avgTooltip='Σกำลังยืม/วัน = '+e.sumActive+' | จำนวนวัน = '+totalDays+' วัน | avg = '+e.avgByRange;
-      return'<div class="avg-tile" data-eq="'+e.name.replace(/"/g,"&quot;")+'" title="'+avgTooltip+'" style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px 12px;border-left:3px solid '+col+';cursor:pointer;transition:all .15s">'        +'<div style="font-size:11px;color:var(--mu);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.name+'</div>'        +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px">'          +'<span style="font-size:22px;font-weight:700;font-family:var(--mo);color:'+col+'">'+e.avgByRange+'</span>'          +'<span style="font-size:10px;color:var(--mu)">avg/วัน</span>'          +trendIcon        +'</div>'        +'<div style="height:3px;background:var(--bg);border-radius:2px;overflow:hidden;margin-bottom:6px">'          +'<div style="height:100%;width:'+barW+'%;background:'+col+';border-radius:2px"></div>'        +'</div>'        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:10px">'          +'<div style="color:var(--mu)">วันนี้: <span style="color:var(--ac);font-weight:700">'+e.todayCount+'</span></div>'          +'<div style="color:var(--mu)">Peak: <span style="color:var(--wn);font-weight:700">'+e.maxDay+'</span></div>'          +'<div style="color:var(--mu)">MA7: <span style="color:var(--ac2);font-weight:700">'+e.ma7+'</span></div>'          +'<div style="color:var(--mu)">Util: '+utilStr+'</div>'        +'</div>'        +'<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--bd);font-size:10px;color:var(--mu);font-family:var(--mo)">'          +'Σ'+e.sumActive+' ÷ '+totalDays+'วัน'        +'</div>'        +'</div>';
-    }).join('')
-    +'</div>'
-    +'<div class="dtw"><table class="dt">'
-    +'<thead><tr>'
-        +'<th>ชนิดเครื่องมือ</th>'    +'<th style="text-align:center;white-space:nowrap;color:var(--ac)">วันนี้<br><span style="font-size:9px;font-weight:400">(เครื่อง)</span></th>'    +'<th style="text-align:center;white-space:nowrap;color:var(--wn)">Peak<br><span style="font-size:9px;font-weight:400">สูงสุด/วัน</span></th>'    +'<th style="text-align:center;white-space:nowrap;color:var(--ok)">Avg<br><span style="font-size:9px;font-weight:400">เครื่อง/วัน</span></th>'    +'<th style="text-align:center;white-space:nowrap;color:var(--ac2)">MA7<br><span style="font-size:9px;font-weight:400">เฉลี่ย 7 วัน</span></th>'    +'<th style="text-align:center;white-space:nowrap">Utilization<br><span style="font-size:9px;font-weight:400">วันนี้/Active</span></th>'    +'<th style="text-align:center;white-space:nowrap">วันที่มีการใช้<br><span style="font-size:9px;font-weight:400">(จาก '+totalDays+' วัน)</span></th>'    +'<th style="text-align:center">แนวโน้ม (10 วัน)</th>'    +'<th style="text-align:center">ดู</th>'    +'</tr></thead><tbody>'
-    +eqAvgStats.map(function(e,i){
-      var col=barColors[i%barColors.length];
-      var spark10=datesForAvg.slice(0,10).reverse().map(function(d){
-        return(dailyActiveByEq[e.name]&&dailyActiveByEq[e.name][d])||0;
-      });
-      var maxSpark=Math.max.apply(null,spark10.concat([1]));
-      var sparkW=70,sparkH=22;
-      var sparkPts=spark10.map(function(v,idx){
-        var x=Math.round(idx*(sparkW/(spark10.length-1||1)));
-        var y=Math.round(sparkH-3-(v/maxSpark)*(sparkH-6));
-        return x+','+y;
-      }).join(' ');
-      var sparkSvg='<svg width="'+sparkW+'" height="'+sparkH+'" style="vertical-align:middle">'
-        +(spark10.length>1?'<polyline points="'+spark10.map(function(v,idx){
-          var x=Math.round(idx*(sparkW/(spark10.length-1||1)));
-          var y=Math.round(sparkH-3-(v/maxSpark)*(sparkH-6));
-          return x+','+y;
-        }).join(' ')+' '+sparkW+','+(sparkH-1)+' 0,'+(sparkH-1)+'" fill="'+col+'" opacity="0.12"/>':'')
-        +(spark10.length>1?'<polyline points="'+sparkPts+'" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-linejoin="round"/>':'')
-        +spark10.map(function(v,idx){
-          if(v===0)return'';
-          var x=Math.round(idx*(sparkW/(spark10.length-1||1)));
-          var y=Math.round(sparkH-3-(v/maxSpark)*(sparkH-6));
-          return'<circle cx="'+x+'" cy="'+y+'" r="2.2" fill="'+col+'"/>'
-            +'<title>'+datesForAvg.slice(0,10).reverse()[idx]+': '+v+' เครื่อง</title>';
-        }).join('')
-        +'</svg>';
-            var ak='avg_'+e.name.replace(/[^a-zA-Z0-9]/g,'_');_sMap[ak]={type:'eq',eq:e.name};
-      var todayColor=e.todayCount>0?'var(--ok)':'var(--mu)';
-      var ma7Color=parseFloat(e.ma7)>parseFloat(e.avgByRange)?'var(--er)':parseFloat(e.ma7)<parseFloat(e.avgByRange)?'var(--ok)':'var(--ac2)';
-      var trendTxt=e.trend==='up'?'▲ เพิ่ม':e.trend==='down'?'▼ ลด':'─ คงที่';
-      var trendC=e.trend==='up'?'var(--er)':e.trend==='down'?'var(--ok)':'var(--mu)';
-      var utilCell=e.utilPct!==null
-        ?('<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'            +'<span style="font-family:var(--mo);font-weight:700;font-size:13px;color:'+(e.utilPct>=80?'var(--er)':e.utilPct>=60?'var(--wn)':'var(--ok)')+'">'+e.utilPct+'%</span>'            +'<div style="width:56px;height:4px;background:var(--bg);border-radius:2px;overflow:hidden">'              +'<div style="height:100%;width:'+Math.min(100,e.utilPct)+'%;background:'+(e.utilPct>=80?'var(--er)':e.utilPct>=60?'var(--wn)':'var(--ok)')+';border-radius:2px"></div>'            +'</div>'            +'<span style="font-size:9px;color:var(--mu)">'+e.todayCount+'/'+(e.activeTotal||'?')+'</span>'          +'</div>')
-        :'<span style="color:var(--mu);font-size:10px">—</span>';
-            return'<tr class="avg-tbl-row">'
-        +'<td><div style="display:flex;align-items:center;gap:6px">'          +'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+col+';flex-shrink:0"></span>'          +'<strong>'+e.name+'</strong>'          +'<span style="font-size:10px;color:'+trendC+'">'+trendTxt+'</span>'        +'</div></td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:'+todayColor+'">'+e.todayCount+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;color:var(--wn)">'+e.maxDay+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.avgByRange+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;color:'+ma7Color+'">'+e.ma7+'</td>'        +'<td style="text-align:center;padding:6px 9px">'+utilCell+'</td>'        +'<td style="text-align:center;font-family:var(--mo)">'+e.daysWithUsage+'</td>'        +'<td style="text-align:center">'+sparkSvg+'</td>'        +'<td style="text-align:center"><button class="abt svb" data-key="'+ak+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">ดู</button></td>'        +'</tr>';
-    }).join('')+(eqAvgStats.length===0?'<tr><td colspan="9" style="text-align:center;color:var(--mu)">ไม่มีข้อมูล</td></tr>':'')
-    +'</tbody></table></div>'
-    +'<div style="margin-top:10px;padding:8px 12px;background:var(--s2);border-radius:6px;font-size:11px;color:var(--mu);line-height:1.8">'  +'<strong style="color:var(--ac)">Avg</strong> = ผลรวมเครื่อง active ÷ <u>วันที่มีการใช้งานจริง</u> (สูตร A) &nbsp;|&nbsp; '  +'<strong style="color:var(--ac2)">MA7</strong> = ค่าเฉลี่ย 7 วันล่าสุด (ถ้า MA7 > Avg = แนวโน้มเพิ่ม ▲) &nbsp;|&nbsp; '  +'<strong style="color:var(--wn)">Peak</strong> = จำนวนสูงสุดที่เคยใช้ในวันเดียว &nbsp;|&nbsp; '  +'<strong style="color:var(--ok)">Utilization</strong> = วันนี้ ÷ Active ทั้งหมด (ตั้งค่าใน Admin → จัดการสถานะเครื่องมือ)'  +'</div>'
-    +'</div>';
+  var _avgRangeLabel=(_avgDateS||computeRangeS)+' ถึง '+(_avgDateE||computeRangeE);
+  var _snapSource=_snapLoaded?'📸 daily_snapshots':'⚡ คำนวณ realtime';
+  var _snapBadgeColor=_snapLoaded?'var(--ok)':'var(--wn)';
 
-  // ─── overMonth ───
+  var avgHtml='';
+  if(snapStats.length===0){
+    avgHtml='<div class="card"><div class="ctitle">📈 ค่าเฉลี่ย On Loan รายวัน (Dashboard)</div>'      +'<div style="text-align:center;padding:30px;color:var(--mu)">ไม่มีข้อมูล — '      +'<a href="backfill_180.html" target="_blank" style="color:var(--ac)">คลิกเพื่อสร้างข้อมูลย้อนหลัง</a></div></div>';
+  }else{
+    // summary cards
+    var totalOnLoanToday=snapStats.reduce(function(s,e){return s+e.todayVal;},0);
+    var totalAvg=snapStats.reduce(function(s,e){return s+parseFloat(e.avg);},0).toFixed(1);
+    var maxDays=Math.max.apply(null,snapStats.map(function(e){return e.totalDays;}));
+    var summaryHtml='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px">'      +'<div style="background:var(--s2);border-radius:6px;padding:10px 14px;text-align:center">'        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">เครื่องมือ</div>'        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--tx)">'+snapStats.length+'</div>'        +'<div style="font-size:10px;color:var(--mu)">รายการ</div></div>'      +'<div style="background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);border-radius:6px;padding:10px 14px;text-align:center">'        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">On Loan วันนี้</div>'        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--ac)">'+totalOnLoanToday+'</div>'        +'<div style="font-size:10px;color:var(--mu)">เครื่อง</div></div>'      +'<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:10px 14px;text-align:center">'        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">AVG รวม</div>'        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--ok)">'+totalAvg+'</div>'        +'<div style="font-size:10px;color:var(--mu)">เครื่อง/วัน</div></div>'      +'<div style="background:var(--s2);border-radius:6px;padding:10px 14px;text-align:center">'        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">ข้อมูลสะสม</div>'        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--tx)">'+maxDays+'</div>'        +'<div style="font-size:10px;color:var(--mu)">วัน</div></div>'      +'</div>';
+
+    var tableRowsS=snapStats.map(function(e){
+      var trendTxt=e.trend==='up'?'▲':e.trend==='down'?'▼':'─';
+      var trendC=e.trend==='up'?'var(--er)':e.trend==='down'?'var(--ok)':'var(--mu)';
+      // utilization bar + %
+      var utilCell=e.utilPct!==null
+        ?('<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'          +'<span style="font-size:12px;font-weight:700;color:'+(e.utilPct>=80?'var(--er)':e.utilPct>=60?'var(--wn)':'var(--ok)')+'">'+e.utilPct+'%</span>'          +'<div style="width:56px;height:4px;background:var(--bg);border-radius:2px;overflow:hidden">'            +'<div style="height:100%;width:'+Math.min(100,e.utilPct)+'%;background:'+(e.utilPct>=80?'var(--er)':e.utilPct>=60?'var(--wn)':'var(--ok)')+';border-radius:2px"></div>'          +'</div>'          +'<span style="font-size:9px;color:var(--mu)">'+e.todayVal+'/'+(e.inv.active||'?')+'</span>'          +'</div>')
+        :'<span style="color:var(--mu);font-size:10px">—</span>';
+      // sparkline 14 วัน
+      var spDates=Object.keys(snapMap[e.name]||{}).sort().slice(-14);
+      var spVals=spDates.map(function(d){return(snapMap[e.name]||{})[d]||0;});
+      var spMax=Math.max.apply(null,spVals.concat([1]));
+      var spW=70,spH=22;
+      var spPts=spVals.map(function(v,i){return Math.round(i*(spW/(spVals.length-1||1)))+','+Math.round(spH-3-(v/spMax)*(spH-6));}).join(' ');
+      var spFill=spVals.length>1?spVals.map(function(v,i){return Math.round(i*(spW/(spVals.length-1||1)))+','+Math.round(spH-3-(v/spMax)*(spH-6));}).join(' ')+' '+spW+','+(spH-1)+' 0,'+(spH-1):'';
+      var spSvg='<svg width="'+spW+'" height="'+spH+'" style="vertical-align:middle">'        +(spFill?'<polyline points="'+spFill+'" fill="'+e.col+'" opacity="0.12"/>':'')
+        +(spVals.length>1?'<polyline points="'+spPts+'" fill="none" stroke="'+e.col+'" stroke-width="1.5" stroke-linejoin="round"/>':'')
+        +(spVals.length>0?'<circle cx="'+Math.round((spVals.length-1)*(spW/(spVals.length-1||1)))+'" cy="'+Math.round(spH-3-(spVals[spVals.length-1]||0)/spMax*(spH-6))+'" r="2.5" fill="'+e.col+'"/>':'')
+        +'</svg>';
+      var ak='snp_'+e.name.replace(/[^a-zA-Z0-9]/g,'_');_sMap[ak]={type:'eq',eq:e.name};
+      return'<tr class="avg-tbl-row" style="border-bottom:1px solid var(--bd)">'        +'<td style="padding:8px 10px"><div style="display:flex;align-items:center;gap:7px">'          +'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+e.col+';flex-shrink:0"></span>'          +'<strong>'+e.name+'</strong>'          +'<span style="font-size:10px;color:'+trendC+'">'+trendTxt+'</span>'        +'</div></td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--mu)">'+( e.inv.total||'—')+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--ok);font-weight:700">'+( e.inv.active||'—')+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--er)">'+( e.inv.inactive||0)+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+( e.inv.forDept||0)+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.todayVal+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--ok)">'+e.availableNow+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.avg+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:'+(parseFloat(e.ma7)>parseFloat(e.avg)?'var(--er)':parseFloat(e.ma7)<parseFloat(e.avg)?'var(--ok)':'var(--ac2)')+'">'+e.ma7+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+e.peak+'</td>'        +'<td style="text-align:center;padding:6px 8px">'+utilCell+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--mu);font-size:11px">'+e.totalDays+'</td>'        +'<td style="text-align:center">'+spSvg+'</td>'        +'<td style="text-align:center"><button class="abt svb" data-key="'+ak+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">ดู</button></td>'        +'</tr>';
+    }).join('');
+
+    avgHtml='<div class="card">'      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'        +'<div>'          +'<div class="ctitle" style="margin:0;margin-bottom:2px">📈 ค่าเฉลี่ย On Loan รายวัน'            +'<span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px">'+_avgRangeLabel+'</span></div>'          +'<div style="font-size:11px;color:var(--mu)">ข้อมูลจากหน้า Dashboard — บันทึกอัตโนมัติทุกวัน 23:59 น. Bangkok</div>'        +'</div>'        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'          +'<span style="font-size:11px;font-weight:700;color:'+_snapBadgeColor+'">'+_snapSource+'</span>'          +'<span style="color:var(--ac);font-family:var(--mo);font-size:11px">'+_bkkDate+' '+_bkkTime+'</span>'          +'<span style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:1px 8px;color:var(--ok)">🔄 realtime</span>'        +'</div>'      +'</div>'      +summaryHtml      +'<div style="overflow-x:auto"><table class="dt" style="min-width:900px">'        +'<thead><tr style="background:var(--s2)">'          +'<th style="text-align:left;min-width:160px;font-size:11px">MEDICAL EQUIPMENT</th>'          +'<th style="text-align:center;font-size:11px">Total</th>'          +'<th style="text-align:center;font-size:11px;color:var(--ok)">Active<br>% of Total</th>'          +'<th style="text-align:center;font-size:11px;color:var(--er)">Inactive</th>'          +'<th style="text-align:center;font-size:11px;color:var(--wn)">For Dept Use</th>'          +'<th style="text-align:center;font-size:11px;color:var(--ac)">On Loan<br>วันนี้</th>'          +'<th style="text-align:center;font-size:11px;color:var(--ok)">Available<br>วันนี้</th>'          +'<th style="text-align:center;font-size:11px;color:var(--ac)">AVG On Loan<br><span style="font-weight:400">เครื่อง/วัน</span></th>'          +'<th style="text-align:center;font-size:11px;color:var(--ac2)">MA7</th>'          +'<th style="text-align:center;font-size:11px;color:var(--wn)">Peak</th>'          +'<th style="text-align:center;font-size:11px">Utilization<br><span style="font-weight:400">On Loan/Active</span></th>'          +'<th style="text-align:center;font-size:11px">วันที่มีข้อมูล</th>'          +'<th style="text-align:center;font-size:11px">แนวโน้ม (14วัน)</th>'          +'<th style="width:36px"></th>'        +'</tr></thead>'        +'<tbody>'+tableRowsS+'</tbody>'      +'</table></div>'      +'<div style="margin-top:10px;padding:8px 12px;background:var(--s2);border-radius:6px;font-size:11px;color:var(--mu);line-height:1.8">'        +'💡 <strong style="color:var(--ac)">AVG</strong> = ผลรวม On Loan แต่ละวัน ÷ จำนวนวันที่มีข้อมูล'        +' &nbsp;|&nbsp; <strong style="color:var(--ac2)">MA7</strong> = เฉลี่ย 7 วันล่าสุด (▲ เพิ่ม / ▼ ลด)'        +' &nbsp;|&nbsp; <strong style="color:var(--ok)">Available</strong> = Active − For Dept Use − On Loan (วันนี้)'        +' &nbsp;|&nbsp; ข้อมูล Total/Active/Inactive/ForDept จาก Admin → จัดการสถานะเครื่องมือ'      +'</div>'      +'</div>';
+  }
+
+
+
+  // ─── origHtml: ⏰ยืมเกิน 1 เดือน + 🔢วันที่ใช้งาน + 🔄Circuit ───
   var overMonthLocal=[];
-  (fDept||fEq?expFiltered.map(function(i){return i.loan;}).filter(function(l,idx,arr){return arr.findIndex(function(x){return x.LoanID===l.LoanID;})===idx;}):loans).forEach(function(loan){
+  var _omLoans=fDept||fEq?expFiltered.map(function(i){return i.loan;}).filter(function(l,idx,arr){return arr.findIndex(function(x){return x.LoanID===l.LoanID;})===idx;}):loans;
+  var _ovDept2=secOvDept||fDept;
+  var _ovEq2=secOvEq||fEq;
+  _omLoans.forEach(function(loan){
     if(loan.Status==='CANCELLED'||loan.Status==='RETURNED')return;
     var ld=loan.LoanDate;if(!ld)return;
     var daysUsed=Math.round((now-new Date(ld))/86400000);
     if(daysUsed>30){overMonthLocal.push({LoanID:loan.LoanID,LoanDate:ld,DeptName:loan.DeptName,PatientName:loan.PatientName,EquipmentList:loan.EquipmentList||[],days:daysUsed});}
   });
   overMonthLocal.sort(function(a,b){return b.days-a.days;});
-  // overMonth — ใช้ secOv override (หรือ global)
-  var _ovDept=secOvDept||fDept;
-  var _ovEq=secOvEq||fEq;
-  if(_ovDept)overMonthLocal=overMonthLocal.filter(function(r){return S(r.DeptName)===_ovDept;});
-  if(_ovEq)overMonthLocal=overMonthLocal.filter(function(r){return(r.EquipmentList||[]).some(function(e){return S(e.name)===_ovEq;});});
+  if(_ovDept2)overMonthLocal=overMonthLocal.filter(function(r){return S(r.DeptName)===_ovDept2;});
+  if(_ovEq2)overMonthLocal=overMonthLocal.filter(function(r){return(r.EquipmentList||[]).some(function(e){return S(e.name)===_ovEq2;});});
 
-  var origHtml='<div class="card"><div class="ctitle">⏰ รายการยืมเกิน 1 เดือน <span style="font-size:11px;color:'+(overMonthLocal.length>0?'var(--er)':'var(--ok)')+';font-weight:600;text-transform:none;letter-spacing:0">'+(overMonthLocal.length>0?overMonthLocal.length+' รายการ':'ปกติ')+'</span></div>'
-    +(overMonthLocal.length?'<div class="dtw"><table class="dt"><thead><tr><th>LoanID</th><th>วันที่ยืม</th><th>แผนก</th><th>ผู้ป่วย</th><th>เครื่องมือ</th><th style="text-align:center">จำนวนวัน</th><th style="text-align:center">รายละเอียด</th></tr></thead><tbody>'
-      +overMonthLocal.map(function(row){
-        var sk='s_'+S(row.LoanID);_sMap[sk]=row;
-        var dC=row.days>60?'var(--er)':'var(--wn)';
-        return'<tr>'
-          +'<td style="font-family:var(--mo);font-size:11px;color:var(--ac)">'+S(row.LoanID)+'</td>'
-          +'<td>'+row.LoanDate+'</td><td><strong>'+S(row.DeptName)+'</strong></td><td>'+S(row.PatientName)+'</td>'
-          +'<td>'+(row.EquipmentList||[]).map(function(e){return e.name;}).join(', ')+'</td>'
-          +'<td style="text-align:center;font-family:var(--mo);font-weight:700;color:'+dC+'">'+row.days+' วัน</td>'
-          +'<td style="text-align:center"><button class="abt svb" data-key="'+sk+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">รายละเอียด</button></td>'
-          +'</tr>';
-      }).join('')
-      +'</tbody></table></div>':'<p style="color:var(--ok);text-align:center;padding:14px">✅ ไม่มีรายการเกิน 1 เดือน</p>')
-    +'</div>'
-    +(function(){
-      var eqDaysLocal={};
-      expFiltered.forEach(function(item){
-        if(item.status==='PENDING'||item.status==='CANCELLED')return;
-        if(!item.borrow)return;
-        var eqNo=S(item.borrow.EquipmentNo);
-        if(!eqNo||eqNo==='—'||eqNo==='-'||eqNo==='')return;
-        var ld=item.loan.LoanDate;if(!ld)return;
-        var startD=new Date(ld);
-        var endD=item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now;
-        var days=Math.max(1,Math.round((endD-startD)/86400000));
-        if(!eqDaysLocal[eqNo])eqDaysLocal[eqNo]={days:0,equipName:S(item.eq.name),loanCount:0,active:item.status==='ACTIVE'||item.status==='ACC_PENDING'};
-        eqDaysLocal[eqNo].days+=days;
-        eqDaysLocal[eqNo].loanCount+=1;
-        if(item.status==='ACTIVE'||item.status==='ACC_PENDING')eqDaysLocal[eqNo].active=true;
-        if(!eqDaysLocal[eqNo].equipName&&S(item.eq.name))eqDaysLocal[eqNo].equipName=S(item.eq.name);
-      });
-      var allEqDays=Object.entries(eqDaysLocal).sort(function(a,b){return b[1].days-a[1].days;});
-      var totalEq=allEqDays.length;
-      var rows=allEqDays.map(function(e){
-        var avg=e[1].loanCount>0?(e[1].days/e[1].loanCount).toFixed(1):'-';
-        var dayColor=e[1].days>30?'var(--er)':e[1].days>14?'var(--wn)':'var(--ok)';
-        var activeBadge=e[1].active?'<span style="font-size:9px;background:rgba(16,185,129,.15);color:var(--ok);border:1px solid rgba(16,185,129,.3);border-radius:3px;padding:1px 4px;margin-left:3px">กำลังใช้</span>':'';
-        return'<tr class="eqdrow" data-eqno="'+e[0].toLowerCase()+'" data-eqname="'+e[1].equipName.toLowerCase()+'">'
-          +'<td style="font-family:var(--mo);color:var(--ac);font-weight:700">'+e[0]+activeBadge+'</td>'
-          +'<td>'+e[1].equipName+'</td>'
-          +'<td style="text-align:center;font-family:var(--mo)">'+e[1].loanCount+'</td>'
-          +'<td style="text-align:center;font-family:var(--mo);font-weight:700;color:'+dayColor+'">'+e[1].days+'</td>'
-          +'<td style="text-align:center;font-family:var(--mo);color:var(--mu)">'+avg+'</td>'
-          +'</tr>';
-      }).join('');
-      return'<div class="card">'
-        +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">'
-          +'<div class="ctitle" style="margin:0">🔢 วันที่ใช้งานของเครื่องมือแต่ละเครื่อง</div>'
-          +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
-            +'<span style="font-size:11px;color:var(--mu)">ทั้งหมด '+totalEq+' เครื่อง</span>'
-            +'<input type="text" id="eqDaysSearch" placeholder="🔍 ค้นหาชื่อเครื่องมือ / หมายเลขเครื่อง..." oninput="filterEqDays(this.value)" style="width:280px;font-size:12px;padding:5px 9px;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx)">'
-            +'<span id="eqDaysCount" style="font-size:11px;color:var(--mu)"></span>'
-          +'</div>'
-        +'</div>'
-        +'<div class="dtw"><table class="dt" id="eqDaysTbl">'
-        +'<thead><tr>'
-        +'<th>หมายเลขเครื่อง</th>'
-        +'<th>ชนิดเครื่องมือ</th>'
-        +'<th style="text-align:center">จำนวนครั้งที่ยืม</th>'
-        +'<th style="text-align:center">วันสะสม</th>'
-        +'<th style="text-align:center">เฉลี่ย/ครั้ง (วัน)</th>'
-        +'</tr></thead>'
-        +'<tbody id="eqDaysTbody">'+rows+'</tbody>'
-        +'</table></div>'
-        +(totalEq===0?'<p style="text-align:center;color:var(--mu);padding:16px">ไม่มีข้อมูล</p>':'')
-        +'<div style="margin-top:6px;font-size:11px;color:var(--mu)">💡 วันสะสม = วันระหว่างวันยืม-วันคืน (รายการที่ยังยืมอยู่คำนวณถึงวันนี้) | <span style="color:var(--ok)">กำลังใช้</span> = ยังไม่คืน</div>'
-        +'</div>';
-    })()
-    +(function(){
-      var CIRCUIT_EQ=['Ventilator','Ventilator transfer','HFNC','HFNC transfer'];
-      var circuitLocal=[];
-      expFiltered.forEach(function(item){
-        if(item.status!=='ACTIVE'&&item.status!=='ACC_PENDING')return;
-        var eqName=S(item.eq.name);
-        if(!CIRCUIT_EQ.some(function(n){return eqName===n;}))return;
-        var ld=item.loan.LoanDate;if(!ld)return;
-        var d=Math.round((now-new Date(ld))/86400000);
-        if(d>30){
-          circuitLocal.push({
-            LoanID:S(item.loan.LoanID),LoanDate:ld,
-            DeptName:S(item.loan.DeptName),PatientName:S(item.loan.PatientName),
-            eqName:eqName,eqNo:item.borrow?S(item.borrow.EquipmentNo||'—'):'—',days:d
-          });
-        }
-      });
-      circuitLocal.sort(function(a,b){return b.days-a.days;});
-      var countBadge=circuitLocal.length>0
-        ?'<span style="font-size:11px;color:var(--wn);font-weight:600;text-transform:none;letter-spacing:0;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:4px;padding:1px 8px;margin-left:6px">⚠️ '+circuitLocal.length+' รายการ</span>'
-        :'<span style="font-size:11px;color:var(--ok);font-weight:600;text-transform:none;letter-spacing:0;margin-left:6px">✅ ปกติ</span>';
-      return'<div class="card">'
-        +'<div class="ctitle">🔄 Ventilator/HFNC ต้องเปลี่ยน Circuit (เกิน 30 วัน)'+countBadge+'</div>'
-        +(circuitLocal.length
-          ?'<div class="dtw"><table class="dt"><thead><tr>'
-            +'<th>LoanID</th><th>วันที่ยืม</th><th>แผนก</th><th>ผู้ป่วย</th>'
-            +'<th>เครื่องมือ</th><th>หมายเลขเครื่อง</th>'
-            +'<th style="text-align:center">วันที่ใช้</th><th style="text-align:center">รายละเอียด</th>'
-            +'</tr></thead><tbody>'
-            +circuitLocal.map(function(row){
-              var dC=row.days>=45?'var(--er)':'var(--wn)';
-              var urgency=row.days>=45?'🔴':'🟡';
-              return'<tr class="cirow" data-lid="'+row.LoanID+'" style="background:rgba(245,158,11,.04)">'
-                +'<td style="font-family:var(--mo);font-size:11px;color:var(--ac)">'+row.LoanID+'</td>'
-                +'<td>'+row.LoanDate+'</td>'
-                +'<td><strong>'+row.DeptName+'</strong></td>'
-                +'<td>'+row.PatientName+'</td>'
-                +'<td>'+row.eqName+'</td>'
-                +'<td style="font-family:var(--mo);color:var(--ac)">'+row.eqNo+'</td>'
-                +'<td style="font-family:var(--mo);color:'+dC+';text-align:center;font-weight:700">'+urgency+' '+row.days+' วัน</td>'
-                +'<td style="text-align:center"><button class="abt cirbtn" style="border-color:var(--ac);color:var(--ac);font-size:11px">👁 ดู</button></td>'
-                +'</tr>';
-            }).join('')
-            +'</tbody></table></div>'
-          :'<p style="color:var(--ok);text-align:center;padding:14px">✅ ไม่มีรายการที่ต้องเปลี่ยน Circuit ในขณะนี้</p>')
-        +'</div>';
-    })();
+  var origHtml='<div class="card"><div class="ctitle">⏰ รายการยืมเกิน 1 เดือน <span style="font-size:11px;color:'+(overMonthLocal.length>0?'var(--er)':'var(--ok)')+';font-weight:600;text-transform:none;letter-spacing:0">'+(overMonthLocal.length>0?overMonthLocal.length+' รายการ':'ปกติ')+'</span></div>'    +(overMonthLocal.length?'<div class="dtw"><table class="dt"><thead><tr><th>LoanID</th><th>วันที่ยืม</th><th>แผนก</th><th>ผู้ป่วย</th><th>เครื่องมือ</th><th style="text-align:center">จำนวนวัน</th><th style="text-align:center">รายละเอียด</th></tr></thead><tbody>'      +overMonthLocal.map(function(row){        var sk='s_'+S(row.LoanID);_sMap[sk]=row;        var dC=row.days>60?'var(--er)':'var(--wn)';        return'<tr>'          +'<td style="font-family:var(--mo);font-size:11px;color:var(--ac)">'+S(row.LoanID)+'</td>'          +'<td>'+row.LoanDate+'</td><td><strong>'+S(row.DeptName)+'</strong></td><td>'+S(row.PatientName)+'</td>'          +'<td>'+(row.EquipmentList||[]).map(function(e){return e.name;}).join(', ')+'</td>'          +'<td style="text-align:center;font-family:var(--mo);font-weight:700;color:'+dC+'">'+row.days+' วัน</td>'          +'<td style="text-align:center"><button class="abt svb" data-key="'+sk+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">รายละเอียด</button></td>'          +'</tr>';      }).join('')      +'</tbody></table></div>':'<p style="color:var(--ok);text-align:center;padding:14px">✅ ไม่มีรายการเกิน 1 เดือน</p>')    +'</div>'    +(function(){      var eqDaysLocal={};      expFiltered.forEach(function(item){        if(item.status==='PENDING'||item.status==='CANCELLED')return;        if(!item.borrow)return;        var eqNo=S(item.borrow.EquipmentNo);        if(!eqNo||eqNo==='—'||eqNo==='-'||eqNo==='')return;        var ld=item.loan.LoanDate;if(!ld)return;        var startD=new Date(ld);        var endD=item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now;        var days=Math.max(1,Math.round((endD-startD)/86400000));        if(!eqDaysLocal[eqNo])eqDaysLocal[eqNo]={days:0,equipName:S(item.eq.name),loanCount:0,active:item.status==='ACTIVE'||item.status==='ACC_PENDING'};        eqDaysLocal[eqNo].days+=days;        eqDaysLocal[eqNo].loanCount+=1;        if(item.status==='ACTIVE'||item.status==='ACC_PENDING')eqDaysLocal[eqNo].active=true;        if(!eqDaysLocal[eqNo].equipName&&S(item.eq.name))eqDaysLocal[eqNo].equipName=S(item.eq.name);      });      var allEqDays=Object.entries(eqDaysLocal).sort(function(a,b){return b[1].days-a[1].days;});      var totalEq=allEqDays.length;      var rows=allEqDays.map(function(e){        var avg=e[1].loanCount>0?(e[1].days/e[1].loanCount).toFixed(1):'-';        var dayColor=e[1].days>30?'var(--er)':e[1].days>14?'var(--wn)':'var(--ok)';        var activeBadge=e[1].active?'<span style="font-size:9px;background:rgba(16,185,129,.15);color:var(--ok);border:1px solid rgba(16,185,129,.3);border-radius:3px;padding:1px 4px;margin-left:3px">กำลังใช้</span>':'';        return'<tr class="eqdrow" data-eqno="'+e[0].toLowerCase()+'" data-eqname="'+e[1].equipName.toLowerCase()+'">'
+          +'<td style="font-family:var(--mo);color:var(--ac);font-weight:700">'+e[0]+activeBadge+'</td>'          +'<td>'+e[1].equipName+'</td>'          +'<td style="text-align:center;font-family:var(--mo)">'+e[1].loanCount+'</td>'          +'<td style="text-align:center;font-family:var(--mo);font-weight:700;color:'+dayColor+'">'+e[1].days+'</td>'          +'<td style="text-align:center;font-family:var(--mo);color:var(--mu)">'+avg+'</td>'          +'</tr>';      }).join('');      return'<div class="card">'        +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">'          +'<div class="ctitle" style="margin:0">🔢 วันที่ใช้งานของเครื่องมือแต่ละเครื่อง</div>'          +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'            +'<span style="font-size:11px;color:var(--mu)">ทั้งหมด '+totalEq+' เครื่อง</span>'            +'<input type="text" id="eqDaysSearch" placeholder="🔍 ค้นหาชื่อเครื่องมือ / หมายเลขเครื่อง..." oninput="filterEqDays(this.value)" style="width:280px;font-size:12px;padding:5px 9px;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx)">'            +'<span id="eqDaysCount" style="font-size:11px;color:var(--mu)"></span>'          +'</div>'        +'</div>'        +'<div class="dtw"><table class="dt" id="eqDaysTbl">'        +'<thead><tr>'        +'<th>หมายเลขเครื่อง</th><th>ชนิดเครื่องมือ</th>'        +'<th style="text-align:center">จำนวนครั้งที่ยืม</th>'        +'<th style="text-align:center">วันสะสม</th>'        +'<th style="text-align:center">เฉลี่ย/ครั้ง (วัน)</th>'        +'</tr></thead>'        +'<tbody id="eqDaysTbody">'+rows+'</tbody>'        +'</table></div>'        +(totalEq===0?'<p style="text-align:center;color:var(--mu);padding:16px">ไม่มีข้อมูล</p>':'')        +'<div style="margin-top:6px;font-size:11px;color:var(--mu)">💡 วันสะสม = วันระหว่างวันยืม-วันคืน | <span style="color:var(--ok)">กำลังใช้</span> = ยังไม่คืน</div>'        +'</div>';    })()    +(function(){      var CIRCUIT_EQ=['Ventilator','Ventilator transfer','HFNC','HFNC transfer'];      var circuitLocal=[];      expFiltered.forEach(function(item){        if(item.status!=='ACTIVE'&&item.status!=='ACC_PENDING')return;        var eqName=S(item.eq.name);        if(!CIRCUIT_EQ.some(function(n){return eqName===n;}))return;        var ld=item.loan.LoanDate;if(!ld)return;        var d=Math.round((now-new Date(ld))/86400000);        if(d>30){circuitLocal.push({LoanID:S(item.loan.LoanID),LoanDate:ld,DeptName:S(item.loan.DeptName),PatientName:S(item.loan.PatientName),eqName:eqName,eqNo:item.borrow?S(item.borrow.EquipmentNo||'—'):'—',days:d});}      });      circuitLocal.sort(function(a,b){return b.days-a.days;});      var countBadge=circuitLocal.length>0        ?'<span style="font-size:11px;color:var(--wn);font-weight:600;text-transform:none;letter-spacing:0;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:4px;padding:1px 8px;margin-left:6px">⚠️ '+circuitLocal.length+' รายการ</span>'        :'<span style="font-size:11px;color:var(--ok);font-weight:600;text-transform:none;letter-spacing:0;margin-left:6px">✅ ปกติ</span>';      return'<div class="card">'        +'<div class="ctitle">🔄 Ventilator/HFNC ต้องเปลี่ยน Circuit (เกิน 30 วัน)'+countBadge+'</div>'        +(circuitLocal.length          ?'<div class="dtw"><table class="dt"><thead><tr>'            +'<th>LoanID</th><th>วันที่ยืม</th><th>แผนก</th><th>ผู้ป่วย</th>'            +'<th>เครื่องมือ</th><th>หมายเลขเครื่อง</th>'            +'<th style="text-align:center">วันที่ใช้</th><th style="text-align:center">รายละเอียด</th>'            +'</tr></thead><tbody>'            +circuitLocal.map(function(row){              var dC=row.days>=45?'var(--er)':'var(--wn)';              var urgency=row.days>=45?'🔴':'🟡';              return'<tr class="cirow" data-lid="'+row.LoanID+'" style="background:rgba(245,158,11,.04)">'                +'<td style="font-family:var(--mo);font-size:11px;color:var(--ac)">'+row.LoanID+'</td>'                +'<td>'+row.LoanDate+'</td>'                +'<td><strong>'+row.DeptName+'</strong></td>'                +'<td>'+row.PatientName+'</td>'                +'<td>'+row.eqName+'</td>'                +'<td style="font-family:var(--mo);color:var(--ac)">'+row.eqNo+'</td>'                +'<td style="font-family:var(--mo);color:'+dC+';text-align:center;font-weight:700">'+urgency+' '+row.days+' วัน</td>'                +'<td style="text-align:center"><button class="abt cirbtn" style="border-color:var(--ac);color:var(--ac);font-size:11px">👁 ดู</button></td>'                +'</tr>';            }).join('')            +'</tbody></table></div>'          :'<p style="color:var(--ok);text-align:center;padding:14px">✅ ไม่มีรายการที่ต้องเปลี่ยน Circuit ในขณะนี้</p>')        +'</div>';    })();
 
-  // ─── ข้อมูลการยืมเครื่องมือทั้งหมด (bar chart + table) ───
+  // ─── allLoansHtml ─────────────────────────────────────────
   var ALL_STAT_LABEL={PENDING:'รอดำเนินการจ่าย',ACTIVE:'ยืม',RETURNED:'คืน',ACC_PENDING:'คืน (อุปกรณ์ค้าง)',CANCELLED:'ยกเลิก'};
   var ALL_STAT_BADGE={PENDING:'bp2',ACTIVE:'ba',RETURNED:'br2',ACC_PENDING:'bap',CANCELLED:'bc2'};
-
-  // allLoans — ใช้ secAll overrides (หรือ global ถ้าไม่ได้ตั้ง)
   var _allDept=secV(secAllDept,fDept);
   var _allEq=secV(secAllEq,fEq);
   var _allStat=secV(secAllStat,fStat);
@@ -2263,82 +2252,31 @@ async function renderSum(r){
     if(_allStat&&item.status!==_allStat)return false;
     return true;
   });
-  allLoansRows=allLoansRows.slice().sort(function(a,b){
-    return(b.loan.LoanDate||'').localeCompare(a.loan.LoanDate||'');
-  });
-
-  // ── สถิติรวม ──
+  allLoansRows=allLoansRows.slice().sort(function(a,b){return(b.loan.LoanDate||'').localeCompare(a.loan.LoanDate||'');});
   var alStat={PENDING:0,ACTIVE:0,RETURNED:0,ACC_PENDING:0};
   allLoansRows.forEach(function(item){if(alStat[item.status]!==undefined)alStat[item.status]++;});
-
-  // ── Horizontal bar chart: จำนวนการยืมแยกตามเครื่องมือ ──
   var eqCountAll={};
-  allLoansRows.forEach(function(item){
-    var n=S(item.eq.name);
-    eqCountAll[n]=(eqCountAll[n]||0)+1;
-  });
+  allLoansRows.forEach(function(item){var n=S(item.eq.name);eqCountAll[n]=(eqCountAll[n]||0)+1;});
   var eqBarArr=Object.entries(eqCountAll).sort(function(a,b){return b[1]-a[1];});
   var maxBarVal=eqBarArr.length>0?eqBarArr[0][1]:1;
   var BAR_COLORS=['#00c8ff','#7c3aed','#10b981','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#34d399','#fbbf24','#f87171','#22d3ee','#a78bfa','#fb923c','#4ade80','#c084fc','#fb7185','#38bdf8','#facc15','#e879f9','#a3e635'];
-
-  var barChartHtml='';
-  if(eqBarArr.length===0){
-    barChartHtml='<div style="text-align:center;padding:20px;color:var(--mu)">ไม่มีข้อมูล</div>';
-  }else{
-    var barRows=eqBarArr.map(function(e,i){
+  var barChartHtml2='';
+  if(eqBarArr.length){
+    var barRows2=eqBarArr.map(function(e,i){
       var pct=maxBarVal>0?e[1]/maxBarVal*100:0;
       var col=BAR_COLORS[i%BAR_COLORS.length];
-      return'<div class="al-bar-row" data-eq="'+e[0].replace(/"/g,'&quot;')+'" style="display:flex;align-items:center;gap:0;padding:3px 0;cursor:pointer;border-radius:4px;transition:background .12s" title="'+e[0]+': '+e[1]+' รายการ — คลิกเพื่อกรอง">'        +'<div style="width:180px;text-align:right;padding-right:12px;font-size:12px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0">'+e[0]+'</div>'        +'<div style="flex:1;display:flex;align-items:center;gap:8px">'          +'<div style="height:22px;background:'+col+';border-radius:0 4px 4px 0;min-width:4px;transition:width .4s ease" class="al-bar-fill" style="width:0"></div>'          +'<span style="font-size:12px;font-weight:700;font-family:var(--mo);color:'+col+';min-width:28px">'+e[1]+'</span>'        +'</div>'        +'</div>';
+      return'<div class="al-bar-row" data-eq="'+e[0].replace(/"/g,'&quot;')+'" style="display:flex;align-items:center;gap:0;padding:3px 0;cursor:pointer;border-radius:4px;transition:background .12s" title="'+e[0]+': '+e[1]+' รายการ — คลิกเพื่อกรอง">'        +'<div style="width:180px;text-align:right;padding-right:12px;font-size:12px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0">'+e[0]+'</div>'        +'<div style="flex:1;display:flex;align-items:center;gap:8px">'          +'<div style="height:22px;background:'+col+';border-radius:0 4px 4px 0;min-width:4px;width:'+Math.round(pct*0.6)+'px"></div>'          +'<span style="font-size:12px;font-weight:700;font-family:var(--mo);color:'+col+'">'+e[1]+'</span>'        +'</div></div>';
     }).join('');
-    barChartHtml='<div id="alBarCont" style="padding:8px 0">'+barRows+'</div>'
-      +'<div style="font-size:11px;color:var(--mu);margin-top:4px;padding-left:180px">💡 คลิกที่แถวเพื่อกรองตารางด้านล่าง</div>';
+    barChartHtml2='<div id="alBarCont" style="padding:8px 0">'+barRows2+'</div>'      +'<div style="font-size:11px;color:var(--mu);margin-top:4px;padding-left:180px">💡 คลิกที่แถวเพื่อกรองตารางด้านล่าง</div>';
   }
-
-  // ── filter badges ──
   var alFilters=[];
   if(fDateS||fDateE)alFilters.push('📅 '+(fDateS||'...')+' – '+(fDateE||'...'));
   if(fDept)alFilters.push('🏥 '+fDept);
   if(fEq)alFilters.push('🔧 '+fEq);
   if(fStat)alFilters.push('● '+(ALL_STAT_LABEL[fStat]||fStat));
-  var alFilterBadge=alFilters.length
-    ?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+alFilters.map(function(f){return'<span style="background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.25);border-radius:12px;padding:2px 10px;font-size:11px;color:var(--ac)">'+f+'</span>';}).join('')+'</div>'
-    :'';
-
-  // ── summary stat cards ──
+  var alFilterBadge=alFilters.length?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+alFilters.map(function(f){return'<span style="background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.25);border-radius:12px;padding:2px 10px;font-size:11px;color:var(--ac)">'+f+'</span>';}).join('')+'</div>':'';
   var alSummaryHtml='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'    +'<div style="background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--ac)">'+allLoansRows.length+'</div><div style="font-size:10px;color:var(--mu)">ทั้งหมด</div></div>'    +'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--wn)">'+alStat.PENDING+'</div><div style="font-size:10px;color:var(--mu)">รอดำเนินการ</div></div>'    +'<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--ok)">'+alStat.ACTIVE+'</div><div style="font-size:10px;color:var(--mu)">กำลังยืม</div></div>'    +'<div style="background:rgba(139,148,158,.08);border:1px solid rgba(139,148,158,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--mu)">'+alStat.RETURNED+'</div><div style="font-size:10px;color:var(--mu)">คืนแล้ว</div></div>'    +'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px 16px;text-align:center"><div style="font-size:22px;font-weight:700;font-family:var(--mo);color:#f59e0b">'+alStat.ACC_PENDING+'</div><div style="font-size:10px;color:var(--mu)">อุปกรณ์ค้าง</div></div>'    +'</div>';
-
-  // ── ตาราง ──
-  var alTableHtml='';
-  if(allLoansRows.length===0){
-    alTableHtml='<div style="text-align:center;padding:30px;color:var(--mu)">ไม่มีข้อมูลที่ตรงเงื่อนไข</div>';
-  }else{
-    var alRows=allLoansRows.map(function(item){
-      var now2=new Date();
-      var ld=item.loan.LoanDate||'-';
-      var todayLocal2=localDateStr(now2);
-      var startD=ld!=='-'?new Date(ld):null;
-      var retDate2=item.borrow&&item.borrow.ReturnDate?item.borrow.ReturnDate:(item.status==='ACTIVE'||item.status==='ACC_PENDING'?todayLocal2:todayLocal2);
-      var endD=item.borrow&&item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now2;
-      var days=startD&&(item.status==='ACTIVE'||item.status==='RETURNED'||item.status==='ACC_PENDING')?Math.max(0,Math.round((endD-startD)/86400000)):'-';
-      var dC=typeof days==='number'&&days>30?'var(--er)':typeof days==='number'&&days>14?'var(--wn)':'var(--ok)';
-      var eqNo=item.borrow?S(item.borrow.EquipmentNo||'—'):'—';
-      var detail=item.eq&&item.eq.detail?(' <span style="font-size:10px;color:var(--mu)">'+item.eq.detail+'</span>'):'';
-      var giver=item.borrow?S(item.borrow.GiverName||'—'):'—';
-      var receiver=item.borrow?S(item.borrow.ReceiverName||'—'):'—';
-      var retDate=item.borrow&&item.borrow.ReturnDate?S(item.borrow.ReturnDate):'—';
-      var retRemark=item.borrow&&item.borrow.ReturnRemark?('<br><span style="font-size:10px;color:var(--mu)">'+S(item.borrow.ReturnRemark)+'</span>'):'';
-      var lid=S(item.loan.LoanID);
-      var eqName=S(item.eq.name);
-      var searchTxt=(lid+' '+S(item.loan.BorrowerName)+' '+S(item.loan.DeptName)+' '+S(item.loan.PatientName)+' '+eqName+' '+eqNo+' '+giver+' '+receiver).toLowerCase();
-      return'<tr class="alrow" data-lid="'+lid+'" data-eq="'+eqName.replace(/"/g,'&quot;')+'" data-search="'+searchTxt.replace(/"/g,'&quot;')+'" style="cursor:pointer">'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-family:var(--mo);font-size:10px;color:var(--ac)">'+lid+'<br><span style="color:var(--mu)">#'+item.idx+'</span></td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);white-space:nowrap;font-size:12px">'+ld+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd)"><strong>'+S(item.loan.BorrowerName)+'</strong></td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd)"><strong>'+S(item.loan.DeptName)+'</strong></td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-size:12px">'+S(item.loan.PatientName)+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd)"><strong>'+eqName+'</strong>'+detail+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-family:var(--mo);font-size:12px;color:var(--ac)">'+eqNo+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-size:12px">'+giver+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-size:12px">'+retDate+retRemark+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);font-size:12px">'+receiver+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);font-weight:700;color:'+dC+'">'+days+'</td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd)"><span class="badge '+(ALL_STAT_BADGE[item.status]||'bp2')+'">'+(ALL_STAT_LABEL[item.status]||item.status)+'</span></td>'        +'<td style="padding:6px 9px;border-bottom:1px solid var(--bd);text-align:center"><button class="abt alview" data-lid="'+lid+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">👁</button></td>'        +'</tr>';
-    }).join('');
-    alTableHtml='<div style="overflow-x:auto"><table class="dt" id="alTable">'      +'<thead><tr>'      +'<th style="white-space:nowrap;font-size:10px">LoanID/#</th>'      +'<th style="white-space:nowrap;font-size:10px">วันที่ยืม</th>'      +'<th style="font-size:10px">ผู้ยืม</th>'      +'<th style="font-size:10px">แผนก</th>'      +'<th style="font-size:10px">ผู้ป่วย</th>'      +'<th style="font-size:10px">เครื่องมือ</th>'      +'<th style="white-space:nowrap;font-size:10px">หมายเลขเครื่อง</th>'      +'<th style="font-size:10px">ผู้ให้ยืม</th>'      +'<th style="white-space:nowrap;font-size:10px">วันที่คืน</th>'      +'<th style="font-size:10px">ผู้รับคืน</th>'      +'<th style="text-align:center;font-size:10px">วัน</th>'      +'<th style="font-size:10px">สถานะ</th>'      +'<th style="width:36px"></th>'      +'</tr></thead>'      +'<tbody id="alTbody">'+alRows+'</tbody></table></div>';
-  }
-
-  // ── search bar + count ──
-  var alSearchBarHtml='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">'    +'<input type="text" id="alSearch" placeholder="🔍 ค้นหา LoanID, ผู้ยืม, ผู้ป่วย, แผนก, หมายเลขเครื่อง..." oninput="alFilterRows(this.value)" style="flex:1;min-width:240px;font-size:12px;padding:6px 10px;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx)">'    +'<span id="alCount" style="font-size:11px;color:var(--mu);white-space:nowrap;min-width:80px">'+allLoansRows.length+' รายการ</span>'    +'<button class="btn bg sm" id="alClearEqFilter" style="display:none" onclick="alClearEqFilter()">✕ ล้าง filter bar</button>'    +'</div>';
-
-  var allLoansHtml='<div class="card" style="margin-top:4px">'    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'      +'<div class="ctitle" style="margin:0">📋 ข้อมูลการยืมเครื่องมือทั้งหมด</div>'      +'<div style="display:flex;gap:4px">'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;csv&quot;)">CSV</button>'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;xlsx&quot;)">XLS</button>'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;pdf&quot;)">PDF</button>'      +'</div>'    +'</div>'    +alFilterBadge    +alSummaryHtml    +'<div class="card" style="background:var(--bg);border-color:rgba(0,200,255,.15);margin-bottom:14px;padding:14px 16px">'      +'<div style="font-size:11px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📊 จำนวนการยืมแยกตามเครื่องมือ</div>'      +barChartHtml    +'</div>'    +'</div>';
+  var allLoansHtml='<div class="card" style="margin-top:4px">'    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'      +'<div class="ctitle" style="margin:0">📋 ข้อมูลการยืมเครื่องมือทั้งหมด</div>'      +'<div style="display:flex;gap:4px">'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;csv&quot;)">CSV</button>'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;xlsx&quot;)">XLS</button>'        +'<button class="btn bg sm" onclick="dlPage(&quot;sum&quot;,&quot;pdf&quot;)">PDF</button>'      +'</div>'    +'</div>'    +alFilterBadge    +alSummaryHtml    +'<div class="card" style="background:var(--bg);border-color:rgba(0,200,255,.15);margin-bottom:14px;padding:14px 16px">'      +'<div style="font-size:11px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📊 จำนวนการยืมแยกตามเครื่องมือ</div>'      +barChartHtml2    +'</div>'    +'</div>';
 
   sc.innerHTML=chartHtml+dayTableHtml+avgHtml+origHtml+allLoansHtml;
 
@@ -2881,7 +2819,7 @@ async function recalcAllStatuses(){
 // ════════════════════════════════════════════════════════════
 
 function showListTab(name,el){
-  ['dept','staff','eq','acc'].forEach(function(t){
+  ['dept','staff','eq','acc','eqnum','retrem'].forEach(function(t){
     var s=document.getElementById('lsec-'+t);if(s)s.style.display='none';
     var b=document.getElementById('ltab-'+t);if(b)b.classList.remove('on');
   });
@@ -2891,6 +2829,13 @@ function showListTab(name,el){
   else if(name==='staff'){_wStaff=STAFF.slice();renderStaffList();}
   else if(name==='eq'){_wEql=EQL.slice();renderEqList();}
   else if(name==='acc'){_wAcc=ACCS.map(function(a){return{id:a.id,n:a.n,no:!!a.no,det:!!a.det};});renderAccList();}
+  else if(name==='eqnum'){_wEqnum=EQNUMS.slice();_selEqnumIdx=-1;renderEqnumList();}
+  else if(name==='retrem'){
+    _wRetrem=RETREMARKS.map(function(r){
+      return{label:r,needDetail:['ย้ายไปหน่วยวิกฤต','เครื่องมืออุปกรณ์ชำรุดขัดข้อง','อื่นๆ'].includes(r)};
+    });
+    _selRetremIdx=-1;renderRetremList();
+  }
 }
 
 // ── called when entering lists-mgr tab ──
@@ -2899,6 +2844,10 @@ function initListsTab(){
   _wStaff=STAFF.slice();
   _wEql=EQL.slice();
   _wAcc=ACCS.map(function(a){return{id:a.id,n:a.n,no:!!a.no,det:!!a.det};});
+  _wEqnum=EQNUMS.slice();
+  _wRetrem=RETREMARKS.map(function(r){
+    return{label:r,needDetail:['ย้ายไปหน่วยวิกฤต','เครื่องมืออุปกรณ์ชำรุดขัดข้อง','อื่นๆ'].includes(r)};
+  });
   showListTab('dept',document.getElementById('ltab-dept'));
 }
 
@@ -3176,7 +3125,104 @@ function exportListJSON(type){
 }
 
 // ── Rebuild all dropdowns/UI after applying changes ──
+// ─────────────── EQNUM MANAGER ───────────────────────
+var _wEqnum=null, _selEqnumIdx=-1;
+
+function renderEqnumList(){
+  if(!_wEqnum)return;
+  var area=document.getElementById('eqnumListArea');
+  var badge=document.getElementById('eqnumCountBadge');
+  if(badge)badge.textContent=_wEqnum.length;
+  area.innerHTML=_wEqnum.map(function(n,i){
+    var sel=_selEqnumIdx===i;
+    return'<div onclick="selectEqnumItem('+i+')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bd);cursor:pointer;background:'+(sel?'rgba(0,200,255,.1)':'transparent')+'">'
+      +'<span style="flex:1;font-size:13px;font-family:var(--mo)">'+n+'</span>'
+      +'<button class="abt" style="font-size:10px;border-color:var(--er);color:var(--er)" onclick="event.stopPropagation();removeEqnumAt('+i+')">✕</button>'
+      +'</div>';
+  }).join('')||'<div style="text-align:center;padding:20px;color:var(--mu);font-size:12px">ไม่มีรายการ</div>';
+}
+function selectEqnumItem(i){_selEqnumIdx=i;renderEqnumList();}
+function removeEqnumAt(i){_wEqnum.splice(i,1);if(_selEqnumIdx>=_wEqnum.length)_selEqnumIdx=-1;renderEqnumList();}
+function deleteSelectedEqnum(){if(_selEqnumIdx<0){toast('กรุณาเลือกรายการก่อน','warning');return;}removeEqnumAt(_selEqnumIdx);}
+function moveEqnumItem(dir){if(_selEqnumIdx<0)return;var i=_selEqnumIdx,j=i+dir;if(j<0||j>=_wEqnum.length)return;var t=_wEqnum[i];_wEqnum[i]=_wEqnum[j];_wEqnum[j]=t;_selEqnumIdx=j;renderEqnumList();}
+function addEqnumItem(){
+  var n=(document.getElementById('newEqnumName').value||'').trim();
+  if(!n){toast('กรุณาระบุหมายเลข','error');return;}
+  if(_wEqnum.includes(n)){toast('มีหมายเลขนี้อยู่แล้ว','warning');return;}
+  _wEqnum.push(n);document.getElementById('newEqnumName').value='';
+  renderEqnumList();toast('เพิ่ม: '+n,'success');
+}
+function bulkAddEqnums(){
+  var raw=document.getElementById('bulkEqnumInput').value||'';
+  var lines=raw.split(/[\n\r]+/).map(function(l){return l.trim();}).filter(Boolean);
+  var added=0;lines.forEach(function(n){if(!_wEqnum.includes(n)){_wEqnum.push(n);added++;}});
+  document.getElementById('bulkEqnumInput').value='';renderEqnumList();toast('เพิ่ม '+added+' รายการ','success');
+}
+function applyEqnumChanges(){
+  if(!confirm('บันทึกหมายเลขเครื่องมือ '+_wEqnum.length+' รายการ?'))return;
+  EQNUMS=_wEqnum.slice();_lsSet('eqnums',EQNUMS);
+  rebuildEqNoDatalist();toast('บันทึกสำเร็จ! '+EQNUMS.length+' รายการ','success');
+}
+
+// ─────────────── RETREM MANAGER ───────────────────────
+var _wRetrem=null, _selRetremIdx=-1;
+
+function renderRetremList(){
+  if(!_wRetrem)return;
+  var area=document.getElementById('retremListArea');
+  var badge=document.getElementById('retremCountBadge');
+  if(badge)badge.textContent=_wRetrem.length;
+  area.innerHTML=_wRetrem.map(function(r,i){
+    var sel=_selRetremIdx===i;
+    var isOther=r.label==='อื่นๆ';
+    return'<div onclick="selectRetremItem('+i+')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bd);cursor:pointer;background:'+(sel?'rgba(16,185,129,.1)':'transparent')+'">'
+      +'<span style="flex:1;font-size:13px">'+r.label+'</span>'
+      +(r.needDetail?'<span style="font-size:10px;background:rgba(245,158,11,.15);color:var(--wn);border-radius:4px;padding:1px 5px">+รายละเอียด</span>':'')
+      +(isOther?'<span style="font-size:10px;color:var(--mu)">ล็อค</span>':'<button class="abt" style="font-size:10px;border-color:var(--er);color:var(--er)" onclick="event.stopPropagation();removeRetremAt('+i+')">✕</button>')
+      +'</div>';
+  }).join('')||'<div style="text-align:center;padding:20px;color:var(--mu);font-size:12px">ไม่มีรายการ</div>';
+}
+function selectRetremItem(i){_selRetremIdx=i;renderRetremList();}
+function removeRetremAt(i){
+  if(_wRetrem[i]&&_wRetrem[i].label==='อื่นๆ'){toast('ไม่สามารถลบ "อื่นๆ" ได้','warning');return;}
+  _wRetrem.splice(i,1);if(_selRetremIdx>=_wRetrem.length)_selRetremIdx=-1;renderRetremList();
+}
+function deleteSelectedRetrem(){if(_selRetremIdx<0){toast('กรุณาเลือกรายการก่อน','warning');return;}removeRetremAt(_selRetremIdx);}
+function moveRetremItem(dir){if(_selRetremIdx<0)return;var i=_selRetremIdx,j=i+dir;if(j<0||j>=_wRetrem.length)return;var t=_wRetrem[i];_wRetrem[i]=_wRetrem[j];_wRetrem[j]=t;_selRetremIdx=j;renderRetremList();}
+function addRetremItem(){
+  var label=(document.getElementById('newRetremLabel').value||'').trim();
+  var needDetail=document.getElementById('newRetremDetail').value==='1';
+  if(!label){toast('กรุณาระบุเหตุผล','error');return;}
+  if(_wRetrem.some(function(r){return r.label===label;})){toast('มีเหตุผลนี้อยู่แล้ว','warning');return;}
+  var lastIdx=_wRetrem.findIndex(function(r){return r.label==='อื่นๆ';});
+  var obj={label:label,needDetail:needDetail};
+  if(lastIdx>=0)_wRetrem.splice(lastIdx,0,obj);else _wRetrem.push(obj);
+  document.getElementById('newRetremLabel').value='';
+  renderRetremList();toast('เพิ่ม: '+label,'success');
+}
+function applyRetremChanges(){
+  if(!confirm('บันทึกเหตุผลการรับคืน '+_wRetrem.length+' รายการ?'))return;
+  RETREMARKS=_wRetrem.map(function(r){return r.label;});
+  _lsSet('retremarks',RETREMARKS);
+  rebuildRetRemarkSelect();toast('บันทึกสำเร็จ! '+RETREMARKS.length+' รายการ','success');
+}
+
+// ─────────────── REBUILD HELPERS ──────────────────────
+function rebuildEqNoDatalist(){
+  var dl=document.getElementById('eqNoList');if(!dl)return;
+  dl.innerHTML=EQNUMS.map(function(n){return'<option value="'+n+'">';}).join('');
+}
+function rebuildRetRemarkSelect(){
+  var sel=document.getElementById('retRemark');if(!sel)return;
+  var cur=sel.value;
+  sel.innerHTML='<option value="">เลือกเหตุผล</option>';
+  RETREMARKS.forEach(function(r){sel.innerHTML+='<option value="'+r+'">'+r+'</option>';});
+  if(RETREMARKS.includes(cur))sel.value=cur;
+}
+
 function rebuildAllSelects(){
+  rebuildEqNoDatalist();
+  rebuildRetRemarkSelect();
   // dept dropdowns in filters
   ['allDept','recDept','dailyDept'].forEach(function(id){
     var el=document.getElementById(id);if(!el)return;
@@ -3292,10 +3338,15 @@ function showPg(page,el){
   if(el)el.classList.add('on');
   // หยุด timer ถ้าออกจากหน้าสถิติ
   if(page!=='sum'&&window.stopSumRealtime)stopSumRealtime();
-  if(loans===null){loadAll();return;}
+  if(loans===null){
+    loadAll().then(function(){
+      if(page==='sum'){initSumFilters();loadSum().then(function(){startSumRealtime();});}
+    });
+    return;
+  }
   if(page==='dash')updateDash();
   else if(page==='daily')renderDaily();
-  else if(page==='sum'){initSumFilters();loadSum();startSumRealtime();}
+  else if(page==='sum'){initSumFilters();loadSum().then(function(){startSumRealtime();});}
   else if(page==='rec')renderRec();
   else if(page==='all')renderAll();
   else if(page==='admin'&&_adminUnlocked){renderAdminLoans();renderAdminBorrows();}
