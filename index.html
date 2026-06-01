@@ -818,7 +818,7 @@ from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
         <div style="font-size:12px;color:var(--mu)">แก้ไข เพิ่ม ลบ ข้อมูลได้ทุกรายการ — การเปลี่ยนแปลงบันทึกลง Supabase ทันที</div>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <button class="btn bp sm" onclick="adminRefresh()">🔄 Refresh</button>
+        <button class="btn bp sm" id="admRefreshBtn" onclick="adminRefresh()">🔄 Refresh</button>
         <button class="btn bg sm" onclick="lockAdmin()">🔒 ออก</button>
       </div>
     </div>
@@ -2061,12 +2061,20 @@ var SB = {
 };
 
 var API = {
-  getAllLoans: async function(){
-    var rows=await SB.get('loan_requests','order=created_at.desc&limit=2000');
+  getAllLoans: async function(fullHistory){
+    var cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-1);var cutoffStr=cutoff.toISOString().split('T')[0];
+    var query=fullHistory
+      ?'order=created_at.desc&limit=50000'
+      :'or=(status.eq.ACTIVE,status.eq.PENDING,status.eq.ACC_PENDING,and(status.eq.RETURNED,loan_date.gte.'+cutoffStr+'),and(status.eq.CANCELLED,loan_date.gte.'+cutoffStr+'))&order=created_at.desc&limit=10000';
+    var rows=await SB.get('loan_requests',query);
     return rows.map(function(r){return{LoanID:r.loan_id,LoanDate:r.loan_date,BorrowerName:r.borrower_name,DeptCode:r.dept_code,DeptName:r.dept_name,PatientName:r.patient_name,EquipmentList:Array.isArray(r.equipment_list)?r.equipment_list:[],Status:r.status};});
   },
-  getAllBorrows: async function(){
-    var rows=await SB.get('borrow_records','order=created_at.desc&limit=5000');
+  getAllBorrows: async function(fullHistory){
+    var cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-1);var cutoffStr=cutoff.toISOString().split('T')[0];
+    var query=fullHistory
+      ?'order=created_at.desc&limit=100000'
+      :'or=(status.eq.ACTIVE,status.eq.ACC_PENDING,and(status.eq.RETURNED,created_at.gte.'+cutoffStr+'T00:00:00))&order=created_at.desc&limit=20000';
+    var rows=await SB.get('borrow_records',query);
     return rows.map(function(r){
       var ACC_MAP=[{id:'a1',name:'Oxygen flow meter pipeline with power take off',col:'acc1_flow_meter_pto'},{id:'a2',name:'Oxygen flow meter pipeline 70 LPM',col:'acc2_flow_meter_70'},{id:'a3',name:'Self inflating bag',col:'acc3_self_inflating'},{id:'a4',name:'full face mask',col:'acc4_full_face_mask'},{id:'a5',name:'Nasal cannula HFNC',col:'acc5_nasal_cannula'},{id:'a6',name:'อื่นๆ',col:'acc6_other'}];
       var accs=[];
@@ -2392,7 +2400,7 @@ async function loadAll(){
     if(document.getElementById('adm-loan-mgr')&&document.getElementById('adm-loan-mgr').classList.contains('on'))renderAdminLoans();
     if(document.getElementById('adm-borrow-mgr')&&document.getElementById('adm-borrow-mgr').classList.contains('on'))renderAdminBorrows();
     if(arTimer)clearTimeout(arTimer);
-    arTimer=setTimeout(loadAll,5*60*1000);
+    arTimer=setTimeout(loadAll,15*60*1000); // auto-refresh ทุก 15 นาที
   }catch(e){console.error(e);toast('โหลดข้อมูลล้มเหลว: '+e.message,'error');if(rb)rb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--er);padding:24px">❌ โหลดข้อมูลล้มเหลว</td></tr>';}
 }
 
@@ -2675,6 +2683,13 @@ function updateDash(){
 async function loadSum(){
   initSumFilters();
   updateSumFilterBadges();
+  // ถ้า filter วันที่เริ่มต้นเกินกว่า 1 ปีที่แล้ว → ดึงข้อมูลเพิ่ม
+  var sumS=document.getElementById('sumS');
+  var cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-1);
+  if(sumS&&sumS.value&&sumS.value<cutoff.toISOString().split('T')[0]){
+    var[ld,bd]=await Promise.all([API.getAllLoans(true),API.getAllBorrows(true)]);
+    loans=ld;borrows=bd;
+  }
   await renderSum({avgUsage:{},overMonth:[],equipDays:{},circuitChange:[]});
 }
 
@@ -3717,7 +3732,20 @@ function lockAdmin(){
   document.getElementById('adminContent').style.display='none';
   document.getElementById('adminPinInput').value='';
 }
-function adminRefresh(){if(!_adminUnlocked)return;loadAll().then(function(){renderAdminLoans();renderAdminBorrows();});}
+function adminRefresh(){
+  if(!_adminUnlocked)return;
+  var btn=document.getElementById('admRefreshBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='⏳ กำลังโหลด...';}
+  Promise.all([API.getAllLoans(true),API.getAllBorrows(true)]).then(function(res){
+    loans=res[0];borrows=res[1];
+    renderAdminLoans();renderAdminBorrows();
+    if(btn){btn.disabled=false;btn.innerHTML='🔄 Refresh';}
+    toast('โหลดข้อมูลทั้งหมด '+loans.length+' ใบยืม / '+borrows.length+' บันทึก','success');
+  }).catch(function(e){
+    if(btn){btn.disabled=false;btn.innerHTML='🔄 Refresh';}
+    toast('โหลดล้มเหลว: '+e.message,'error');
+  });
+}
 function showAdminTab(id,el){
   document.querySelectorAll('.admin-sub').forEach(function(s){s.classList.remove('on');});
   document.querySelectorAll('.atab').forEach(function(t){t.classList.remove('on');});
