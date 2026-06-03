@@ -489,6 +489,7 @@ from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
   animation:fadeUp .5s ease both;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
 
@@ -831,6 +832,7 @@ from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
       <button class="atab" onclick="showAdminTab('bulk-ops',this)">🗂 Bulk Operations</button>
       <button class="atab" onclick="showAdminTab('lists-mgr',this)">🗃 จัดการรายการ</button>
       <button class="atab" onclick="showAdminTab('pin-mgr',this)">🔑 จัดการรหัสผ่าน</button>
+      <button class="atab" onclick="showAdminTab('archive-mgr',this);loadArchiveDash()">🗄 Archive</button>
     </div>
 
     <!-- ── TAB 1: LOAN REQUESTS ── -->
@@ -1465,6 +1467,77 @@ from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
     </div>
 
   </div><!-- /adminContent -->
+
+  <!-- ── TAB: ARCHIVE ── -->
+  <div class="admin-sub" id="adm-archive-mgr" style="display:none">
+    <div class="card" id="archiveDashCard">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        <div>
+          <div class="ctitle" style="margin:0;color:#f59e0b">🗄 ข้อมูลเก่า (Archive)</div>
+          <div style="font-size:11px;color:var(--mu);margin-top:2px">ข้อมูลที่ย้ายมาจากตารางหลัก — ดูและดาวโหลดได้ ไม่กระทบระบบปัจจุบัน</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn bg sm" onclick="loadArchiveDash()">🔄 โหลด</button>
+          <button class="btn bg sm" onclick="dlArchiveCSV()">📥 Export CSV</button>
+          <button class="btn bg sm" onclick="dlArchiveXLS()">📊 Export XLS</button>
+        </div>
+      </div>
+
+      <!-- ย้ายข้อมูลเก่า -->
+      <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:8px">📦 ย้ายข้อมูลเก่าเข้า Archive</div>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px">
+          <div style="font-size:12px;color:var(--mu)">ย้ายข้อมูลที่เก่ากว่า</div>
+          <select id="archYearsOld" style="min-width:90px;font-size:13px">
+            <option value="1">1 ปี</option>
+            <option value="2">2 ปี</option>
+            <option value="3" selected>3 ปี</option>
+            <option value="4">4 ปี</option>
+            <option value="5">5 ปี</option>
+          </select>
+          <div style="font-size:12px;color:var(--mu)">เฉพาะสถานะ RETURNED / CANCELLED</div>
+          <button class="btn badm sm" id="archMoveBtn" onclick="runArchiveMove()">🗄 ย้ายข้อมูล</button>
+        </div>
+        <div id="archMoveResult" style="margin-top:8px;font-size:12px;min-height:18px"></div>
+        <div style="margin-top:6px;font-size:11px;color:var(--mu)">⚠️ ข้อมูลจะถูกย้ายออกจากตารางหลัก แต่ยังเรียกดูได้ที่นี่ และย้อนกลับได้เสมอ</div>
+      </div>
+
+      <!-- filter -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;padding:10px;background:var(--s2);border-radius:8px">
+        <div class="fg"><label>ปี</label>
+          <select id="archYear" onchange="renderArchiveTable()" style="min-width:100px">
+            <option value="">ทั้งหมด</option>
+          </select>
+        </div>
+        <div class="fg"><label>เครื่องมือ</label>
+          <select id="archEq" onchange="renderArchiveTable()" style="min-width:140px">
+            <option value="">ทั้งหมด</option>
+          </select>
+        </div>
+        <div class="fg"><label>แผนก</label>
+          <input type="text" id="archDept" placeholder="แผนก..." oninput="renderArchiveTable()" style="min-width:120px">
+        </div>
+        <div class="fg"><label>จาก</label><input type="date" id="archDateS" onchange="renderArchiveTable()"></div>
+        <div class="fg"><label>ถึง</label><input type="date" id="archDateE" onchange="renderArchiveTable()"></div>
+        <div class="fg" style="align-self:flex-end">
+          <button class="btn bg sm" onclick="clearArchiveFilter()">✕ ล้าง</button>
+        </div>
+      </div>
+
+      <!-- summary cards -->
+      <div id="archSummary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px"></div>
+
+      <!-- chart ย้อนหลังรายปี -->
+      <div id="archChartWrap" style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:8px">📊 On Loan รายปี (จาก Archive)</div>
+        <div style="position:relative;height:200px"><canvas id="archYearChart" role="img" aria-label="Bar chart of archived loans by year"></canvas></div>
+      </div>
+
+      <!-- table -->
+      <div id="archTableWrap"><div style="text-align:center;padding:30px;color:var(--mu)">กด 🔄 โหลด เพื่อดูข้อมูล</div></div>
+      <div id="archPager" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;font-size:12px"></div>
+    </div>
+  </div>
 </div><!-- /pg-admin -->
 
 <!-- ══════════════════════════════════════════════════
@@ -2161,7 +2234,7 @@ var API = {
 var _DEPTS_DEFAULT=[{c:'0001',n:'ER'},{c:'0002',n:'100/9'},{c:'0003',n:'100/6'},{c:'0004',n:'80/10'},{c:'0005',n:'80/9'},{c:'0006',n:'80/8'},{c:'0007',n:'ศช'},{c:'0008',n:'ศญ'},{c:'0009',n:'80/5'},{c:'0010',n:'80/2'},{c:'0011',n:'PICU'},{c:'0012',n:'80/1'},{c:'0013',n:'14/9.'},{c:'0014',n:'14/8.'},{c:'0015',n:'14/7.'},{c:'0016',n:'อญ'},{c:'0017',n:'อช'},{c:'0018',n:'CICU'},{c:'0019',n:'SICU'},{c:'0020',n:'MICU'},{c:'0021',n:'OPD MED'},{c:'0022',n:'OPD SURG'},{c:'0023',n:'แผนกไตเทียม'},{c:'0024',n:'วิสัญญี'},{c:'0025',n:'OR'},{c:'0026',n:'ห้องตรวจพิเศษศัลย์'},{c:'0027',n:'MIS'},{c:'0028',n:'กายภาพ'},{c:'0029',n:'ห้อง Intervention'},{c:'0030',n:'รังสี'},{c:'0031',n:'OPD chest'},{c:'0032',n:'OPD ortho'},{c:'0033',n:'OPD กุมาร'},{c:'0034',n:'OPD ตา'},{c:'0035',n:'OPD ENT'},{c:'0036',n:'OPD Uro'},{c:'0037',n:'ศูนย์สมองฯ'},{c:'0038',n:'ศูนย์แพทย์'},{c:'9999',n:'อื่นๆ'}];
 var _EQL_DEFAULT=['Ventilator','Ventilator transfer','HFNC','HFNC transfer','BiPAP','BIRD','Infusion pump','Infusion pump for chemo','Syringe pump','PCA','Enteral feeding pump','Oxygen flow meter pipeline','Oxygen flow meter regulator','Continuous suction pipeline','Intermittent suction pipeline','thoracic suction pipeline','PEEP VALVE','CPAP VALVE','Heated probe humidifier','อื่นๆ'];
 var _EQNUMS_DEFAULT=['O2FLO1','O2FLO2','O2FLO3','MEK1','MEK2','MEK3','MEK5'];
-var _RETREMARKS_DEFAULT=['OFF','Intubation','Extubation','คืนเครื่องแล้วไม่ได้ลงคืนในระบบ/ลงคืนในระบบวันนี้/วันคืนจริง NA','ย้ายไปหน่วยวิกฤต SICU','ย้ายไปหน่วยวิกฤต MICU','ย้ายไปหน่วยวิกฤต CICU','ย้ายไปหน่วยวิกฤต PICU','ครบเปลี่ยน','DEAD','เครื่องมืออุปกรณ์ชำรุดขัดข้อง','ไม่ได้ใช้งาน','NA','อื่นๆ'];
+var _RETREMARKS_DEFAULT=['OFF','ย้ายไปหน่วยวิกฤต','DEAD','เครื่องมืออุปกรณ์ชำรุดขัดข้อง','ไม่ได้ใช้งาน','NA','อื่นๆ'];
 var _ACCS_DEFAULT=[{id:'a1',n:'Oxygen flow meter pipeline with power take off',no:true},{id:'a2',n:'Oxygen flow meter pipeline 70 LPM',no:true},{id:'a3',n:'Self inflating bag',no:false},{id:'a4',n:'full face mask',det:true},{id:'a5',n:'Nasal cannula HFNC',no:true},{id:'a6',n:'อื่นๆ',det:true}];
 var _STAFF_DEFAULT=['ร.อ.วรชาติ','ร.อ. ประสิทธิ์','น.ต.วิทยา','พ.จ.อ.หญิง วนิดา','น.ต.หญิง นวิยา','น.ท.หญิง สุชาดา','น.ส.นิภาวรรณ','น.ส. ประนอม','อื่นๆ'];
 
@@ -2998,7 +3071,7 @@ async function renderSum(r){
       _invFull[n.toLowerCase()]={
         name:n,
         total:eq.total||0,
-        active:Math.max(0,(eq.total||0)-(eq.inactive||0)),
+        active:Math.max(0,(eq.total||0)-(eq.inactive||0)-(eq.forDept||0)),
         inactive:eq.inactive||0,
         forDept:eq.forDept||0
       };
@@ -3026,7 +3099,7 @@ async function renderSum(r){
     var trendS=parseFloat(ma7S)>parseFloat(avgS)?'up':parseFloat(ma7S)<parseFloat(avgS)?'down':'flat';
     var inv=_invFull[n.toLowerCase()]||{total:0,active:0,inactive:0,forDept:0};
     var utilPct=inv.active>0?parseFloat((todayVal/inv.active*100).toFixed(1)):null;
-    var availableNow=Math.max(0,(inv.active||0)-(inv.forDept||0)-todayVal);
+    var availableNow=Math.max(0,(inv.active||0)-todayVal);
     var col=BAR_COLORS2[i%BAR_COLORS2.length];
     return{name:n,avg:avgS,peak:peakS,todayVal:todayVal,ma7:ma7S,
            sumActive:sumActiveS,totalDays:totalDaysS,trend:trendS,
@@ -3043,6 +3116,8 @@ async function renderSum(r){
   if(snapStats.length===0){
     avgHtml='<div class="card"><div class="ctitle">📈 ค่าเฉลี่ย On Loan รายวัน (Dashboard)</div>'      +'<div style="text-align:center;padding:30px;color:var(--mu)">ไม่มีข้อมูล — '      +'<a href="backfill_180.html" target="_blank" style="color:var(--ac)">คลิกเพื่อสร้างข้อมูลย้อนหลัง</a></div></div>';
   }else{
+    // ── Utilization chart id unique ──
+    var _ucid='uc_'+Math.random().toString(36).substr(2,6);
     // summary cards
     var totalOnLoanToday=snapStats.reduce(function(s,e){return s+e.todayVal;},0);
     var totalAvg=snapStats.reduce(function(s,e){return s+parseFloat(e.avg);},0).toFixed(1);
@@ -3071,7 +3146,74 @@ async function renderSum(r){
       return'<tr class="avg-tbl-row" style="border-bottom:1px solid var(--bd)">'        +'<td style="padding:8px 10px"><div style="display:flex;align-items:center;gap:7px">'          +'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+e.col+';flex-shrink:0"></span>'          +'<strong>'+e.name+'</strong>'          +'<span style="font-size:10px;color:'+trendC+'">'+trendTxt+'</span>'        +'</div></td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--mu)">'+( e.inv.total||'—')+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--ok);font-weight:700">'+( e.inv.active||'—')+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--er)">'+( e.inv.inactive||0)+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+( e.inv.forDept||0)+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.todayVal+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--ok)">'+e.availableNow+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.avg+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:'+(parseFloat(e.ma7)>parseFloat(e.avg)?'var(--er)':parseFloat(e.ma7)<parseFloat(e.avg)?'var(--ok)':'var(--ac2)')+'">'+e.ma7+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+e.peak+'</td>'        +'<td style="text-align:center;padding:6px 8px">'+utilCell+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--mu);font-size:11px">'+e.totalDays+'</td>'        +'<td style="text-align:center">'+spSvg+'</td>'        +'<td style="text-align:center"><button class="abt svb" data-key="'+ak+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">ดู</button></td>'        +'</tr>';
     }).join('');
 
-    avgHtml='<div class="card">'      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'        +'<div>'          +'<div class="ctitle" style="margin:0;margin-bottom:2px">📈 ค่าเฉลี่ย On Loan รายวัน'            +'<span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px">'+_avgRangeLabel+'</span></div>'          +'<div style="font-size:11px;color:var(--mu)">ข้อมูลจากหน้า Dashboard — บันทึกอัตโนมัติทุกวัน 23:59 น. Bangkok</div>'        +'</div>'        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'          +'<span style="font-size:11px;font-weight:700;color:'+_snapBadgeColor+'">'+_snapSource+'</span>'          +'<span style="color:var(--ac);font-family:var(--mo);font-size:11px">'+_bkkDate+' '+_bkkTime+'</span>'          +'<span style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:1px 8px;color:var(--ok)">🔄 realtime</span>'        +'</div>'      +'</div>'      +summaryHtml      +'<div style="overflow-x:auto"><table class="dt" style="min-width:900px">'        +'<thead><tr style="background:var(--s2)">'          +'<th style="text-align:left;min-width:160px;font-size:11px">MEDICAL EQUIPMENT</th>'          +'<th style="text-align:center;font-size:11px">Total</th>'          +'<th style="text-align:center;font-size:11px;color:var(--ok)">Active<br>% of Total</th>'          +'<th style="text-align:center;font-size:11px;color:var(--er)">Inactive</th>'          +'<th style="text-align:center;font-size:11px;color:var(--wn)">For Dept Use</th>'          +'<th style="text-align:center;font-size:11px;color:var(--ac)">On Loan<br>วันนี้</th>'          +'<th style="text-align:center;font-size:11px;color:var(--ok)">Available<br>วันนี้</th>'          +'<th style="text-align:center;font-size:11px;color:var(--ac)">AVG On Loan<br><span style="font-weight:400">เครื่อง/วัน</span></th>'          +'<th style="text-align:center;font-size:11px;color:var(--ac2)">MA7</th>'          +'<th style="text-align:center;font-size:11px;color:var(--wn)">Peak</th>'          +'<th style="text-align:center;font-size:11px">Utilization<br><span style="font-weight:400">On Loan/Active</span></th>'          +'<th style="text-align:center;font-size:11px">วันที่มีข้อมูล</th>'          +'<th style="text-align:center;font-size:11px">แนวโน้ม (14วัน)</th>'          +'<th style="width:36px"></th>'        +'</tr></thead>'        +'<tbody>'+tableRowsS+'</tbody>'      +'</table></div>'      +'<div style="margin-top:10px;padding:8px 12px;background:var(--s2);border-radius:6px;font-size:11px;color:var(--mu);line-height:1.8">'        +'💡 <strong style="color:var(--ac)">AVG</strong> = ผลรวม On Loan แต่ละวัน ÷ จำนวนวันที่มีข้อมูล'        +' &nbsp;|&nbsp; <strong style="color:var(--ac2)">MA7</strong> = เฉลี่ย 7 วันล่าสุด (▲ เพิ่ม / ▼ ลด)'        +' &nbsp;|&nbsp; <strong style="color:var(--ok)">Available</strong> = Active − For Dept Use − On Loan (วันนี้)'        +' &nbsp;|&nbsp; ข้อมูล Total/Active/Inactive/ForDept จาก Admin → จัดการสถานะเครื่องมือ'      +'</div>'      +'</div>';
+    // ── Utilization summary ──
+    var totalUtil=snapStats.filter(function(e){return e.utilPct!==null;});
+    var avgUtil=totalUtil.length>0?(totalUtil.reduce(function(s,e){return s+e.utilPct;},0)/totalUtil.length).toFixed(1):'—';
+    var peakEq=snapStats.length>0?snapStats.reduce(function(a,b){return b.peak>a.peak?b:a;}):null;
+    // ── summary cards (เพิ่ม Utilization เฉลี่ย) ──
+    summaryHtml='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px">'
+      +'<div style="background:var(--s2);border-radius:6px;padding:10px 14px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">เครื่องมือ</div>'
+        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--tx)">'+snapStats.length+'</div>'
+        +'<div style="font-size:10px;color:var(--mu)">รายการ</div></div>'
+      +'<div style="background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);border-radius:6px;padding:10px 14px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">On Loan วันนี้</div>'
+        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--ac)">'+totalOnLoanToday+'</div>'
+        +'<div style="font-size:10px;color:var(--mu)">เครื่อง</div></div>'
+      +'<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:10px 14px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">AVG รวม</div>'
+        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--ok)">'+totalAvg+'</div>'
+        +'<div style="font-size:10px;color:var(--mu)">เครื่อง/วัน</div></div>'
+      +'<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:10px 14px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">Utilization เฉลี่ย</div>'
+        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--wn)">'+avgUtil+(avgUtil!=='—'?'%':'')+'</div>'
+        +'<div style="font-size:10px;color:var(--mu)">AVG/Active</div></div>'
+      +'<div style="background:var(--s2);border-radius:6px;padding:10px 14px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">ข้อมูลสะสม</div>'
+        +'<div style="font-size:22px;font-weight:700;font-family:var(--mo);color:var(--tx)">'+maxDays+'</div>'
+        +'<div style="font-size:10px;color:var(--mu)">วัน</div></div>'
+      +'</div>';
+
+    // ── utilization bar chart data ──
+    var _ucLabels=snapStats.filter(function(e){return e.utilPct!==null;}).map(function(e){return e.name;});
+    var _ucVals=snapStats.filter(function(e){return e.utilPct!==null;}).map(function(e){return e.utilPct;});
+    var _ucColors=_ucVals.map(function(v){return v>=80?'#E24B4A':v>=50?'#BA7517':'#3B6D11';});
+    var _ucH=Math.max(200,_ucLabels.length*38+80);
+
+    // ── กราฟ Utilization % (ไม่มีตารางเก่า) ──
+    avgHtml='<div class="card">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
+        +'<div>'
+          +'<div class="ctitle" style="margin:0;margin-bottom:2px">📈 ค่าเฉลี่ย On Loan รายวัน'
+            +'<span style="font-size:11px;color:var(--mu);font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px">'+_avgRangeLabel+'</span></div>'
+          +'<div style="font-size:11px;color:var(--mu)">ข้อมูลจากหน้า Dashboard — บันทึกอัตโนมัติทุกวัน 23:59 น. Bangkok</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+          +'<span style="font-size:11px;font-weight:700;color:'+_snapBadgeColor+'">'+_snapSource+'</span>'
+          +'<span style="color:var(--ac);font-family:var(--mo);font-size:11px">'+_bkkDate+' '+_bkkTime+'</span>'
+          +'<span style="font-size:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:1px 8px;color:var(--ok)">🔄 realtime</span>'
+        +'</div>'
+      +'</div>'
+      +summaryHtml
+      +'<div style="font-size:11px;color:var(--mu);margin-bottom:12px">'
+        +'<span style="color:var(--er);font-weight:700">■</span> &gt;80% สูง (ใกล้เต็ม) &nbsp;'
+        +'<span style="color:var(--wn);font-weight:700">■</span> 50–80% ปานกลาง &nbsp;'
+        +'<span style="color:var(--ok);font-weight:700">■</span> &lt;50% ต่ำ (มีสำรอง)'
+      +'</div>'
+      +'<div style="position:relative;height:'+_ucH+'px">'
+        +'<canvas id="'+_ucid+'" role="img" aria-label="Horizontal bar chart showing utilization percentage per equipment type"></canvas>'
+      +'</div>'
+      +'<div style="margin-top:10px;padding:8px 12px;background:var(--s2);border-radius:6px;font-size:11px;color:var(--mu);line-height:1.8">'
+        +'💡 <strong style="color:var(--ac)">AVG</strong> = ผลรวม On Loan แต่ละวัน ÷ จำนวนวันที่มีข้อมูล'
+        +' &nbsp;|&nbsp; <strong style="color:var(--wn)">Utilization</strong> = AVG On Loan ÷ Active × 100'
+        +' &nbsp;|&nbsp; <strong style="color:var(--ok)">Available</strong> = Active − On Loan (วันนี้)'
+      +'</div>'
+      +'</div>';
+    // ── draw chart ด้วย requestAnimationFrame หลัง innerHTML set เสร็จ ──
+    (function(_id,_lbl,_val,_col){
+      window._ucDrawPending=window._ucDrawPending||{};
+      window._ucDrawPending[_id]={labels:_lbl,vals:_val,colors:_col};
+    })(_ucid,_ucLabels.slice(),_ucVals.slice(),_ucColors.slice());
   }
 
 
@@ -3533,6 +3675,39 @@ async function renderSum(r){
 
   sc.innerHTML=chartHtml+dayTableHtml+avgHtml+_hfncSetHtml+origHtml+allLoansHtml;
 
+  // ── draw utilization charts หลัง innerHTML set เสร็จ ──
+  if(window._ucDrawPending){
+    var _pending=window._ucDrawPending;
+    window._ucDrawPending={};
+    var _tryDrawAll=function(){
+      var allDone=true;
+      Object.keys(_pending).forEach(function(_id){
+        var el=document.getElementById(_id);
+        if(!el){allDone=false;return;}
+        if(!window.Chart){allDone=false;return;}
+        var d=_pending[_id];
+        if(el._chartInst){try{el._chartInst.destroy();}catch(e){}}
+        el._chartInst=new window.Chart(el,{
+          type:'bar',
+          data:{
+            labels:d.labels,
+            datasets:[{label:'Utilization %',data:d.vals,backgroundColor:d.colors,borderRadius:4,borderSkipped:false}]
+          },
+          options:{
+            indexAxis:'y',responsive:true,maintainAspectRatio:false,
+            plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return' '+ctx.parsed.x.toFixed(1)+'%';}}}},
+            scales:{
+              x:{min:0,max:100,ticks:{callback:function(v){return v+'%';},font:{size:11}},grid:{color:'rgba(128,128,128,0.1)'}},
+              y:{ticks:{font:{size:11}},grid:{display:false}}
+            }
+          }
+        });
+      });
+      if(!allDone)setTimeout(_tryDrawAll,150);
+    };
+    setTimeout(_tryDrawAll,100);
+  }
+
   if(sc._svh)sc.removeEventListener('click',sc._svh);
   sc._svh=function(e){
     var cirow=e.target.closest('.cirow');
@@ -3709,6 +3884,215 @@ function viewDet(loanID){
 // ADMIN FUNCTIONS
 // ════════════════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════════════════
+// 🗄 ARCHIVE DASHBOARD
+// ══════════════════════════════════════════════════════════════
+var _archiveLoans=[];
+var _archiveBorrows=[];
+var _archivePage=1;
+var _archivePageSize=50;
+var _archiveFiltered=[];
+var _archYearChartInst=null;
+
+async function runArchiveMove(){
+  var yr=parseInt(document.getElementById('archYearsOld').value)||3;
+  var cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-yr);
+  var cutoffStr=cutoff.toISOString().split('T')[0];
+  if(!confirm('⚠️ ยืนยันย้ายข้อมูลที่ยืมก่อน '+cutoffStr+' (เก่ากว่า '+yr+' ปี)\nสถานะ RETURNED และ CANCELLED เท่านั้น\n\nข้อมูลจะออกจากตารางหลัก แต่ยังดูได้ใน Archive'))return;
+  var btn=document.getElementById('archMoveBtn');
+  var res=document.getElementById('archMoveResult');
+  if(btn){btn.disabled=true;btn.innerHTML='⏳ กำลังย้าย...';}
+  if(res)res.innerHTML='<span style="color:var(--mu)">กำลังดำเนินการ...</span>';
+  try{
+    var resp=await fetch(SUPABASE_URL+'/rest/v1/rpc/archive_old_records',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SUPABASE_ANON_KEY,
+        'Authorization':'Bearer '+SUPABASE_ANON_KEY
+      },
+      body:JSON.stringify({years_old:yr})
+    });
+    var data=await resp.json();
+    if(data&&data.success){
+      if(res)res.innerHTML='<span style="color:var(--ok)">✅ ย้ายสำเร็จ — ใบยืม: <strong>'+data.loans_archived+'</strong> รายการ | บันทึก: <strong>'+data.borrows_archived+'</strong> records | cutoff: '+data.cutoff_date+'</span>';
+      await loadArchiveDash();
+      await loadAll();
+    }else{
+      if(res)res.innerHTML='<span style="color:var(--er)">❌ เกิดข้อผิดพลาด: '+(data.message||JSON.stringify(data))+'</span>';
+    }
+  }catch(e){
+    if(res)res.innerHTML='<span style="color:var(--er)">❌ เกิดข้อผิดพลาด: '+e.message+'</span>';
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='🗄 ย้ายข้อมูล';}
+  }
+}
+
+async function loadArchiveDash(){
+  var wrap=document.getElementById('archTableWrap');
+  if(wrap)wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--mu)"><div class="spin" style="display:inline-block;margin-right:8px"></div>กำลังโหลด archive...</div>';
+  try{
+    var[ld,bd]=await Promise.all([
+      SB.get('loan_requests_archive','order=loan_date.desc&limit=50000'),
+      SB.get('borrow_records_archive','order=created_at.desc&limit=100000')
+    ]);
+    _archiveLoans=Array.isArray(ld)?ld:[];
+    _archiveBorrows=Array.isArray(bd)?bd:[];
+    // populate year filter
+    var years=[...new Set(_archiveLoans.map(function(l){return l.loan_date?l.loan_date.substr(0,4):'';}).filter(Boolean))].sort().reverse();
+    var ysel=document.getElementById('archYear');
+    if(ysel){ysel.innerHTML='<option value="">ทั้งหมด</option>'+years.map(function(y){return'<option value="'+y+'">'+y+'</option>';}).join('');}
+    // populate eq filter
+    var eqs=[...new Set(_archiveLoans.map(function(l){return(l.equipment_list||[]).map(function(e){return e.name||'';});}).flat().filter(Boolean))].sort();
+    var esel=document.getElementById('archEq');
+    if(esel){esel.innerHTML='<option value="">ทั้งหมด</option>'+eqs.map(function(e){return'<option value="'+e+'">'+e+'</option>';}).join('');}
+    renderArchiveSummary();
+    renderArchiveYearChart();
+    renderArchiveTable();
+  }catch(e){
+    if(wrap)wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--er)">❌ โหลดล้มเหลว: '+e.message+'<br><small style="color:var(--mu)">ตาราง archive อาจยังว่างอยู่</small></div>';
+  }
+}
+
+function getArchiveFiltered(){
+  var yr=document.getElementById('archYear')?document.getElementById('archYear').value:'';
+  var eq=document.getElementById('archEq')?document.getElementById('archEq').value:'';
+  var dept=document.getElementById('archDept')?document.getElementById('archDept').value.trim().toLowerCase():'';
+  var ds=document.getElementById('archDateS')?document.getElementById('archDateS').value:'';
+  var de=document.getElementById('archDateE')?document.getElementById('archDateE').value:'';
+  return _archiveLoans.filter(function(l){
+    if(yr&&(!l.loan_date||!l.loan_date.startsWith(yr)))return false;
+    if(eq&&!(l.equipment_list||[]).some(function(e){return(e.name||'')===eq;}))return false;
+    if(dept&&!(l.dept_name||'').toLowerCase().includes(dept))return false;
+    if(ds&&l.loan_date&&l.loan_date<ds)return false;
+    if(de&&l.loan_date&&l.loan_date>de)return false;
+    return true;
+  });
+}
+
+function renderArchiveSummary(){
+  var f=getArchiveFiltered();
+  var totalLoans=f.length;
+  var totalBorrows=_archiveBorrows.filter(function(b){return f.some(function(l){return l.loan_id===b.loan_id;});}).length;
+  var years=[...new Set(f.map(function(l){return l.loan_date?l.loan_date.substr(0,4):'';}).filter(Boolean))];
+  var eqTypes=[...new Set(f.map(function(l){return(l.equipment_list||[]).map(function(e){return e.name||'';});}).flat().filter(Boolean))];
+  var el=document.getElementById('archSummary');
+  if(!el)return;
+  el.innerHTML=[
+    {label:'ใบยืมทั้งหมด',val:totalLoans.toLocaleString(),color:'var(--ac)',unit:'รายการ'},
+    {label:'บันทึกยืม-คืน',val:totalBorrows.toLocaleString(),color:'var(--ok)',unit:'records'},
+    {label:'ช่วงปี',val:years.length>0?years[years.length-1]+'–'+years[0]:'-',color:'var(--wn)',unit:''},
+    {label:'ประเภทเครื่อง',val:eqTypes.length,color:'var(--mu)',unit:'ชนิด'},
+  ].map(function(c){
+    return'<div style="background:var(--s2);border-radius:6px;padding:10px 14px;text-align:center">'
+      +'<div style="font-size:10px;color:var(--mu);margin-bottom:3px">'+c.label+'</div>'
+      +'<div style="font-size:20px;font-weight:700;font-family:var(--mo);color:'+c.color+'">'+c.val+'</div>'
+      +(c.unit?'<div style="font-size:10px;color:var(--mu)">'+c.unit+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+
+function renderArchiveYearChart(){
+  var yearMap={};
+  _archiveLoans.forEach(function(l){
+    var y=l.loan_date?l.loan_date.substr(0,4):'';
+    if(y)yearMap[y]=(yearMap[y]||0)+1;
+  });
+  var years=Object.keys(yearMap).sort();
+  var vals=years.map(function(y){return yearMap[y];});
+  var canvas=document.getElementById('archYearChart');
+  if(!canvas||!window.Chart)return;
+  if(_archYearChartInst){try{_archYearChartInst.destroy();}catch(e){}}
+  _archYearChartInst=new window.Chart(canvas,{
+    type:'bar',
+    data:{
+      labels:years,
+      datasets:[{label:'ใบยืม',data:vals,backgroundColor:'#f59e0b',borderRadius:4,borderSkipped:false}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return' '+ctx.parsed.y.toLocaleString()+' รายการ';}}}},
+      scales:{
+        x:{ticks:{font:{size:11}},grid:{display:false}},
+        y:{ticks:{font:{size:11},callback:function(v){return v.toLocaleString();}},grid:{color:'rgba(128,128,128,0.1)'}}
+      }
+    }
+  });
+}
+
+function renderArchiveTable(){
+  _archiveFiltered=getArchiveFiltered();
+  renderArchiveSummary();
+  _archivePage=1;
+  _renderArchivePage();
+}
+
+function _renderArchivePage(){
+  var total=_archiveFiltered.length;
+  var totalPages=Math.max(1,Math.ceil(total/_archivePageSize));
+  var start=(_archivePage-1)*_archivePageSize;
+  var pageData=_archiveFiltered.slice(start,start+_archivePageSize);
+  var wrap=document.getElementById('archTableWrap');
+  if(!wrap)return;
+  if(total===0){wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--mu)">ไม่มีข้อมูลใน archive หรือยังไม่ได้ย้ายข้อมูล</div>';document.getElementById('archPager').innerHTML='';return;}
+  wrap.innerHTML='<div style="overflow-x:auto"><table class="dt" style="min-width:700px">'
+    +'<thead><tr style="background:var(--s2)">'
+    +'<th style="font-size:11px;text-align:left">Loan ID</th>'
+    +'<th style="font-size:11px;text-align:center">วันที่ยืม</th>'
+    +'<th style="font-size:11px">แผนก</th>'
+    +'<th style="font-size:11px">ผู้ป่วย</th>'
+    +'<th style="font-size:11px">เครื่องมือ</th>'
+    +'<th style="font-size:11px;text-align:center">สถานะ</th>'
+    +'</tr></thead><tbody>'
+    +pageData.map(function(l){
+      var eqNames=(l.equipment_list||[]).map(function(e){return e.name||'';}).filter(Boolean).join(', ');
+      var stC=l.status==='RETURNED'?'var(--ok)':l.status==='CANCELLED'?'var(--mu)':'var(--wn)';
+      return'<tr>'
+        +'<td style="font-family:var(--mo);font-size:11px;color:var(--ac)">'+S(l.loan_id)+'</td>'
+        +'<td style="text-align:center">'+S(l.loan_date)+'</td>'
+        +'<td><strong>'+S(l.dept_name)+'</strong></td>'
+        +'<td>'+S(l.patient_name)+'</td>'
+        +'<td>'+eqNames+'</td>'
+        +'<td style="text-align:center;font-size:11px;font-weight:700;color:'+stC+'">'+S(l.status)+'</td>'
+        +'</tr>';
+    }).join('')
+    +'</tbody></table></div>'
+    +'<div style="font-size:11px;color:var(--mu);margin-top:6px;text-align:right">แสดง '+(start+1)+'–'+Math.min(start+_archivePageSize,total)+' จาก '+total.toLocaleString()+' รายการ</div>';
+  // pager
+  var pager=document.getElementById('archPager');
+  if(pager){
+    pager.innerHTML=(totalPages<=1?'':
+      '<button class="btn bg sm" '+((_archivePage===1)?'disabled':'')+' onclick="_archivePage--;_renderArchivePage()">◀ ก่อนหน้า</button>'
+      +'<span style="color:var(--mu)">หน้า '+_archivePage+' / '+totalPages+'</span>'
+      +'<button class="btn bg sm" '+((_archivePage===totalPages)?'disabled':'')+' onclick="_archivePage++;_renderArchivePage()">ถัดไป ▶</button>'
+    );
+  }
+}
+
+function clearArchiveFilter(){
+  ['archYear','archEq'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['archDept'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['archDateS','archDateE'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  renderArchiveTable();
+}
+
+function dlArchiveCSV(){
+  var f=getArchiveFiltered();
+  if(!f.length){toast('ไม่มีข้อมูล','error');return;}
+  var rows=[['LoanID','วันที่ยืม','แผนก','ผู้ป่วย','เครื่องมือ','สถานะ']];
+  f.forEach(function(l){rows.push([S(l.loan_id),S(l.loan_date),S(l.dept_name),S(l.patient_name),(l.equipment_list||[]).map(function(e){return e.name||'';}).join(', '),S(l.status)]);});
+  var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='archive_loans.csv';a.click();
+}
+
+function dlArchiveXLS(){
+  var f=getArchiveFiltered();
+  if(!f.length){toast('ไม่มีข้อมูล','error');return;}
+  var rows=[['LoanID','วันที่ยืม','แผนก','ผู้ป่วย','เครื่องมือ','สถานะ']];
+  f.forEach(function(l){rows.push([S(l.loan_id),S(l.loan_date),S(l.dept_name),S(l.patient_name),(l.equipment_list||[]).map(function(e){return e.name||'';}).join(', '),S(l.status)]);});
+  dlXLS('archive_loans',rows);
+}
+
 function checkAdminPin(){
   var inp=document.getElementById('adminPinInput');var err=document.getElementById('adminPinErr');
   if(!inp)return;
@@ -3747,17 +4131,19 @@ function adminRefresh(){
   });
 }
 function showAdminTab(id,el){
-  document.querySelectorAll('.admin-sub').forEach(function(s){s.classList.remove('on');});
+  document.querySelectorAll('.admin-sub').forEach(function(s){s.classList.remove('on');s.style.display='none';});
   document.querySelectorAll('.atab').forEach(function(t){t.classList.remove('on');});
   if(id==='pin-mgr'){
     var sa=document.getElementById('showAppPin');var sd=document.getElementById('showAdmPin');
     if(sa)sa.value=APP_PIN;if(sd)sd.value=ADMIN_PIN;
   }
-  document.getElementById('adm-'+id).classList.add('on');
+  var target=document.getElementById('adm-'+id);
+  if(target){target.classList.add('on');target.style.display='';}
   if(el)el.classList.add('on');
   if(id==='loan-mgr')renderAdminLoans();
   else if(id==='borrow-mgr')renderAdminBorrows();
   else if(id==='lists-mgr')initListsTab();
+  else if(id==='archive-mgr')setTimeout(function(){renderArchiveYearChart();},200);
 }
 function admClearFilter(type){
   if(type==='loan'){['admLoanSearch','admLoanDateS','admLoanDateE'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});document.getElementById('admLoanStat').value='';renderAdminLoans();}
