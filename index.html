@@ -4500,12 +4500,14 @@ async function renderSum(r){
       var startD=new Date(ld);
       var endD=item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now;
       var days=Math.max(1,Math.round((endD-startD)/86400000));
-      if(!eqDaysLocal[eqNo])eqDaysLocal[eqNo]={days:0,equipName:S(item.eq.name),loanCount:0,active:item.status==='ACTIVE'||item.status==='ACC_PENDING'};
-      eqDaysLocal[eqNo].days+=days;eqDaysLocal[eqNo].loanCount+=1;
-      if(item.status==='ACTIVE'||item.status==='ACC_PENDING')eqDaysLocal[eqNo].active=true;
-      if(!eqDaysLocal[eqNo].equipName&&S(item.eq.name))eqDaysLocal[eqNo].equipName=S(item.eq.name);
+      var eqName=S(item.eq.name);
+      // key รวม "หมายเลขเครื่อง + ชนิดเครื่องมือ" กันเลขซ้ำข้ามชนิด (เช่น HFNC เลข 20 กับ Infusion pump เลข 20 คือคนละเครื่อง)
+      var key=eqNo+'‖'+eqName;
+      if(!eqDaysLocal[key])eqDaysLocal[key]={eqNo:eqNo,days:0,equipName:eqName,loanCount:0,active:item.status==='ACTIVE'||item.status==='ACC_PENDING'};
+      eqDaysLocal[key].days+=days;eqDaysLocal[key].loanCount+=1;
+      if(item.status==='ACTIVE'||item.status==='ACC_PENDING')eqDaysLocal[key].active=true;
     });
-    var allEqDays=Object.entries(eqDaysLocal).sort(function(a,b){return b[1].days-a[1].days;});
+    var allEqDays=Object.entries(eqDaysLocal).map(function(e){return[e[1].eqNo,e[1]];}).sort(function(a,b){return b[1].days-a[1].days;});
     var totalEq=allEqDays.length;
 
     // เก็บไว้บน window ให้ filterEqDays เข้าถึงได้
