@@ -2360,6 +2360,10 @@ function toggleTheme(){
           </select>
         </div>
       </div>
+      <div id="admEditAccWrap" style="display:none;border-top:1px solid var(--bd);margin-top:12px;padding-top:12px">
+        <div style="font-size:12px;color:var(--mu);margin-bottom:8px">หมายเลขอุปกรณ์ประกอบ</div>
+        <div id="admEditAccList"></div>
+      </div>
     </div>
     <div class="mftr">
       <button class="btn ber sm" onclick="admDeleteBorrow(document.getElementById('admEditRecID').value)">🗑 ลบรายการนี้</button>
@@ -6326,6 +6330,15 @@ function openEditBorrow(recID){
   document.getElementById('admEditRetRemark').value=S(b.ReturnRemark||'');
   document.getElementById('admEditRecStatus').value=S(b.Status);
   document.getElementById('admEditMachineRet').value=b.MachineReturned?'true':'false';
+  var accWrap=document.getElementById('admEditAccWrap'),accList=document.getElementById('admEditAccList');
+  if(b.Accessories&&b.Accessories.length){
+    accWrap.style.display='block';
+    accList.innerHTML=b.Accessories.map(function(a){
+      return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="flex:1;font-size:13px">'+esc(a.name||'?')+'</span><input type="text" class="admEditAccNo" data-accid="'+a.id+'" value="'+esc(a.no||'')+'" placeholder="ไม่มีเลข" style="width:110px"></div>';
+    }).join('');
+  }else{
+    accWrap.style.display='none';accList.innerHTML='';
+  }
   openM('mAdmEditBorrow');
 }
 async function admSaveEditBorrow(){
@@ -6340,6 +6353,11 @@ async function admSaveEditBorrow(){
     status:document.getElementById('admEditRecStatus').value,
     machine_returned:document.getElementById('admEditMachineRet').value==='true'
   };
+  var ACC_ID_TO_COL={a1:'acc1_flow_meter_pto',a2:'acc2_flow_meter_70',a3:'acc3_self_inflating',a4:'acc4_full_face_mask',a5:'acc5_nasal_cannula',a7:'acc7_regulator_pto',a6:'acc6_other'};
+  document.querySelectorAll('.admEditAccNo').forEach(function(inp){
+    var col=ACC_ID_TO_COL[inp.dataset.accid];
+    if(col)body[col]=inp.value.trim()||'✓';
+  });
   try{
     await SB.patch('borrow_records','record_id=eq.'+encodeURIComponent(recID),body);
     bigToast('บันทึกการแก้ไขสำเร็จ\n'+recID,'success');closeM('mAdmEditBorrow');setTimeout(function(){loadAll().then(renderAdminBorrows);},1500);
