@@ -878,13 +878,13 @@ function toggleTheme(){
       <button class="btn bp sm" onclick="loadSum()">🔍 ดู</button>
       <button class="btn bg sm" onclick="loadSum()" title="โหลดข้อมูลใหม่ (auto-refresh ทุก 30 นาที)">🔄 Refresh</button>
       <button class="btn bg sm" onclick="clearSumFilter()">✕ ล้างทั้งหมด</button>
-      <button class="btn bg sm" id="sumFullBtn" title="โหลดข้อมูลทั้งหมดย้อนหลัง 2–3 ปี (ช้ากว่าปกติ ~10 วินาที)" onclick="(function(){
+      <button class="btn bg sm" id="sumFullBtn" title="โหลดข้อมูลทั้งหมดรวม Archive (ช้ากว่าปกติ)" onclick="(function(){
         var btn=document.getElementById('sumFullBtn');
         if(window._sumIsFullHistory){
           // รีเซ็ตกลับโหมดปกติ
           window._sumIsFullHistory=false;
           btn.textContent='📥 โหลดข้อมูลเต็ม';
-          btn.title='โหลดข้อมูลทั้งหมดย้อนหลัง 2–3 ปี (ช้ากว่าปกติ ~10 วินาที)';
+          btn.title='โหลดข้อมูลทั้งหมดรวม Archive (ช้ากว่าปกติ)';
           btn.style.borderColor='';btn.style.color='';
           Promise.all([API.getAllLoans(false),API.getAllBorrows(false)]).then(function(res){
             loans=res[0];borrows=res[1];
@@ -893,18 +893,19 @@ function toggleTheme(){
           });
           return;
         }
-        // โหลด fullHistory
+        // โหลด fullHistory + Archive
         btn.textContent='⏳ กำลังโหลด...';
         btn.disabled=true;
-        Promise.all([API.getAllLoans(true),API.getAllBorrows(true)]).then(function(res){
-          loans=res[0];borrows=res[1];
+        Promise.all([API.getAllLoans(true),API.getAllBorrows(true),API.getArchivedLoans(),API.getArchivedBorrows()]).then(function(res){
+          loans=res[0].concat(res[2]);
+          borrows=res[1].concat(res[3]);
           window._sumIsFullHistory=true;
           btn.textContent='✅ โหลดเต็มแล้ว (คลิกรีเซ็ต)';
           btn.disabled=false;
           btn.style.borderColor='var(--ok)';btn.style.color='var(--ok)';
-          btn.title='กำลังแสดงข้อมูลเต็ม — คลิกเพื่อกลับโหมดปกติ';
+          btn.title='กำลังแสดงข้อมูลเต็ม (รวม Archive '+res[2].length+' ใบยืม) — คลิกเพื่อกลับโหมดปกติ';
           loadSum();
-          toast('โหลดข้อมูลเต็มสำเร็จ — สามารถ export ได้เลย','success');
+          toast('โหลดข้อมูลเต็มสำเร็จ (รวม Archive '+res[2].length+' ใบยืม) — สามารถ export ได้เลย','success');
         }).catch(function(err){
           btn.textContent='📥 โหลดข้อมูลเต็ม';
           btn.disabled=false;
@@ -958,7 +959,7 @@ function toggleTheme(){
           </select>
           <button class="btn bg sm" style="font-size:10px;padding:3px 7px" onclick="['secAvgS','secAvgE','secAvgEq'].forEach(function(id){document.getElementById(id).value='';});renderSum({})">✕</button>
         </div>
-        <div style="margin-top:5px;font-size:10px;color:var(--mu)">ข้อมูลจาก daily_snapshots (Cron 23:59 น.)</div>
+        <div style="margin-top:5px;font-size:10px;color:var(--mu)">คำนวณสดจากข้อมูลยืม-คืนจริง</div>
       </div>
 
       <!-- ยืมเกิน 1 เดือน -->
@@ -2538,6 +2539,21 @@ var API = {
       return{RecordID:r.record_id,LoanID:r.loan_id,GiverName:r.giver_name||'',EquipmentNo:r.equipment_no||'',EquipItemIndex:r.equip_item_index||0,Accessories:accs,ReturnRemark:r.return_remark||'',ReturnDetail:r.return_detail||'',ReturnDate:r.return_date||'',MachineReturnDate:r.machine_return_date||'',MachineReturned:r.machine_returned||false,ReturnedAccs:retAccs,TransferHistory:th,Status:r.status,ReceiverName:r.receiver_name||'',ReturnedAt:r.returned_at||''};
     });
   },
+  getArchivedLoans: async function(){
+    var rows=await SB.get('loan_requests_archive','order=created_at.desc&limit=50000');
+    return rows.map(function(r){return{LoanID:r.loan_id,LoanDate:r.loan_date,BorrowerName:r.borrower_name,DeptCode:r.dept_code,DeptName:r.dept_name,PatientName:r.patient_name,EquipmentList:Array.isArray(r.equipment_list)?r.equipment_list:[],Status:r.status,CreatedAt:r.created_at||''};});
+  },
+  getArchivedBorrows: async function(){
+    var rows=await SB.get('borrow_records_archive','order=created_at.desc&limit=100000');
+    return rows.map(function(r){
+      var ACC_MAP=[{id:'a1',name:'Oxygen flow meter pipeline with power take off',col:'acc1_flow_meter_pto'},{id:'a2',name:'Oxygen flow meter pipeline 70 LPM',col:'acc2_flow_meter_70'},{id:'a3',name:'Self inflating bag',col:'acc3_self_inflating'},{id:'a4',name:'full face mask',col:'acc4_full_face_mask'},{id:'a5',name:'Nasal cannula HFNC',col:'acc5_nasal_cannula'},{id:'a7',name:'Oxygen flow meter regulator with power take off',col:'acc7_regulator_pto'},{id:'a6',name:'อื่นๆ',col:'acc6_other'}];
+      var accs=[];
+      ACC_MAP.forEach(function(a){var val=r[a.col]||'';if(val&&val.trim())accs.push({id:a.id,name:a.name,no:val==='✓'?'':val});});
+      var retAccs=r.returned_accs;if(!Array.isArray(retAccs))retAccs=[];
+      var th=r.transfer_history;if(!Array.isArray(th))th=[];
+      return{RecordID:r.record_id,LoanID:r.loan_id,GiverName:r.giver_name||'',EquipmentNo:r.equipment_no||'',EquipItemIndex:r.equip_item_index||0,Accessories:accs,ReturnRemark:r.return_remark||'',ReturnDetail:r.return_detail||'',ReturnDate:r.return_date||'',MachineReturnDate:r.machine_return_date||'',MachineReturned:r.machine_returned||false,ReturnedAccs:retAccs,TransferHistory:th,Status:r.status,ReceiverName:r.receiver_name||'',ReturnedAt:r.returned_at||''};
+    });
+  },
   submitLoan: async function(data){
     var ts=new Date();var id='LN-'+ts.getFullYear()+String(ts.getMonth()+1).padStart(2,'0')+String(ts.getDate()).padStart(2,'0')+'-'+Math.random().toString(36).substr(2,8).toUpperCase();
     var rows=await SB.post('loan_requests',{loan_id:id,loan_date:data.loanDate,borrower_name:data.borrowerName,dept_code:data.deptCode,dept_name:data.deptName,patient_name:data.patientName,equipment_list:data.equipmentList||[],status:'PENDING'});
@@ -3150,7 +3166,7 @@ function retUpdateStatus(){var machineCb=document.getElementById('retMachineCb')
 function showRetDet(){var v=document.getElementById('retRemark').value;document.getElementById('retDetGrp').style.display=(v==='ย้ายไปหน่วยวิกฤต'||v==='เครื่องมือชำรุด'||v==='อื่นๆ')?'block':'none';}
 async function saveReturn(){var recID=S(document.getElementById('retRecID').value);var receiver=getStaff('receiver');var remark=document.getElementById('retRemark').value;var detail=document.getElementById('retDet').value.trim();var date=document.getElementById('retDate').value;var machineCb=document.getElementById('retMachineCb');var machineChecked=machineCb&&machineCb.checked;var needRemark=machineChecked&&!_retBorrowData.machineAlreadyReturned;if(!recID||!receiver||(needRemark&&!remark)||!date){bigToast('กรุณากรอกข้อมูลให้ครบถ้วน','error');return;}var machineReturned=_retBorrowData.machineAlreadyReturned||(machineCb&&machineCb.checked);var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var newRetAccs=[];accs.forEach(function(a){var cb=document.getElementById('retcb_'+a.id);if(cb&&cb.checked)newRetAccs.push({id:a.id,name:a.name||'',no:a.no||'',date:date,receiver:receiver});});if(_retBorrowData.machineAlreadyReturned&&newRetAccs.length===0){bigToast('กรุณาเลือกอุปกรณ์ที่ต้องการคืน','error');return;}if(!machineReturned&&newRetAccs.length===0){bigToast('กรุณาเลือกรายการที่ต้องการคืน','error');return;}var totalAccAfter=retAccs.length+newRetAccs.length;var allAccRet=(accs.length===0)||(totalAccAfter>=accs.length);try{await API.returnEquipment(recID,{receiverName:receiver,returnRemark:remark,returnDetail:detail,returnDate:date,newReturnedAccs:newRetAccs,machineReturned,allReturned:machineReturned,machineAlreadyReturned:_retBorrowData.machineAlreadyReturned});var msg,typ;if(_retBorrowData.machineAlreadyReturned){msg=allAccRet?'คืนอุปกรณ์ครบแล้ว!':'บันทึกคืนอุปกรณ์ '+newRetAccs.length+' รายการ';typ='success';}else if(machineReturned){var accMsg=accs.length>0&&!allAccRet?'\nอุปกรณ์ยังค้าง '+(accs.length-totalAccAfter)+' รายการ':'';msg='คืนสำเร็จ! สถานะเปลี่ยนเป็น "คืน"'+accMsg;typ='success';}else{msg='บันทึกคืนอุปกรณ์ '+newRetAccs.length+' รายการ\nตัวเครื่องยังไม่คืน';typ='warning';}bigToast(msg,typ);closeM('mReturn');var _retLID=_retBorrowData.loanID||'';setTimeout(async function(){await loadAll();if(_retLID)await autoRecalcLoan(_retLID);},800);}catch(e){bigToast('บันทึกการคืนล้มเหลว\n'+e.message,'error');}}
 function openReturnAcc(recID,loanID,idx){openReturn(recID,loanID,idx);_retBorrowData.machineAlreadyReturned=true;var mttl=document.querySelector('#mReturn .mttl');if(mttl)mttl.textContent='📦 คืนอุปกรณ์ที่ค้าง';var ri=document.getElementById('retInfo');if(ri)ri.innerHTML+='<div style="margin-top:6px;padding:5px 8px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:4px;font-size:12px;color:var(--ok)">✓ ตัวเครื่องคืนแล้ว — กรุณาเลือกอุปกรณ์ที่ต้องการคืนเพิ่ม</div>';}
-function openTransfer(recID,fromDept,loanID,idx){if(!recID){toast('ไม่พบข้อมูลการยืม','error');return;}document.getElementById('trRecID').value=recID;document.getElementById('transfererSel').value='';document.getElementById('transfererOth').style.display='none';['trDeptCode','trDeptName','trDeptSearch'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('trDeptDisp').style.display='none';document.getElementById('trNote').value='โอนจาก '+fromDept;document.getElementById('trDate').value=new Date().toISOString().split('T')[0];var loan=loans.find(function(l){return S(l.LoanID)===S(loanID);});var bw=borrows?borrows.find(function(b){return S(b.RecordID)===S(recID);}):null;var trailSection=bw&&bw.TransferHistory&&bw.TransferHistory.length&&loan?'<div style="margin-top:7px">'+buildTransferTrail(loan,bw)+'</div>':'';var eq=loan?(loan.EquipmentList||[])[idx]:null;document.getElementById('trInfo').innerHTML=(eq?'🔧 <strong>'+ES(eq.name)+'</strong> | แผนกปัจจุบัน: <span style="color:var(--ac)">'+esc(fromDept)+'</span>':'')+trailSection;openM('mTransfer');}
+function openTransfer(recID,fromDept,loanID,idx){if(!recID){toast('ไม่พบข้อมูลการยืม','error');return;}document.getElementById('trRecID').value=recID;document.getElementById('transfererSel').value='';document.getElementById('transfererOth').style.display='none';['trDeptCode','trDeptName','trDeptSearch'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('trDeptDisp').style.display='none';document.getElementById('trNote').value='โอนจาก '+fromDept;document.getElementById('trDate').value=localDateStr(new Date());var loan=loans.find(function(l){return S(l.LoanID)===S(loanID);});var bw=borrows?borrows.find(function(b){return S(b.RecordID)===S(recID);}):null;var trailSection=bw&&bw.TransferHistory&&bw.TransferHistory.length&&loan?'<div style="margin-top:7px">'+buildTransferTrail(loan,bw)+'</div>':'';var eq=loan?(loan.EquipmentList||[])[idx]:null;document.getElementById('trInfo').innerHTML=(eq?'🔧 <strong>'+ES(eq.name)+'</strong> | แผนกปัจจุบัน: <span style="color:var(--ac)">'+esc(fromDept)+'</span>':'')+trailSection;openM('mTransfer');}
 async function saveTransfer(){var recID=S(document.getElementById('trRecID').value);var transferer=getStaff('transferer');var toCode=S(document.getElementById('trDeptCode').value);var toDept=S(document.getElementById('trDeptName').value);var date=document.getElementById('trDate').value;var note=document.getElementById('trNote').value;if(!transferer){toast('กรุณาเลือกผู้โอน','error');return;}if(!toCode){toast('กรุณาเลือกแผนกที่โอนไป','error');return;}try{var _fromDept=S(document.getElementById('trNote').value).replace(/^โอนจาก\s*/,'');await API.transferEquipment(recID,{date,fromDept:_fromDept,toDept,toDeptCode:toCode,note,transfererName:transferer});toast('โอนสำเร็จ!');closeM('mTransfer');setTimeout(loadAll,2000);}catch(e){toast('เกิดข้อผิดพลาด: '+e.message,'error');}}
 
 // ── Daily Summary Cards ───────────────────────────────────────
@@ -3912,36 +3928,10 @@ async function renderSum(r){
   var dailyActiveByEq={};
   var datesForAvg=rangeDates.slice().reverse().slice(0,30);
 
-  // ── โหลด daily_snapshots จาก Supabase (ถ้ามี) ────────────────
-  // ใช้ snapshot ก่อน ถ้าไม่มีค่อย fallback คำนวณเอง
-  var _snapLoaded=false;
-  try {
-    var _snapQS='select=snapshot_date,equipment_name,active_count'
-      +'&snapshot_date=gte.'+computeRangeS
-      +'&snapshot_date=lte.'+computeRangeE
-      +'&order=snapshot_date.asc&limit=50000';
-    var _snapRes=await SB._fetch(SUPABASE_URL+'/rest/v1/daily_snapshots?'+_snapQS,{
-      headers:SB.headers()
-    });
-    if(_snapRes.ok){
-      var _snapData=await _snapRes.json();
-      if(Array.isArray(_snapData)&&_snapData.length>0){
-        _snapData.forEach(function(row){
-          var n=row.equipment_name;
-          var d=row.snapshot_date;
-          if(!dailyActiveByEq[n])dailyActiveByEq[n]={};
-          dailyActiveByEq[n][d]=row.active_count;
-        });
-        _snapLoaded=true;
-        console.log('[renderSum] Using daily_snapshots:',_snapData.length,'rows');
-      }
-    }
-  } catch(e){ console.warn('[renderSum] snapshot fetch failed, using fallback',e); }
-
-  // ── Fallback: คำนวณจาก borrow_records ถ้าไม่มี snapshot ──────
-  if(!_snapLoaded){
-    console.log('[renderSum] No snapshots found, calculating from borrow_records');
-    expAvg.forEach(function(item){
+  // ── คำนวณสดจาก borrow_records เสมอ (ครอบคลุมยืม-คืนภายในวันเดียวครบ) ──
+  // เดิมอ่านจาก daily_snapshots (ภาพนิ่งรายวัน) ก่อน ตอนนี้ใช้คำนวณสดเป็นหลักแทน
+  // ตรรกะนี้เดิมเป็น fallback ของระบบ snapshot อยู่แล้ว จึงผ่านการพิสูจน์ใช้งานจริงมาก่อน
+  expAvg.forEach(function(item){
       if(item.status==='PENDING'||item.status==='CANCELLED')return;
       if(!item.loan.LoanDate)return;
       var n=S(item.eq.name);
@@ -3961,7 +3951,6 @@ async function renderSum(r){
         }
       });
     });
-  }
 
   // ── วันนี้ใช้ข้อมูล live (expFiltered) เสมอ ──────────────────
   // เพราะ snapshot บันทึกตอนเที่ยงคืน แต่ข้อมูลอาจเปลี่ยนระหว่างวัน
@@ -4057,8 +4046,8 @@ async function renderSum(r){
   var _bkkTime=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now);
   var _bkkDate=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',year:'numeric',month:'short',day:'numeric'}).format(now);
   var _avgRangeLabel=(_avgDateS||computeRangeS)+' ถึง '+(_avgDateE||computeRangeE);
-  var _snapSource=_snapLoaded?'📸 daily_snapshots':'⚡ คำนวณ realtime';
-  var _snapBadgeColor=_snapLoaded?'var(--ok)':'var(--wn)';
+  var _snapSource='⚡ คำนวณ realtime';
+  var _snapBadgeColor='var(--ok)';
 
   var avgHtml='';
   if(snapStats.length===0){
