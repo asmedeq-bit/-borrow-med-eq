@@ -3625,6 +3625,64 @@ function localDateStr(d){
   return _bkkFmt.format(d instanceof Date?d:new Date(d));
 }
 function bangkokNow(){return new Date();}
+// ── Utilization section: bind card/row/header interactivity ──
+// หมายเหตุ: เดิม logic นี้ถูกสร้างเป็น string แล้วฝังแท็ก script ปิด-เปิดไว้ใน
+// HTML ที่ set ผ่าน .innerHTML — เบราว์เซอร์ไม่รันสคริปต์ที่ถูกแทรกด้วยวิธีนี้เลย
+// (ข้อจำกัดมาตรฐานของ .innerHTML) จึงไม่เคยคลิกได้ผลจริงมาก่อน ย้ายมาเป็นฟังก์ชัน
+// จริงระดับบนแทน เรียกทีหลังผ่าน setTimeout หลัง DOM ถูกแทรกแล้ว (แบบเดียวกับ HFNC Set)
+window._utilSectionSetup = function(tblId, barId, peakEqName){
+  var _sc='util',_sa=false;
+  function _sortTbl(col){
+    if(_sc===col)_sa=!_sa;else{_sc=col;_sa=false;}
+    var tbody=document.querySelector('#'+tblId+' tbody');
+    if(!tbody)return;
+    var rows=Array.from(tbody.querySelectorAll('tr.snp-row'));
+    rows.sort(function(a,b){
+      var av=parseFloat(a.dataset[col])||0,bv=parseFloat(b.dataset[col])||0;
+      return _sa?av-bv:bv-av;
+    });
+    rows.forEach(function(r){tbody.appendChild(r);});
+    document.querySelectorAll('#'+tblId+' th.snp-th').forEach(function(th){
+      th.style.color=th.dataset.col===_sc?'var(--ac)':'var(--mu)';
+      var arr=th.querySelector('.sort-arrow');if(arr)arr.textContent=th.dataset.col===_sc?(_sa?'▲':'▼'):'⇅';
+    });
+  }
+  function _hlRow(eq){
+    document.querySelectorAll('.snp-row').forEach(function(r){
+      r.style.background=r.dataset.eq===eq?'rgba(0,200,255,.08)':'';
+      r.style.outline=r.dataset.eq===eq?'1px solid rgba(0,200,255,.3)':'';
+    });
+  }
+  function _filterRows(type){
+    document.querySelectorAll('.snp-card').forEach(function(c){c.style.outline=c.dataset.filter===type?'2px solid var(--ac)':'';});
+    document.querySelectorAll('.snp-row').forEach(function(r){
+      var u=r.dataset.util===''?null:parseFloat(r.dataset.util);
+      var show=type===''||
+        (type==='high'&&u!==null&&u>=50)||
+        (type==='highUtil'&&u!==null&&u>=80)||
+        (type==='lowUtil'&&u!==null&&u<20)||
+        (type==='peak'&&r.dataset.eq===peakEqName);
+      r.style.display=show?'':'none';
+    });
+  }
+  document.querySelectorAll('.snp-card').forEach(function(c){
+    c.addEventListener('click',function(){
+      var cur=c.style.outline;
+      document.querySelectorAll('.snp-card').forEach(function(x){x.style.outline='';});
+      if(cur){_filterRows('');}else{c.style.outline='2px solid var(--ac)';_filterRows(c.dataset.filter);}
+    });
+  });
+  document.querySelectorAll('.snp-row').forEach(function(r){
+    r.addEventListener('click',function(){_hlRow(r.dataset.eq);});
+    r.addEventListener('mouseenter',function(){if(!r.style.background)r.style.background='rgba(255,255,255,.03)';});
+    r.addEventListener('mouseleave',function(){if(r.style.background==='rgba(255, 255, 255, 0.03)')r.style.background='';});
+  });
+  document.querySelectorAll('#'+tblId+' th.snp-th').forEach(function(th){
+    th.style.cursor='pointer';
+    th.addEventListener('click',function(){_sortTbl(th.dataset.col);});
+  });
+};
+
 async function renderSum(r){
   var now=new Date(),sc=document.getElementById('sumCont');var _sMap={};
   if(!loans){sc.innerHTML='<div class="lding"><div class="spin"></div> กำลังโหลด...</div>';return Promise.resolve();}
@@ -4137,9 +4195,6 @@ async function renderSum(r){
         var _snapDayCount=_snapDates.length;
         var _snapDateFirst=_snapDates[0]||localDateStr(now);
         var _snapDateLast=_snapDates[_snapDates.length-1]||localDateStr(now);
-        var _totalAvgOnLoan=snapStats.reduce(function(s,e){return s+parseFloat(e.avg);},0);
-        var _utilList=snapStats.filter(function(e){return e.utilPct!==null;});
-        var _avgUtil=_utilList.length>0?(_utilList.reduce(function(s,e){return s+e.utilPct;},0)/_utilList.length).toFixed(1):null;
         var _peakEq=snapStats.length>0?snapStats.reduce(function(a,b){return b.peak>a.peak?b:a;}):null;
         var _totalRecords=snapStats.reduce(function(s,e){return s+e.totalDays;},0);
 
@@ -4150,21 +4205,29 @@ async function renderSum(r){
         var _barH=Math.max(200,snapStats.length*44+80);
 
         // ── 4 summary cards (คลิกกรอง) ──
+        var _highUtilEq=snapStats.filter(function(e){return e.utilPct!==null&&e.utilPct>=80;});
+        var _lowUtilEq=snapStats.filter(function(e){return e.utilPct!==null&&e.utilPct<20;});
+        function _eqNameList(arr){
+          if(arr.length===0)return'ไม่มี';
+          var names=arr.map(function(e){return e.name;});
+          if(names.length<=3)return names.join(', ');
+          return names.slice(0,2).join(', ')+' +'+(names.length-2)+' อื่นๆ';
+        }
         var _cards='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">'
           +'<div class="snp-card" data-filter="" style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border .15s">'
             +'<div style="font-size:11px;color:var(--mu);margin-bottom:6px">วันที่มีข้อมูล</div>'
             +'<div style="font-size:28px;font-weight:700;font-family:var(--mo);color:var(--tx);line-height:1">'+_snapDayCount+'</div>'
             +'<div style="font-size:11px;color:var(--mu);margin-top:4px">วัน</div>'
           +'</div>'
-          +'<div class="snp-card" data-filter="" style="background:rgba(0,200,255,.07);border:1px solid rgba(0,200,255,.2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border .15s">'
-            +'<div style="font-size:11px;color:var(--mu);margin-bottom:6px">AVG On Loan รวม</div>'
-            +'<div style="font-size:28px;font-weight:700;font-family:var(--mo);color:var(--ac);line-height:1">'+_totalAvgOnLoan.toFixed(1)+'</div>'
-            +'<div style="font-size:11px;color:var(--mu);margin-top:4px">เครื่อง/วัน</div>'
+          +'<div class="snp-card" data-filter="highUtil" style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border .15s" title="คลิกเพื่อดูเฉพาะเครื่องมือ Utilization เกิน 80%">'
+            +'<div style="font-size:11px;color:var(--mu);margin-bottom:6px">ใช้งานสูง (&gt;80%)</div>'
+            +'<div style="font-size:28px;font-weight:700;font-family:var(--mo);color:var(--er);line-height:1">'+_highUtilEq.length+' <span style="font-size:12px;font-weight:400">ชนิด</span></div>'
+            +'<div style="font-size:10px;color:var(--er);margin-top:4px">'+esc(_eqNameList(_highUtilEq))+'<span style="font-size:9px;opacity:.7"> ▼ กรอง</span></div>'
           +'</div>'
-          +'<div class="snp-card" data-filter="high" style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border .15s" title="คลิกเพื่อดูเฉพาะ Utilization สูง (&gt;50%)">'
-            +'<div style="font-size:11px;color:var(--mu);margin-bottom:6px">Utilization เฉลี่ย</div>'
-            +'<div style="font-size:28px;font-weight:700;font-family:var(--mo);color:var(--wn);line-height:1">'+(_avgUtil!==null?_avgUtil:'—')+'</div>'
-            +'<div style="font-size:11px;color:var(--mu);margin-top:4px">% ของ Active <span style="font-size:9px;opacity:.7">▼ กรอง</span></div>'
+          +'<div class="snp-card" data-filter="lowUtil" style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border .15s" title="คลิกเพื่อดูเฉพาะเครื่องมือ Utilization ต่ำกว่า 20%">'
+            +'<div style="font-size:11px;color:var(--mu);margin-bottom:6px">ใช้งานต่ำ (&lt;20%)</div>'
+            +'<div style="font-size:28px;font-weight:700;font-family:var(--mo);color:var(--ok);line-height:1">'+_lowUtilEq.length+' <span style="font-size:12px;font-weight:400">ชนิด</span></div>'
+            +'<div style="font-size:10px;color:var(--ok);margin-top:4px">'+esc(_eqNameList(_lowUtilEq))+'<span style="font-size:9px;opacity:.7"> ▼ กรอง</span></div>'
           +'</div>'
           +'<div class="snp-card" data-filter="peak" style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border .15s" title="คลิกเพื่อ highlight เครื่องที่ Peak สูงสุด">'
             +'<div style="font-size:11px;color:var(--mu);margin-bottom:6px">สูงสุด (Peak)</div>'
@@ -4185,18 +4248,21 @@ async function renderSum(r){
                 +'<span style="font-size:12px;font-weight:700;color:'+uColor+';font-family:var(--mo);min-width:38px">'+uPct+'%</span>'
               +'</div>'
             :'<span style="color:var(--mu)">—</span>';
+          var pUpct=(e.inv.active>0)?Math.round(e.peak/e.inv.active*1000)/10:null;
+          var pUcolor=pUpct!==null?(pUpct>=80?'#ef4444':pUpct>=50?'#d97706':'#15803d'):'var(--mu)';
+          var pUtxt=pUpct!==null?'<span style="font-size:10px;color:'+pUcolor+'"> ('+pUpct+'%)</span>':'';
           var trendTxt=e.trend==='up'
             ?'<span style="color:#ef4444;font-weight:700">▲ เพิ่ม</span>'
             :e.trend==='down'
               ?'<span style="color:#15803d;font-weight:700">▼ ลด</span>'
               :'<span style="color:var(--mu)">─ คงที่</span>';
-          return '<tr class="snp-row" data-eq="'+e.name.replace(/"/g,'&quot;')+'" data-util="'+(uPct||0)+'" data-avg="'+parseFloat(e.avg)+'" data-peak="'+e.peak+'" style="border-bottom:1px solid var(--bd);cursor:pointer;transition:background .12s">'
+          return '<tr class="snp-row" data-eq="'+e.name.replace(/"/g,'&quot;')+'" data-util="'+(uPct!==null?uPct:'')+'" data-avg="'+parseFloat(e.avg)+'" data-peak="'+e.peak+'" style="border-bottom:1px solid var(--bd);cursor:pointer;transition:background .12s">'
             +'<td style="padding:9px 10px;font-size:13px;font-weight:600">'
               +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+e.col+';margin-right:7px;vertical-align:middle"></span>'
               +e.name
             +'</td>'
             +'<td style="text-align:center;font-family:var(--mo);color:var(--ac);font-weight:700;font-size:14px">'+parseFloat(e.avg).toFixed(1)+'</td>'
-            +'<td style="text-align:center;font-family:var(--mo);font-size:13px;color:var(--tx)">'+e.peak+'</td>'
+            +'<td style="text-align:center;font-family:var(--mo);font-size:13px;color:var(--tx)">'+e.peak+pUtxt+'</td>'
             +'<td style="text-align:center;font-family:var(--mo);font-size:13px;color:#15803d">'+( e.inv.active||'—')+'</td>'
             +'<td style="padding:8px 10px;min-width:160px">'+uCell+'</td>'
             +'<td style="text-align:center;font-size:12px">'+trendTxt+'</td>'
@@ -4215,66 +4281,8 @@ async function renderSum(r){
         // ── sort state (เก็บไว้ใน closure) ──
         var _sortCol='util',_sortAsc=false;
 
-        // ── interactive JS (inject หลัง render) ──
-        var _js='<script>(function(){'
-          // sort ตาราง
-          +'var _sc="util",_sa=false;'
-          +'function _sortTbl(col){'
-            +'if(_sc===col)_sa=!_sa;else{_sc=col;_sa=false;}'
-            +'var tbody=document.querySelector("#'+_tblId+' tbody");'
-            +'if(!tbody)return;'
-            +'var rows=Array.from(tbody.querySelectorAll("tr.snp-row"));'
-            +'rows.sort(function(a,b){'
-              +'var av=parseFloat(a.dataset[col])||0,bv=parseFloat(b.dataset[col])||0;'
-              +'return _sa?av-bv:bv-av;'
-            +'});'
-            +'rows.forEach(function(r){tbody.appendChild(r);});'
-            +'document.querySelectorAll("#'+_tblId+' th.snp-th").forEach(function(th){'
-              +'th.style.color=th.dataset.col===_sc?"var(--ac)":"var(--mu)";'
-              +'th.querySelector(".sort-arrow").textContent=th.dataset.col===_sc?(_sa?"▲":"▼"):"⇅";'
-            +'});'
-          +'}'
-          // highlight row + highlight bar
-          +'function _hlRow(eq){'
-            +'document.querySelectorAll(".snp-row").forEach(function(r){'
-              +'r.style.background=r.dataset.eq===eq?"rgba(0,200,255,.08)":"";'
-              +'r.style.outline=r.dataset.eq===eq?"1px solid rgba(0,200,255,.3)":"";'
-            +'});'
-          +'}'
-          // filter rows
-          +'function _filterRows(type){'
-            +'document.querySelectorAll(".snp-card").forEach(function(c){c.style.outline=c.dataset.filter===type?"2px solid var(--ac)":"";});'
-            +'document.querySelectorAll(".snp-row").forEach(function(r){'
-              +'var u=parseFloat(r.dataset.util)||0;'
-              +'var show=type===""||'
-                +'(type==="high"&&u>=50)||'
-                +'(type==="peak"&&r.dataset.eq===document.getElementById("'+_barId+'").dataset.peak);'
-              +'r.style.display=show?"":"none";'
-            +'});'
-          +'}'
-          // bind card clicks
-          +'document.querySelectorAll(".snp-card").forEach(function(c){'
-            +'c.addEventListener("click",function(){'
-              +'var cur=c.style.outline;'
-              +'document.querySelectorAll(".snp-card").forEach(function(x){x.style.outline="";});'
-              +'if(cur){_filterRows("");}else{c.style.outline="2px solid var(--ac)";_filterRows(c.dataset.filter);}'
-            +'})'
-          +'});'
-          // bind row clicks
-          +'document.querySelectorAll(".snp-row").forEach(function(r){'
-            +'r.addEventListener("click",function(){_hlRow(r.dataset.eq);});'
-            +'r.addEventListener("mouseenter",function(){if(!r.style.background||r.style.background==="")r.style.background="rgba(255,255,255,.03)";});'
-            +'r.addEventListener("mouseleave",function(){if(r.style.background==="rgba(255, 255, 255, 0.03)")r.style.background="";});'
-          +'});'
-          // bind th sort clicks
-          +'document.querySelectorAll("#'+_tblId+' th.snp-th").forEach(function(th){'
-            +'th.style.cursor="pointer";'
-            +'th.addEventListener("click",function(){_sortTbl(th.dataset.col);});'
-          +'});'
-          // store peak eq name on canvas for filter
-          +'var cv=document.getElementById("'+_barId+'");'
-          +'if(cv)cv.dataset.peak="'+(_peakEq?_peakEq.name.replace(/"/g,''):'')+'";'
-        +'})()</s'+'cript>';
+        // ── unique IDs ──
+        window._utilSectionParams={tblId:_tblId,barId:_barId,peak:_peakEq?_peakEq.name:''};
 
         return '<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;overflow:hidden">'
           +'<div style="padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
@@ -4310,7 +4318,6 @@ async function renderSum(r){
               +'<canvas id="'+_barId+'" role="img" aria-label="Horizontal bar chart utilization per equipment"></canvas>'
             +'</div>'
           +'</div>'
-          +_js
         +'</div>';
       })()
       +'</div>';
@@ -5458,7 +5465,7 @@ async function renderSum(r){
     +'</div>';
 
   // trigger render after DOM ready
-  setTimeout(function(){if(window._renderHfncSection)window._renderHfncSection();if(window._renderHfncSetMonthly)window._renderHfncSetMonthly();},50);
+  setTimeout(function(){if(window._renderHfncSection)window._renderHfncSection();if(window._renderHfncSetMonthly)window._renderHfncSetMonthly();if(window._utilSectionSetup&&window._utilSectionParams)window._utilSectionSetup(window._utilSectionParams.tblId,window._utilSectionParams.barId,window._utilSectionParams.peak);},50);
 
   // ── รวบรวม pending charts ก่อน set innerHTML ──
   var _pendingCharts=window._ucDrawPending||{};
