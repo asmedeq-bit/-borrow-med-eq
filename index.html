@@ -2435,8 +2435,8 @@ function toggleTheme(){
   .pf-title [contenteditable]{outline:none}
   .pf-btitle{text-align:center;font-weight:700;font-size:12px;margin:0 0 4px;color:#111}
   table.pf{border-collapse:collapse;width:100%;table-layout:fixed}
-  table.pf th,table.pf td{border:0.7px solid #000;padding:0 1px;font-size:9px;text-align:center;vertical-align:middle;overflow:hidden;word-break:break-word;line-height:1.1;color:#111}
-  table.pf th{font-weight:600;font-size:8.5px;background:#f2f2f2}
+  table.pf th,table.pf td{border:0.7px solid #000;padding:0 1px;font-size:10px;text-align:center;vertical-align:middle;overflow:hidden;word-break:break-word;line-height:1.1;color:#111}
+  table.pf th{font-weight:600;font-size:9.5px;background:#f2f2f2}
   table.pf td[contenteditable]:focus,table.pf th[contenteditable]:focus,.pf-title [contenteditable]:focus,.pf-btitle [contenteditable]:focus{outline:2px solid #0284c7;outline-offset:-2px;background:#eef7ff}
   table.pf td.tl{text-align:left;padding-left:3px}
   #pg-print .pf-sheet:first-child table.pf td.tl{word-spacing:6px}
@@ -2446,7 +2446,7 @@ function toggleTheme(){
   /* ตารางสรุปหน้าหลัง: แถวสูงขึ้น เขียนง่าย (เฉพาะ 2 ตารางสรุปล่าง) */
   #pg-print .pf-sheet:last-child table.pf td{height:20px}
   #pg-print #pfProbNote{border:0.7px solid #000;vertical-align:top}
-  #pg-print .pf-sumwrap{display:flex;gap:0;margin-top:8px;align-items:stretch}
+  #pg-print .pf-sumwrap{display:flex;gap:0;margin-top:8px;align-items:stretch;position:relative}
   #pg-print .pf-addrow td{border:none;background:#eef4f9;height:26px;text-align:left;padding-left:4px}
   #pg-print .pf-ib{display:inline-flex;align-items:center;justify-content:center;width:22px;height:20px;border:none;border-radius:5px;font-size:15px;font-weight:700;cursor:pointer;line-height:1;margin-right:4px;color:#fff}
   #pg-print .pf-ib-add{background:#10b981}
@@ -2460,6 +2460,11 @@ function toggleTheme(){
   .pf-colrz{position:absolute;width:8px;margin-left:-4px;cursor:col-resize;pointer-events:auto;z-index:50}
   .pf-colrz:hover,.pf-colrz.dragging{background:rgba(2,132,199,.35)}
   @media print{[id^="pfColResizers"]{display:none!important}}
+  /* แถบลากปรับความกว้างระหว่าง 3 บล็อกใหญ่ (คนละกลไกกับลากคอลัมน์ในตารางเดียวกัน) */
+  #pfBlockResizers{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+  .pf-blkrz{position:absolute;top:0;width:10px;margin-left:-5px;height:100%;cursor:col-resize;pointer-events:auto;z-index:60}
+  .pf-blkrz:hover,.pf-blkrz.dragging{background:rgba(220,38,38,.35)}
+  @media print{#pfBlockResizers{display:none!important}}
   /* ไฮไลต์แถว: คลิกเลขลำดับเพื่อเลือกสี */
   #pg-print .pf-sheet:first-child #pfFront td.rn{cursor:pointer;position:relative}
   #pg-print .pf-sheet:first-child #pfFront td.rn:hover{outline:2px solid #0284c7;outline-offset:-2px}
@@ -2508,6 +2513,7 @@ function toggleTheme(){
     <div class="fg"><label>ช่วงเวร</label><input id="pfShift" value="1600-0800" style="width:120px"></div>
     <button class="btn bg sm" onclick="pfReload()">🔄 ดึงรายการที่ยืมอยู่</button>
     <button class="btn bg sm" onclick="pfUndo()" id="pfUndoBtn" title="ย้อนกลับการแก้ล่าสุด (ถอยทีละขั้น)">↩ ย้อนกลับ</button>
+    <button class="btn bg sm" onclick="pfRedo()" id="pfRedoBtn" title="ไปข้างหน้า (ยกเลิกการย้อนกลับล่าสุด)">↪ ไปข้างหน้า</button>
     <button class="btn bp sm" onclick="pfSaveAllManual()" title="บันทึกข้อมูลที่แก้ไว้ทั้งหมดตอนนี้ทันที (นอกเหนือจากบันทึกอัตโนมัติที่มีอยู่แล้ว)">💾 บันทึก</button>
     <button class="btn bg sm" onclick="pfResetForm()" title="คืนค่ากลับสู่ข้อมูลที่ดึงจากระบบ + หัวตารางมาตรฐาน">♻️ คืนค่า</button>
     <button class="btn bg sm" onclick="pfOpenDeptModal()">🏥 จัดลำดับแผนก</button>
@@ -2528,11 +2534,11 @@ function toggleTheme(){
       <table class="pf">
         <colgroup id="pfFrontCols">
           <col style="width:3%"><col style="width:6%">
-          <col style="width:4.5%"><col style="width:4.5%"><col style="width:4.5%"><col style="width:4.5%"><col style="width:4.5%">
+          <col style="width:6%"><col style="width:6%"><col style="width:4.5%"><col style="width:4.5%"><col style="width:4.5%">
           <col style="width:12%">
           <col style="width:4.5%"><col style="width:4.5%"><col style="width:4.5%"><col style="width:4.5%"><col style="width:4.5%"><col style="width:4.5%">
           <col style="width:3.5%"><col style="width:3.5%"><col style="width:3.5%">
-          <col style="width:3.5%"><col style="width:3.5%"><col style="width:12%"><col class="pf-actcol">
+          <col style="width:3.5%"><col style="width:3.5%"><col style="width:9%"><col class="pf-actcol">
         </colgroup>
         <thead contenteditable>
           <tr>
@@ -2560,20 +2566,20 @@ function toggleTheme(){
     <!-- ═══ หน้าหลัง ═══ -->
     <div class="pf-sheet">
       <div class="pf-code"><span contenteditable>FM-CS-02-005-R02</span><br><span contenteditable>1 ก.ค. 2567</span></div>
-      <div class="pf-btitle"><span contenteditable>แบบบันทึกการให้บริการ ประจำวันที่</span> <span contenteditable id="pfTDate2">-</span> (<span contenteditable>1600-0800</span>)</div>
+      <div class="pf-btitle"><span contenteditable>แบบบันทึกการให้บริการ ประจำวันที่</span> <span contenteditable id="pfTDate2">-</span> (<span contenteditable id="pfTShift2">1600-0800</span>)</div>
       <div class="pf-fit" id="pfBackFit">
       <table class="pf">
         <colgroup id="pfBackTopCols">
-          <col style="width:8%">
-          <col style="width:5%"><col style="width:5%">
-          <col style="width:5%"><col style="width:5%">
-          <col style="width:5%"><col style="width:5%">
-          <col style="width:5.5%"><col style="width:5.5%">
-          <col style="width:4%"><col style="width:4%">
-          <col style="width:4%"><col style="width:4%">
-          <col style="width:4%"><col style="width:4%">
-          <col style="width:4%"><col style="width:4%">
-          <col style="width:19%">
+          <col style="width:3.9%">
+          <col style="width:5.0%"><col style="width:4.8%">
+          <col style="width:5.6%"><col style="width:5.4%">
+          <col style="width:4.3%"><col style="width:4.0%">
+          <col style="width:8.7%"><col style="width:8.5%">
+          <col style="width:7.1%"><col style="width:6.7%">
+          <col style="width:3.1%"><col style="width:3.1%">
+          <col style="width:3.2%"><col style="width:3.3%">
+          <col style="width:3.3%"><col style="width:3.4%">
+          <col style="width:16.6%">
         </colgroup>
         <thead contenteditable>
           <tr>
@@ -2593,8 +2599,9 @@ function toggleTheme(){
 
       <div id="pfManualZone">
       <div class="pf-sumwrap" style="display:flex;gap:0;margin-top:8px;align-items:stretch">
+      <div id="pfBlockResizers"></div>
         <!-- ── บล็อก 1: สรุปยอดการใช้ Ventilator (5 คอลัมน์) ── -->
-        <div style="width:44%;position:relative">
+        <div id="pfSumBlock1" style="width:43%;position:relative">
         <table class="pf" style="width:100%;table-layout:fixed">
           <colgroup id="pfSumCols1"><col style="width:11%"><col style="width:17%"><col style="width:15%"><col style="width:15%"><col style="width:13%"><col style="width:15%"><col style="width:14%"></colgroup>
           <tr><td class="pf-sec" colspan="7" contenteditable>สรุปยอดการใช้งานเครื่องมือประจำวัน</td></tr>
@@ -2620,7 +2627,7 @@ function toggleTheme(){
         </div>
 
         <!-- ── บล็อก 2: การใช้ HME ── -->
-        <div style="width:33%;position:relative">
+        <div id="pfSumBlock2" style="width:32%;position:relative">
         <table class="pf" style="width:100%;table-layout:fixed;border-left:none">
           <colgroup id="pfSumCols2"><col style="width:52%"><col style="width:24%"><col style="width:12%"><col style="width:12%"></colgroup>
           <tr><td class="pf-sec" colspan="4" contenteditable>สรุปเครื่องมือแพทย์</td></tr>
@@ -2642,7 +2649,7 @@ function toggleTheme(){
         </div>
 
         <!-- ── บล็อก 3: การใช้ HME (ตึก/จำนวน) + ปัญหาข้อขัดข้อง ── -->
-        <div style="width:26%;position:relative">
+        <div id="pfSumBlock3" style="width:25%;position:relative">
         <table class="pf" style="width:100%;table-layout:fixed;border-left:none">
           <colgroup id="pfSumCols3"><col style="width:38%"><col style="width:26%"><col style="width:36%"></colgroup>
           <tr><td class="pf-sec" colspan="2" contenteditable>การใช้ HME</td><td class="pf-sec" contenteditable>ปัญหาข้อขัดข้อง/ข้อเสนอแนะ</td></tr>
@@ -7877,6 +7884,40 @@ function pfDeptReset(){_pfDeptEdit=PF_DEPT_DEFAULT.slice();pfRenderDeptList();}
 // ── ไฮไลต์แถว: คลิกเลขลำดับ → เปิด palette เลือกสี ──
 var _pfHlRow=null;
 var PF_HL_CLASSES=['pf-hl-r','pf-hl-y','pf-hl-g','pf-hl-e','pf-hl-b'];
+// ═══════════ จำสีไฮไลต์ตามชื่อผู้ป่วย (localStorage) — ข้ามปิด-เปิด/refresh ═══════════
+// จับคู่ด้วยชื่อผู้ป่วย (ตามที่ตกลง): คนเดิมยังอยู่ → สีติดตามไป
+// ข้อจำกัดที่ทราบและยอมรับ: ถ้ามีผู้ป่วย 2 คนชื่อซ้ำกันเป๊ะ จะได้สีเดียวกันทั้งคู่
+var PF_HL_KEY='pf_highlight_by_name';
+function _pfHlPatientName(tr){
+  var c=tr.children[7];   // คอลัมน์ชื่อผู้ป่วย (index 7: ที่,แผนก,5ชนิดเครื่อง,ชื่อผู้ป่วย)
+  return c?c.textContent.trim():'';
+}
+function _pfSaveHighlight(){
+  try{
+    var front=document.getElementById('pfFront');if(!front)return;
+    var map={};
+    Array.prototype.forEach.call(front.children,function(tr){
+      var name=_pfHlPatientName(tr);if(!name)return;
+      var cls=null;
+      for(var i=0;i<PF_HL_CLASSES.length;i++){if(tr.classList.contains(PF_HL_CLASSES[i])){cls=PF_HL_CLASSES[i];break;}}
+      if(cls)map[name]=cls;
+    });
+    localStorage.setItem(PF_HL_KEY,JSON.stringify(map));
+  }catch(e){}
+}
+function _pfRestoreHighlight(){
+  try{
+    var s=localStorage.getItem(PF_HL_KEY);if(!s)return;
+    var map=JSON.parse(s);if(!map||typeof map!=='object')return;
+    var front=document.getElementById('pfFront');if(!front)return;
+    Array.prototype.forEach.call(front.children,function(tr){
+      var name=_pfHlPatientName(tr);if(!name)return;
+      var cls=map[name];if(!cls)return;
+      PF_HL_CLASSES.forEach(function(c){tr.classList.remove(c);});
+      tr.classList.add(cls);
+    });
+  }catch(e){}
+}
 function pfInitHighlight(){
   var front=document.getElementById('pfFront');
   if(front && !front._hlBound){
@@ -7903,6 +7944,7 @@ function pfInitHighlight(){
       var hl=sw.getAttribute('data-hl');
       if(hl)_pfHlRow.classList.add(hl);
       pal.style.display='none';_pfHlRow=null;
+      _pfSaveHighlight();   // จำสีไว้ตามชื่อผู้ป่วย ข้ามปิด-เปิด/refresh ได้
     });
     document.addEventListener('click',function(e){
       if(pal.style.display==='flex' && !e.target.closest('#pfHlPalette') && !e.target.closest('td.rn'))
@@ -8022,6 +8064,7 @@ function pfRenderFront(data){
   b.innerHTML=h;
   _pfFitFront(); // บีบให้ลง 1 หน้า
   pfInitHighlight();
+  _pfRestoreHighlight();   // คืนสีไฮไลต์ตามชื่อผู้ป่วยที่จำไว้
   var cnt=document.getElementById('pf-count');
   if(cnt)cnt.textContent='ยืมอยู่ '+data.length+' รายการ';
 }
@@ -8062,7 +8105,7 @@ function _pfFitFront(){
   var rowH=bodyAvail/rows;
   if(rowH<7)rowH=7;                                   // ต่ำสุดกันอ่านไม่ออก
   // font-size ตามความสูงแถว
-  var fs=rowH>=13?9:(rowH>=10?8:(rowH>=8?7:6.5));
+  var fs=rowH>=13?10:(rowH>=10?9:(rowH>=8?7.5:6.5));
   for(var i=0;i<rows;i++){
     b.children[i].style.height=rowH.toFixed(2)+'px';
     var cells=b.children[i].children;
@@ -8154,6 +8197,80 @@ function _pfBindColResizeFor(cfg){
   });
 }
 function _pfBindAllColResize(){PF_COLCFG.forEach(function(cfg){if(document.getElementById(cfg.wrapId))_pfBindColResizeFor(cfg);});}
+
+// ═══════════ ลากปรับความกว้างระหว่าง 3 บล็อกใหญ่ (stand by / HME / ตึก) ═══════════
+// คนละกลไกกับลากคอลัมน์ในตารางเดียวกัน — ตรงนี้ปรับสัดส่วนพื้นที่ระหว่าง 3 <div> ที่ครอบแต่ละตาราง
+var PF_BLOCK_IDS=['pfSumBlock1','pfSumBlock2','pfSumBlock3'];
+var PF_BLOCK_KEY='pf_block_widths';
+function _pfBlockEls(){return PF_BLOCK_IDS.map(function(id){return document.getElementById(id);});}
+function _pfBlockWidths(){
+  return _pfBlockEls().map(function(el){return el?parseFloat(el.style.width)||0:0;});
+}
+function _pfApplyBlockWidths(arr){
+  var els=_pfBlockEls();
+  for(var i=0;i<els.length&&i<arr.length;i++)if(els[i])els[i].style.width=arr[i]+'%';
+  _pfDrawBlockResizers();
+}
+function _pfSaveBlockWidths(){
+  try{localStorage.setItem(PF_BLOCK_KEY,JSON.stringify(_pfBlockWidths()));}catch(e){}
+}
+function _pfRestoreBlockWidths(){
+  try{
+    var s=localStorage.getItem(PF_BLOCK_KEY);if(!s)return;
+    var arr=JSON.parse(s);if(!Array.isArray(arr))return;
+    _pfApplyBlockWidths(arr);
+  }catch(e){}
+}
+function _pfDrawBlockResizers(){
+  var wrap=document.getElementById('pfBlockResizers');
+  var sumwrap=document.querySelector('.pf-sumwrap');
+  if(!wrap||!sumwrap)return;
+  var els=_pfBlockEls();if(els.some(function(e){return!e;})){wrap.innerHTML='';return;}
+  var wrapRect=sumwrap.getBoundingClientRect();
+  var h=sumwrap.scrollHeight;
+  var html='';
+  for(var i=0;i<els.length-1;i++){
+    var r=els[i].getBoundingClientRect();
+    var x=r.right-wrapRect.left;
+    html+='<div class="pf-blkrz" data-idx="'+i+'" style="left:'+x+'px;height:'+h+'px"></div>';
+  }
+  wrap.innerHTML=html;
+}
+function _pfBindBlockResize(){
+  var wrap=document.getElementById('pfBlockResizers');if(!wrap||wrap._bound)return;wrap._bound=true;
+  wrap.addEventListener('mousedown',function(e){
+    var handle=e.target.closest('.pf-blkrz');if(!handle)return;
+    e.preventDefault();
+    var idx=parseInt(handle.getAttribute('data-idx'),10);
+    var els=_pfBlockEls();
+    var sumwrap=document.querySelector('.pf-sumwrap');
+    if(typeof _pfPushUndo==='function')_pfPushUndo();
+    handle.classList.add('dragging');
+    var totalWidth=sumwrap.getBoundingClientRect().width;
+    var w1=parseFloat(els[idx].style.width)||0;
+    var w2=parseFloat(els[idx+1].style.width)||0;
+    var startX=e.clientX;
+    var minW=10;   // % ต่ำสุดกันบล็อกแคบจนใช้งานไม่ได้
+    function onMove(ev){
+      var dxPct=(ev.clientX-startX)/totalWidth*100;
+      var nw1=w1+dxPct, nw2=w2-dxPct;
+      if(nw1<minW){nw2-=(minW-nw1);nw1=minW;}
+      if(nw2<minW){nw1-=(minW-nw2);nw2=minW;}
+      if(nw1<minW||nw2<minW)return;
+      els[idx].style.width=nw1+'%';
+      els[idx+1].style.width=nw2+'%';
+      _pfDrawBlockResizers();
+    }
+    function onUp(){
+      handle.classList.remove('dragging');
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      _pfSaveBlockWidths();
+    }
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  });
+}
 function _pfFitBack(){
   // บีบหน้าหลังให้พอดี 1 หน้า A4 แนวนอน — คุมทั้งตารางยืม-คืน + ตารางสรุป + ลายเซ็น ไม่ให้ลายเซ็นหลุด
   var fit=document.getElementById('pfBackFit');
@@ -8209,6 +8326,7 @@ function _pfFitBack(){
   var actual=fit.scrollHeight;
   if(actual>avail && avail>0)fit.style.transform='scaleY('+(avail/actual).toFixed(4)+')';
   _pfDrawAllColResizers();
+  _pfDrawBlockResizers();
 }
 function pfReload(){
   if(loans===null){loadAll().then(function(){pfReload();});return;}
@@ -8308,7 +8426,7 @@ function _pfSyncTitle(){
   var sh=document.getElementById('pfShift')?document.getElementById('pfShift').value:'';
   var td=_pfThaiDate(iso);
   ['pfTDate','pfTDate2'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=td;});
-  var ts=document.getElementById('pfTShift');if(ts)ts.textContent=sh;
+  ['pfTShift','pfTShift2'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=sh;});
 }
 function initPrintForm(){
   if(!_pfInited){
@@ -8327,6 +8445,8 @@ function initPrintForm(){
     _pfBindManualSave();    // ผูก event บันทึกค่าที่แก้ทุกครั้งที่พิมพ์เสร็จ
     _pfBindAllColResize();     // ผูก event ลากปรับความกว้างคอลัมน์ (ทุกตาราง)
     _pfRestoreAllColWidths();  // เติมความกว้างคอลัมน์ที่ปรับล่าสุดกลับมา (ทุกตาราง)
+    _pfBindBlockResize();      // ผูก event ลากปรับความกว้างระหว่าง 3 บล็อกใหญ่
+    _pfRestoreBlockWidths();   // เติมความกว้าง 3 บล็อกใหญ่ที่ปรับล่าสุดกลับมา
   }
   _pfSyncTitle();
   pfReload();
@@ -8336,6 +8456,7 @@ function initPrintForm(){
 // ═══════════ Undo / Reset สำหรับหน้าพิมพ์ฟอร์ม ═══════════
 var _PF_PRISTINE=null;    // HTML ต้นฉบับของ pf-wrap (ก่อนแก้ใด ๆ) — หัวตาราง/label มาตรฐาน
 var _PF_UNDO=[];          // stack เก็บ snapshot ก่อนแต่ละการแก้
+var _PF_REDO=[];          // stack เก็บ snapshot สำหรับไปข้างหน้า (redo)
 var _PF_UNDO_MAX=50;      // จำกัดจำนวนขั้น กันกินหน่วยความจำ
 var _pfRestoring=false;   // flag กันบันทึก snapshot ระหว่าง restore
 
@@ -8349,11 +8470,14 @@ function _pfPushUndo(){
   var w=_pfWrap();if(!w)return;
   _PF_UNDO.push(w.innerHTML);
   if(_PF_UNDO.length>_PF_UNDO_MAX)_PF_UNDO.shift();
+  _PF_REDO=[];   // แก้ไขใหม่ → ล้างประวัติ redo เดิม (เหมือนโปรแกรมแก้เอกสารทั่วไป)
   _pfUpdateUndoBtn();
 }
 function _pfUpdateUndoBtn(){
   var btn=document.getElementById('pfUndoBtn');
   if(btn)btn.style.opacity=_PF_UNDO.length?'1':'0.45';
+  var rbtn=document.getElementById('pfRedoBtn');
+  if(rbtn)rbtn.style.opacity=_PF_REDO.length?'1':'0.45';
 }
 // ผูก event: บันทึก snapshot ก่อนเริ่มแก้แต่ละช่อง (focus) — 1 ช่อง = 1 ขั้น
 function _pfBindHistory(){
@@ -8367,8 +8491,22 @@ function _pfBindHistory(){
 function pfUndo(){
   if(!_PF_UNDO.length){toast&&toast('ไม่มีอะไรให้ย้อนกลับ','info');return;}
   var w=_pfWrap();if(!w)return;
+  _PF_REDO.push(w.innerHTML);   // เก็บสถานะปัจจุบันไว้ก่อนย้อน (เผื่อกดไปข้างหน้ากลับมา)
+  if(_PF_REDO.length>_PF_UNDO_MAX)_PF_REDO.shift();
   _pfRestoring=true;
   w.innerHTML=_PF_UNDO.pop();
+  _pfRestoring=false;
+  _pfRebindAfterRestore();
+  _pfUpdateUndoBtn();
+}
+// ไปข้างหน้า 1 ขั้น (redo)
+function pfRedo(){
+  if(!_PF_REDO.length){toast&&toast('ไม่มีอะไรให้ไปข้างหน้า','info');return;}
+  var w=_pfWrap();if(!w)return;
+  _PF_UNDO.push(w.innerHTML);   // เก็บสถานะปัจจุบันไว้ก่อนไปข้างหน้า (เผื่อกดย้อนกลับอีก)
+  if(_PF_UNDO.length>_PF_UNDO_MAX)_PF_UNDO.shift();
+  _pfRestoring=true;
+  w.innerHTML=_PF_REDO.pop();
   _pfRestoring=false;
   _pfRebindAfterRestore();
   _pfUpdateUndoBtn();
@@ -8381,6 +8519,8 @@ function pfResetForm(){
   _pfRestoring=true;
   w.innerHTML=_PF_PRISTINE;    // คืนโครงฟอร์มมาตรฐาน
   _PF_UNDO=[];                 // ล้างประวัติ
+  _PF_REDO=[];                 // ล้างประวัติไปข้างหน้าด้วย
+  try{localStorage.removeItem(PF_HL_KEY);}catch(e){}   // ล้างไฮไลต์ที่จำไว้ด้วย (ตรงกับข้อความสัญญาด้านบนว่า "ไฮไลต์จะหายไป")
   _pfRestoring=false;
   _pfRebindAfterRestore();
   _pfUpdateUndoBtn();
@@ -8388,6 +8528,7 @@ function pfResetForm(){
   if(typeof _pfRestoreRowCounts==='function')_pfRestoreRowCounts();        // คงจำนวนแถวที่เพิ่ม/ลบเองไว้ก่อน (ไม่ล้างตอน reset เหมือนความกว้างคอลัมน์) — ต้องทำก่อน save ข้างล่าง ไม่งั้นจะบันทึกทับด้วยค่ามาตรฐาน
   if(typeof _pfSaveManualData==='function')_pfSaveManualData();
   if(typeof _pfRestoreAllColWidths==='function')_pfRestoreAllColWidths();   // คงความกว้างคอลัมน์ที่ผู้ใช้ปรับไว้ (ไม่ล้างตอน reset)
+  if(typeof _pfRestoreBlockWidths==='function')_pfRestoreBlockWidths();    // คงความกว้าง 3 บล็อกใหญ่ที่ผู้ใช้ปรับไว้ (ไม่ล้างตอน reset)
 }
 // หลัง restore innerHTML → ผูก event/sync ที่จำเป็นใหม่ (element เปลี่ยน reference)
 function _pfRebindAfterRestore(){
@@ -8397,6 +8538,7 @@ function _pfRebindAfterRestore(){
   if(typeof _pfFitBack==='function')_pfFitBack();
   if(typeof pfInitHighlight==='function')pfInitHighlight();
   if(typeof _pfBindAllColResize==='function')_pfBindAllColResize();   // element ใหม่ ต้องผูก event ลากใหม่
+  if(typeof _pfBindBlockResize==='function')_pfBindBlockResize();     // element ใหม่ ต้องผูก event ลากบล็อกใหญ่ใหม่
 }
 // ═══════════ จำค่าที่แก้ล่าสุด (localStorage) — เฉพาะช่องกรอกมือในตารางสรุป+ลายเซ็น ═══════════
 // ไม่รวมข้อมูลที่ดึงอัตโนมัติ (หน้าหน้า + แถว Volume/คงเหลือ ที่นับจริง id ขึ้นต้น pfSumVol/pfRem)
@@ -8496,9 +8638,11 @@ function pfPrintPage(n){
   sheets.forEach(function(s,i){
     s.style.display=(i===n-1)?'':'none';
     s.style.pageBreakAfter='auto';   // ปิดการบังคับตัดหน้า กันหน้าเปล่าแทรกตอนพิมพ์แค่หน้าเดียว
+    // หน้า 2 หมุนกลับ 180° ชดเชยตอนพลิกกระดาษขอบยาว (ยืนยันจากผู้ใช้: หัวกลับด้านตอนพลิก)
+    s.style.transform=(n===2 && i===1)?'rotate(180deg)':'';
   });
   function restore(){
-    sheets.forEach(function(s){s.style.display='';s.style.pageBreakAfter='';});
+    sheets.forEach(function(s){s.style.display='';s.style.pageBreakAfter='';s.style.transform='';});
     window.removeEventListener('afterprint',restore);
   }
   window.addEventListener('afterprint',restore);
