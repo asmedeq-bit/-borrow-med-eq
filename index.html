@@ -2487,7 +2487,6 @@ function toggleTheme(){
   #pg-print .pf-sheet:last-child table.pf td{height:20px}
   #pg-print #pfProbNote{border:0.7px solid #000;vertical-align:top}
   #pg-print .pf-sumwrap{display:flex;gap:0;margin-top:8px;align-items:stretch;position:relative}
-  #pg-print .pf-addrow td{border:none;background:#eef4f9;height:26px;text-align:left;padding-left:4px}
   #pg-print .pf-ib{display:inline-flex;align-items:center;justify-content:center;width:22px;height:20px;border:none;border-radius:5px;font-size:15px;font-weight:700;cursor:pointer;line-height:1;margin-right:4px;color:#fff}
   #pg-print .pf-ib-add{background:#10b981}
   #pg-print .pf-ib-del{background:#ef4444}
@@ -2544,7 +2543,6 @@ function toggleTheme(){
     .pf-sheet:last-child{page-break-after:auto}
     table.pf td[contenteditable]:focus,table.pf th[contenteditable]:focus{outline:none;background:transparent}
     .pf-sec{background:#e0e0e0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    #pg-print .pf-addrow{display:none!important}
     #pg-print .pf-actcol{display:none!important}
     #pg-print .pf-rowbtns{display:none!important}
     @page{size:A4 landscape;margin:0}
@@ -2677,7 +2675,6 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           </tbody>
-          <tr class="pf-addrow"><td colspan="7"><button class="pf-ib pf-ib-add" onclick="pfSumAddAll()">＋</button><button class="pf-ib pf-ib-del" onclick="pfSumDelAll()">－</button></td></tr>
         </table>
         <div id="pfColResizersSum1"></div>
         </div>
@@ -2704,6 +2701,10 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           </tbody>
         </table>
         <div id="pfColResizersSum2"></div>
@@ -2715,7 +2716,7 @@ function toggleTheme(){
           <colgroup id="pfSumCols3"><col style="width:30%"><col style="width:20%"><col style="width:50%"></colgroup>
           <tr><td class="pf-sec" colspan="2" contenteditable>การใช้ HME</td><td class="pf-sec" contenteditable>ปัญหาข้อขัดข้อง/ข้อเสนอแนะ</td></tr>
           <tbody id="pfProbBody">
-          <tr><td contenteditable>ตึก</td><td contenteditable>จำนวน</td><td rowspan="15" id="pfProbNote" contenteditable style="vertical-align:top"></td></tr>
+          <tr><td contenteditable>ตึก</td><td contenteditable>จำนวน</td><td rowspan="20" id="pfProbNote" contenteditable style="vertical-align:top"></td></tr>
           <tr><td class="tl" contenteditable>100/9</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>100/6</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>80/10</td><td contenteditable></td></tr>
@@ -2730,6 +2731,11 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable>CICU</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>SICU</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>MICU</td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
           </tbody>
         </table>
         <div id="pfColResizersSum3"></div>
@@ -8706,7 +8712,6 @@ function pfResetForm(){
   _pfRebindAfterRestore();
   _pfUpdateUndoBtn();
   pfReload();                  // ดึงข้อมูลจากระบบใหม่ (เติมหน้าหน้า + สรุปยอด)
-  if(typeof _pfRestoreRowCounts==='function')_pfRestoreRowCounts();        // คงจำนวนแถวที่เพิ่ม/ลบเองไว้ก่อน (ไม่ล้างตอน reset เหมือนความกว้างคอลัมน์) — ต้องทำก่อน save ข้างล่าง ไม่งั้นจะบันทึกทับด้วยค่ามาตรฐาน
   if(typeof _pfSaveManualData==='function')_pfSaveManualData();
   if(typeof _pfRestoreAllColWidths==='function')_pfRestoreAllColWidths();   // คงความกว้างคอลัมน์ที่ผู้ใช้ปรับไว้ (ไม่ล้างตอน reset)
   if(typeof _pfRestoreBlockWidths==='function')_pfRestoreBlockWidths();    // คงความกว้าง 3 บล็อกใหญ่ที่ผู้ใช้ปรับไว้ (ไม่ล้างตอน reset)
@@ -8752,44 +8757,14 @@ function _pfSaveManualData(){
     Object.keys(tbls).forEach(function(k){
       data[k]=_pfManualCellsIn(tbls[k]).map(function(c){return c.textContent;});
     });
-    // เก็บจำนวนแถวของ 3 ตารางที่เพิ่ม/ลบแถวได้ (สำคัญ: ต้องคืนโครงสร้างก่อนเติมค่า
-    // มิฉะนั้นแถวที่ผู้ใช้กด + เพิ่มเอง แม้ยังว่างเปล่า จะหายไปตอนเปิดหน้าใหม่)
-    data._rowCounts={
-      sb:document.getElementById('pfSbBody')?document.getElementById('pfSbBody').children.length:null,
-      hme:document.getElementById('pfHmeBody')?document.getElementById('pfHmeBody').children.length:null,
-      prob:document.getElementById('pfProbBody')?document.getElementById('pfProbBody').children.length:null
-    };
     localStorage.setItem(PF_MANUAL_KEY,JSON.stringify(data));
   }catch(e){}
-}
-// คืนจำนวนแถว sb/hme/prob ให้ตรงกับที่บันทึกไว้ล่าสุด (ไม่แตะค่าเซลล์)
-// แยกออกมาต่างหาก เพื่อให้ pfResetForm() เรียกได้โดยไม่ดึงค่าข้อมูลเก่ากลับมาด้วย
-// (โครงสร้างแถวคงอยู่ข้าม Reset เหมือนความกว้างคอลัมน์ แต่ค่าข้อมูลยังต้องล้างตาม Reset ปกติ)
-function _pfRestoreRowCounts(){
-  try{
-    var s=localStorage.getItem(PF_MANUAL_KEY);if(!s)return;
-    var data=JSON.parse(s);if(!data||typeof data!=='object'||Array.isArray(data))return;
-    var rc=data._rowCounts;if(!rc)return;
-    _pfRestoring=true;   // กัน pfSumAdd/pfSumDel push undo/save ซ้ำระหว่างคืนโครงสร้าง
-    ['sb','hme','prob'].forEach(function(k){
-      var target=rc[k];if(typeof target!=='number')return;
-      var bodyId={sb:'pfSbBody',hme:'pfHmeBody',prob:'pfProbBody'}[k];
-      var body=document.getElementById(bodyId);if(!body)return;
-      var guard=0;
-      while(body.children.length<target&&guard<300){pfSumAdd(k);guard++;}
-      while(body.children.length>target&&guard<300){pfSumDel(k);guard++;}
-    });
-    _pfRestoring=false;
-  }catch(e){_pfRestoring=false;}
 }
 function _pfRestoreManualData(){
   try{
     var s=localStorage.getItem(PF_MANUAL_KEY);if(!s)return;
     var data=JSON.parse(s);if(!data||typeof data!=='object'||Array.isArray(data))return;
-    // ขั้น 1: ปรับจำนวนแถว sb/hme/prob ให้ตรงกับที่บันทึกไว้ก่อน (เพิ่ม/ลบแถวให้ครบ)
-    // ต้องทำก่อนเติมค่า ไม่งั้นแถวที่เพิ่มเองยังไม่มีให้เติมค่าลงไป
-    _pfRestoreRowCounts();
-    // ขั้น 2: เติมค่าเซลล์ (ตอนนี้โครงสร้างครบตามที่บันทึกไว้แล้ว)
+    // เติมค่าเซลล์ตามที่บันทึกไว้ (จำนวนแถวใช้ค่ามาตรฐานในไฟล์เสมอ ไม่ปรับตาม localStorage แล้ว)
     var tbls=_pfManualTables();
     Object.keys(tbls).forEach(function(k){
       var arr=data[k];if(!Array.isArray(arr))return;
