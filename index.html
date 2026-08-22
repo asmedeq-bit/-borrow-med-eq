@@ -1347,6 +1347,7 @@ function toggleTheme(){
         <button class="atab" id="ltab-retrem" onclick="showListTab('retrem',this)" style="font-size:11px">↩ เหตุผลการรับคืน</button>
         <button class="atab" id="ltab-hfncset" onclick="showListTab('hfncset',this)" style="font-size:11px">💨 HFNC Set</button>
         <button class="atab" id="ltab-circuitalert" onclick="showListTab('circuitalert',this)" style="font-size:11px">🔔 แจ้งเตือน Circuit</button>
+        <button class="atab" id="ltab-newloanalert" onclick="showListTab('newloanalert',this)" style="font-size:11px">🔔 แจ้งเตือนใบยืมใหม่</button>
       </div>
 
       <!-- DEPT LIST -->
@@ -1687,6 +1688,47 @@ function toggleTheme(){
           <div style="display:flex;gap:8px;justify-content:flex-end">
             <button class="btn bg sm" onclick="testCircuitAlertSound()">🔊 ทดสอบเสียง</button>
             <button class="btn badm sm" onclick="applyCircuitAlertChanges()">✅ บันทึกการเปลี่ยนแปลง</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW LOAN ALERT -->
+      <div id="lsec-newloanalert" style="display:none">
+        <div class="card" style="max-width:560px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+            <div class="ctitle" style="margin:0;color:#f59e0b">🔔 แจ้งเตือนเมื่อมีใบยืมใหม่</div>
+          </div>
+          <div style="font-size:12px;color:var(--mu);margin-bottom:14px">ใช้งานได้เฉพาะตอนเปิดหน้าจอ/แท็บนี้ค้างไว้เท่านั้น (เสียงเล่นผ่านเบราว์เซอร์ ไม่ใช่ push notification) — เช็คใบยืมใหม่ทุก 30 วินาที</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border:1px solid var(--bd);border-radius:8px">
+              <input type="radio" name="newLoanAlertMode" value="beep" id="newLoanAlertModeBeep"> <span>1. เสียงเตือน (บี๊บ)</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border:1px solid var(--bd);border-radius:8px">
+              <input type="radio" name="newLoanAlertMode" value="beep_speech" id="newLoanAlertModeSpeech"> <span>2. เสียงเตือน + เสียงพูด</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border:1px solid var(--bd);border-radius:8px">
+              <input type="radio" name="newLoanAlertMode" value="off" id="newLoanAlertModeOff"> <span>3. ปิดเสียง</span>
+            </label>
+          </div>
+          <div style="margin-bottom:16px">
+            <label style="font-size:13px;color:var(--mu);display:block;margin-bottom:6px">ข้อความที่พูด (โหมด 2 เท่านั้น — ไม่ควรมีชื่อผู้ป่วย/แผนก เพื่อความเป็นส่วนตัว)</label>
+            <input type="text" id="newLoanAlertSpeech" style="width:100%;padding:6px 8px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)" placeholder="มีใบยืมใหม่เข้ามา กรุณาตรวจสอบ">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-top:8px;border-top:0.5px solid var(--bd)">
+            <label style="font-size:13px;color:var(--mu)">แจ้งเตือนซ้ำถ้ามีใบยืมค้าง "รอบันทึก" เกิน</label>
+            <select id="newLoanAlertStaleMin" style="padding:4px 8px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">
+              <option value="10">10 นาที</option><option value="15">15 นาที</option><option value="20">20 นาที</option>
+              <option value="30">30 นาที</option><option value="60">60 นาที</option>
+            </select>
+          </div>
+          <div style="margin-bottom:8px">
+            <label style="font-size:13px;color:var(--mu);display:block;margin-bottom:6px">ข้อความที่พูดตอนแจ้งเตือนใบค้าง (โหมด 2 เท่านั้น — ไม่มีชื่อ/แผนก แค่บอกจำนวน)</label>
+            <input type="text" id="newLoanAlertStaleSpeech" style="width:100%;padding:6px 8px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)" placeholder="มีใบยืมค้างรอบันทึกอยู่ กรุณาตรวจสอบ">
+          </div>
+          <div style="font-size:11px;color:var(--mu);margin-bottom:16px">เตือนซ้ำทุก 15 นาทีถ้ายังมีใบค้างอยู่ — ใช้โหมดเสียงเดียวกับด้านบน (ตั้งเป็นแค่บี๊บได้ถ้าไม่อยากให้พูดซ้ำถี่ๆ)</div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn bg sm" onclick="testNewLoanAlertSound()">🔊 ทดสอบเสียง</button>
+            <button class="btn badm sm" onclick="applyNewLoanAlertChanges()">✅ บันทึกการเปลี่ยนแปลง</button>
           </div>
         </div>
       </div>
@@ -3011,6 +3053,10 @@ var _DEPTS_DEFAULT=[{c:'0001',n:'ER'},{c:'0002',n:'100/9'},{c:'0003',n:'100/6'},
 var _EQL_DEFAULT=['Ventilator','Ventilator transfer','HFNC','HFNC transfer','BiPAP','BIRD','Infusion pump','Infusion pump for chemo','Syringe pump','PCA','Enteral feeding pump','Oxygen flow meter pipeline','Oxygen flow meter regulator with power take off','Continuous suction pipeline','Intermittent suction pipeline','thoracic suction pipeline','PEEP VALVE','CPAP VALVE','Heated probe humidifier','อื่นๆ'];
 var _EQNUMS_DEFAULT=['O2FLO1','O2FLO2','O2FLO3','MEK1','MEK2','MEK3','MEK5'];
 var _RETREMARKS_DEFAULT=['OFF','Intubation','Extubation','คืน cannula HFNC','คืนเครื่องแล้วไม่ได้ลงคืนในระบบ/ลงคืนในระบบวันนี้/วันคืนจริง NA','ย้ายไปหน่วยวิกฤต SICU','ย้ายไปหน่วยวิกฤต MICU','ย้ายไปหน่วยวิกฤต CICU','ย้ายไปหน่วยวิกฤต PICU','ครบเปลี่ยน','DEAD','เครื่องมืออุปกรณ์ชำรุดขัดข้อง','ไม่ได้ใช้งาน','NA','อื่นๆ'];
+// รายชื่อเหตุผล (label ตรงตัว) ที่ต้องกรอก "รายละเอียดเพิ่มเติม" ตอนเลือกในหน้าบันทึกการคืน
+// ค่าเริ่มต้นนี้ตรงกับสิ่งที่ระบบทำงานจริงอยู่ก่อนแก้ไข (เดิมเช็คคำว่า "เครื่องมือชำรุด" ซึ่งไม่ตรงกับ label จริง
+// "เครื่องมืออุปกรณ์ชำรุดขัดข้อง" เลยไม่เคยขึ้นช่องกรอก — แก้ให้ตรง label จริงที่ใช้งานอยู่)
+var _RETREMARKS_NEEDDETAIL_DEFAULT=['เครื่องมืออุปกรณ์ชำรุดขัดข้อง','อื่นๆ'];
 var _ACCS_DEFAULT=[{id:'a1',n:'Oxygen flow meter pipeline with power take off',no:true},{id:'a2',n:'Oxygen flow meter pipeline 70 LPM',no:true},{id:'a3',n:'Self inflating bag',no:false},{id:'a4',n:'full face mask',det:true},{id:'a5',n:'Nasal cannula HFNC',no:true},{id:'a7',n:'Oxygen flow meter regulator with power take off',no:true},{id:'a6',n:'อื่นๆ',det:true}];
 var _STAFF_DEFAULT=['ร.อ.วรชาติ','ร.อ. ประสิทธิ์','น.ต.วิทยา','พ.จ.อ.หญิง วนิดา','น.ต.หญิง นวิยา','น.ท.หญิง สุชาดา','น.ส.นิภาวรรณ','น.ส. ประนอม','อื่นๆ'];
 
@@ -3028,7 +3074,7 @@ function _lsSet(key,val){try{localStorage.setItem('meq_'+key,JSON.stringify(val)
 // เหมือนเดิมโดยไม่กระทบการทำงาน (loadConfig/saveConfig จะ fail แบบเงียบๆ)
 // ════════════════════════════════════════════════════════════
 var _CFG_TABLE='app_settings';
-var _CFG_KEYS=['depts','eql','accs','staff','eqnums','retremarks','inventory','hfncset','dept_disabled','eql_disabled','retremarks_disabled','circuit_alert'];
+var _CFG_KEYS=['depts','eql','accs','staff','eqnums','retremarks','inventory','hfncset','dept_disabled','eql_disabled','retremarks_disabled','retremarks_needdetail','circuit_alert','new_loan_alert'];
 
 async function loadConfig(){
   try{
@@ -3048,7 +3094,9 @@ async function loadConfig(){
         case 'dept_disabled': DEPT_DISABLED=r.value; break;
         case 'eql_disabled':  EQL_DISABLED=r.value; break;
         case 'retremarks_disabled': RETREMARKS_DISABLED=r.value; break;
+        case 'retremarks_needdetail': RETREMARKS_NEEDDETAIL=r.value; break;
         case 'circuit_alert': CIRCUIT_ALERT=r.value; if(typeof scheduleCircuitAlert==='function')scheduleCircuitAlert(); break;
+        case 'new_loan_alert': NEW_LOAN_ALERT=r.value; if(typeof scheduleNewLoanAlert==='function'){scheduleNewLoanAlert();scheduleStaleLoanAlert();} break;
         // 'hfncset': ไม่ต้องตั้งตัวแปรเพิ่ม — _hfncSetGet() อ่านจาก localStorage
         // (ที่ sync แล้วข้างบน) สดทุกครั้งที่ใช้งานอยู่แล้ว
       }
@@ -3082,7 +3130,10 @@ var RETREMARKS=_lsGet('retremarks',_RETREMARKS_DEFAULT);
 var DEPT_DISABLED=_lsGet('dept_disabled',[]);
 var EQL_DISABLED=_lsGet('eql_disabled',[]);
 var RETREMARKS_DISABLED=_lsGet('retremarks_disabled',[]);
+var RETREMARKS_NEEDDETAIL=_lsGet('retremarks_needdetail',_RETREMARKS_NEEDDETAIL_DEFAULT);
 var CIRCUIT_ALERT=_lsGet('circuit_alert',{mode:'beep',intervalHrs:6});
+var _NEW_LOAN_ALERT_DEFAULT={mode:'beep_speech',speechText:'มีใบยืมใหม่เข้ามา กรุณาตรวจสอบ',staleMin:15,staleSpeechText:'มีใบยืมค้างรอบันทึกอยู่ กรุณาตรวจสอบ'};
+var NEW_LOAN_ALERT=_lsGet('new_loan_alert',_NEW_LOAN_ALERT_DEFAULT);
 function activeDEPTS(){return DEPTS.filter(function(d){return DEPT_DISABLED.indexOf(d.n)===-1;});}
 function activeEQL(){return EQL.filter(function(e){return EQL_DISABLED.indexOf(e)===-1;});}
 function activeRETREMARKS(){return RETREMARKS.filter(function(r){return RETREMARKS_DISABLED.indexOf(r)===-1;});}
@@ -3105,7 +3156,7 @@ document.addEventListener('DOMContentLoaded',async function(){
   setToday();buildEqCards();buildAccTable();rebuildEqNoDatalist();rebuildRetRemarkSelect();
   buildSSL('deptList',activeDEPTS(),function(c,n){pickDept('deptList',c,n);});
   buildSSL('trDeptList',activeDEPTS(),function(c,n){pickDept('trDeptList',c,n);});
-  buildStaff();initFilters();loadAll().then(function(){scheduleCircuitAlert();});
+  buildStaff();initFilters();loadAll().then(function(){scheduleCircuitAlert();initNewLoanAlertBaseline();scheduleNewLoanAlert();scheduleStaleLoanAlert();});
   // fill addLoan equipment select
   var sel=document.getElementById('addLoanEq');
   activeEQL().forEach(function(e){sel.innerHTML+='<option value="'+e+'">'+e+'</option>';});
@@ -3315,6 +3366,9 @@ async function loadAll(){
   try{
     var[ld,bd]=await Promise.all([API.getAllLoans(),API.getAllBorrows()]);
     loans=ld;borrows=bd;
+    // ทุกครั้งที่รีเฟรชข้อมูล (ไม่ว่าจะจากการเปิดหน้า, กดปุ่ม, หรือบันทึกใบยืม/ใบบันทึกยืมเอง)
+    // ให้อัปเดต "ใบล่าสุดที่เคยเห็น" ของระบบแจ้งเตือนด้วยเสมอ กันแจ้งเตือนใบที่เครื่องนี้เพิ่งทำเอง
+    if(typeof initNewLoanAlertBaseline==='function')initNewLoanAlertBaseline();
     // auto-sync loan statuses that mismatch borrow_records
     (function(){var exp=expanded();var lsm={};exp.forEach(function(item){var lid=S(item.loan.LoanID);if(!lsm[lid])lsm[lid]=[];lsm[lid].push(item.status);});var toFix=[];for(var lid in lsm){var st=lsm[lid];var hasPend=st.indexOf('PENDING')>=0,hasAct=st.indexOf('ACTIVE')>=0,hasAccP=st.indexOf('ACC_PENDING')>=0;var allRet=st.every(function(s){return s==='RETURNED'||s==='ACC_PENDING';});var allCanc=st.every(function(s){return s==='CANCELLED';});var ns=allCanc?'CANCELLED':hasPend?'PENDING':hasAct?'ACTIVE':hasAccP?'ACC_PENDING':allRet?'RETURNED':'PENDING';var cur=loans.find(function(l){return l.LoanID===lid;});if(cur&&S(cur.Status)!==ns&&S(cur.Status)!=='CANCELLED'){toFix.push({lid:lid,ns:ns,cur:cur});}}if(toFix.length){Promise.all(toFix.map(function(x){return API.updateLoan(x.lid,{status:x.ns}).then(function(){x.cur.Status=x.ns;}).catch(function(){});})).then(function(){renderRec();renderAll();renderDaily();updateDash();});}})();
     renderRec();renderAll();renderDaily();updateDash();
@@ -3539,7 +3593,7 @@ async function saveBorrow(){var loanID=S(document.getElementById('bLoanID').valu
 
 function openReturn(recID,loanID,idx){if(!recID){bigToast('ไม่พบข้อมูลการยืม\nกรุณาบันทึกการยืมก่อน','error');return;}var loan=loans.find(function(l){return S(l.LoanID)===S(loanID);});var bw=borrows.find(function(b){return S(b.RecordID)===S(recID);});if(!bw){bigToast('ไม่พบข้อมูลการยืม (RecordID: '+recID+')','error');return;}var eq=loan?(loan.EquipmentList||[])[idx]:null;_retBorrowData.accs=bw.Accessories||[];_retBorrowData.retAccs=bw.ReturnedAccs||[];_retBorrowData.recID=recID;_retBorrowData.loanID=S(loanID);_retBorrowData.eqName=eq?S(eq.name):'?';_retBorrowData.eqNo=S(bw.EquipmentNo||'—');_retBorrowData.machineAlreadyReturned=bw.MachineReturned===true;document.getElementById('retRecID').value=recID;document.getElementById('receiverSel').value='';document.getElementById('receiverOth').style.display='none';document.getElementById('retRemark').value='';document.getElementById('retDet').value='';document.getElementById('retDetGrp').style.display='none';document.getElementById('retDate').value=localDateStr(new Date());var trailSection=bw.TransferHistory&&bw.TransferHistory.length&&loan?'<div style="margin-top:6px">'+buildTransferTrail(loan,bw)+'</div>':'';document.getElementById('retInfo').innerHTML='<strong>'+esc(_retBorrowData.eqName)+'</strong> เลขเครื่อง: <span style="font-family:var(--mo);color:var(--ac)">'+esc(_retBorrowData.eqNo)+'</span><br>แผนก: <strong>'+(loan?ES(loan.DeptName):'-')+'</strong> | ผู้ป่วย: '+(loan?ES(loan.PatientName):'-')+' | ผู้ให้ยืม: '+ES(bw.GiverName||'-')+trailSection;var machineCb=document.getElementById('retMachineCb');var machineStatus=document.getElementById('retMachineStatus');document.getElementById('retMachineLbl').textContent=_retBorrowData.eqName+' (เลขเครื่อง: '+_retBorrowData.eqNo+')';if(_retBorrowData.machineAlreadyReturned){machineCb.checked=true;machineCb.disabled=true;machineCb.style.opacity='0.5';machineStatus.textContent='✓ คืนแล้ว';machineStatus.style.color='var(--ok)';var rrg=document.getElementById('retRemarkGrp');if(rrg)rrg.style.display='none';var rdg=document.getElementById('retDetGrp');if(rdg)rdg.style.display='none';}else{machineCb.checked=false;machineCb.disabled=false;machineCb.style.opacity='1';machineStatus.textContent='⏳ ยังไม่คืน';machineStatus.style.color='var(--er)';var rrg2=document.getElementById('retRemarkGrp');if(rrg2)rrg2.style.display='none';}var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var retAccSection=document.getElementById('retAccSection'),retAccList=document.getElementById('retAccList');if(accs.length>0){retAccSection.style.display='block';var rhtml='';accs.forEach(function(a){var isRet=retAccs.some(function(r){return r.id===a.id;});var nameHtml=esc(a.name||'?')+(a.no?' <span style="font-family:var(--mo);color:var(--ac);font-size:11px">No.'+esc(a.no)+'</span>':'');if(isRet){rhtml+='<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--bd);opacity:.6"><span style="width:20px;height:20px;border-radius:4px;background:var(--ok);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">✓</span><span style="font-size:13px;text-decoration:line-through">'+nameHtml+'</span><span style="font-size:11px;color:var(--ok);margin-left:auto">คืนแล้ว</span></div>';}else{rhtml+='<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--bd)"><input type="checkbox" id="retcb_'+a.id+'" value="'+a.id+'" style="width:18px;height:18px;accent-color:var(--ac);cursor:pointer;flex-shrink:0" onchange="retUpdateStatus()"><label for="retcb_'+a.id+'" style="font-size:13px;cursor:pointer;flex:1">'+nameHtml+'</label><span style="font-size:11px;color:var(--er)">⏳ ยังไม่คืน</span></div>';}});retAccList.innerHTML=rhtml;}else{retAccSection.style.display='none';}retUpdateStatus();openM('mReturn');}
 function retUpdateStatus(){var machineCb=document.getElementById('retMachineCb');var machineStatus=document.getElementById('retMachineStatus');var machineReturned=_retBorrowData.machineAlreadyReturned||(machineCb&&machineCb.checked);if(machineStatus&&!_retBorrowData.machineAlreadyReturned){machineStatus.textContent=machineCb&&machineCb.checked?'✓ คืนแล้ว':'⏳ ยังไม่คืน';machineStatus.style.color=machineCb&&machineCb.checked?'var(--ok)':'var(--er)';}var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var alreadyCount=0;accs.forEach(function(a){if(retAccs.some(function(r){return r.id===a.id;}))alreadyCount++;});var newlyChecked=0;accs.forEach(function(a){var cb=document.getElementById('retcb_'+a.id);if(cb&&cb.checked)newlyChecked++;});var totalAccRet=alreadyCount+newlyChecked,accRem=accs.length-totalAccRet;var summary=document.getElementById('retAccSummary');if(summary&&accs.length>0)summary.textContent='อุปกรณ์คืนแล้ว '+totalAccRet+'/'+accs.length+' รายการ'+(accRem>0?' — ค้างอีก '+accRem+' รายการ':'');var statusBox=document.getElementById('retStatusBox');if(statusBox){if(!machineReturned&&newlyChecked===0)statusBox.innerHTML='<span style="color:var(--mu)">เลือกรายการที่ต้องการคืนในครั้งนี้</span>';else if(!machineReturned&&newlyChecked>0)statusBox.innerHTML='<span style="color:var(--wn)">⚠️ คืนเฉพาะอุปกรณ์ — ตัวเครื่องยังไม่คืน สถานะยังเป็น "ยืม"</span>';else if(accs.length===0||accRem===0)statusBox.innerHTML='<span style="color:var(--ok)">✅ คืนครบทั้งหมด — สถานะจะเปลี่ยนเป็น "คืน"</span>';else statusBox.innerHTML='<span style="color:var(--ok)">✅ คืนตัวเครื่องแล้ว — สถานะเปลี่ยนเป็น "คืน"<br><span style="color:var(--wn);font-size:11px">⚠️ อุปกรณ์ยังค้าง '+accRem+' รายการ</span></span>';}}
-function showRetDet(){var v=document.getElementById('retRemark').value;document.getElementById('retDetGrp').style.display=(v==='ย้ายไปหน่วยวิกฤต'||v==='เครื่องมือชำรุด'||v==='อื่นๆ')?'block':'none';}
+function showRetDet(){var v=document.getElementById('retRemark').value;document.getElementById('retDetGrp').style.display=(RETREMARKS_NEEDDETAIL.indexOf(v)!==-1)?'block':'none';}
 async function saveReturn(){var recID=S(document.getElementById('retRecID').value);var receiver=getStaff('receiver');var remark=document.getElementById('retRemark').value;var detail=document.getElementById('retDet').value.trim();var date=document.getElementById('retDate').value;var machineCb=document.getElementById('retMachineCb');var machineChecked=machineCb&&machineCb.checked;var needRemark=machineChecked&&!_retBorrowData.machineAlreadyReturned;if(!recID||!receiver||(needRemark&&!remark)||!date){bigToast('กรุณากรอกข้อมูลให้ครบถ้วน','error');return;}var machineReturned=_retBorrowData.machineAlreadyReturned||(machineCb&&machineCb.checked);var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var newRetAccs=[];accs.forEach(function(a){var cb=document.getElementById('retcb_'+a.id);if(cb&&cb.checked)newRetAccs.push({id:a.id,name:a.name||'',no:a.no||'',date:date,receiver:receiver});});if(_retBorrowData.machineAlreadyReturned&&newRetAccs.length===0){bigToast('กรุณาเลือกอุปกรณ์ที่ต้องการคืน','error');return;}if(!machineReturned&&newRetAccs.length===0){bigToast('กรุณาเลือกรายการที่ต้องการคืน','error');return;}var totalAccAfter=retAccs.length+newRetAccs.length;var allAccRet=(accs.length===0)||(totalAccAfter>=accs.length);try{await API.returnEquipment(recID,{receiverName:receiver,returnRemark:remark,returnDetail:detail,returnDate:date,newReturnedAccs:newRetAccs,machineReturned,allReturned:machineReturned,machineAlreadyReturned:_retBorrowData.machineAlreadyReturned});var msg,typ;if(_retBorrowData.machineAlreadyReturned){msg=allAccRet?'คืนอุปกรณ์ครบแล้ว!':'บันทึกคืนอุปกรณ์ '+newRetAccs.length+' รายการ';typ='success';}else if(machineReturned){var accMsg=accs.length>0&&!allAccRet?'\nอุปกรณ์ยังค้าง '+(accs.length-totalAccAfter)+' รายการ':'';msg='คืนสำเร็จ! สถานะเปลี่ยนเป็น "คืน"'+accMsg;typ='success';}else{msg='บันทึกคืนอุปกรณ์ '+newRetAccs.length+' รายการ\nตัวเครื่องยังไม่คืน';typ='warning';}bigToast(msg,typ);closeM('mReturn');var _retLID=_retBorrowData.loanID||'';setTimeout(async function(){await loadAll();if(_retLID)await autoRecalcLoan(_retLID);},800);}catch(e){bigToast('บันทึกการคืนล้มเหลว\n'+e.message,'error');}}
 function openReturnAcc(recID,loanID,idx){openReturn(recID,loanID,idx);_retBorrowData.machineAlreadyReturned=true;var mttl=document.querySelector('#mReturn .mttl');if(mttl)mttl.textContent='📦 คืนอุปกรณ์ที่ค้าง';var ri=document.getElementById('retInfo');if(ri)ri.innerHTML+='<div style="margin-top:6px;padding:5px 8px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:4px;font-size:12px;color:var(--ok)">✓ ตัวเครื่องคืนแล้ว — กรุณาเลือกอุปกรณ์ที่ต้องการคืนเพิ่ม</div>';}
 function openTransfer(recID,fromDept,loanID,idx){if(!recID){toast('ไม่พบข้อมูลการยืม','error');return;}document.getElementById('trRecID').value=recID;document.getElementById('transfererSel').value='';document.getElementById('transfererOth').style.display='none';['trDeptCode','trDeptName','trDeptSearch'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('trDeptDisp').style.display='none';document.getElementById('trNote').value='โอนจาก '+fromDept;document.getElementById('trDate').value=localDateStr(new Date());var loan=loans.find(function(l){return S(l.LoanID)===S(loanID);});var bw=borrows?borrows.find(function(b){return S(b.RecordID)===S(recID);}):null;var trailSection=bw&&bw.TransferHistory&&bw.TransferHistory.length&&loan?'<div style="margin-top:7px">'+buildTransferTrail(loan,bw)+'</div>':'';var eq=loan?(loan.EquipmentList||[])[idx]:null;document.getElementById('trInfo').innerHTML=(eq?'🔧 <strong>'+ES(eq.name)+'</strong> | แผนกปัจจุบัน: <span style="color:var(--ac)">'+esc(fromDept)+'</span>':'')+trailSection;openM('mTransfer');}
@@ -7033,7 +7087,7 @@ async function recalcAllStatuses(){
 // ════════════════════════════════════════════════════════════
 
 function showListTab(name,el){
-  ['dept','staff','eq','acc','eqnum','retrem','hfncset','circuitalert'].forEach(function(t){
+  ['dept','staff','eq','acc','eqnum','retrem','hfncset','circuitalert','newloanalert'].forEach(function(t){
     var s=document.getElementById('lsec-'+t);if(s)s.style.display='none';
     var b=document.getElementById('ltab-'+t);if(b)b.classList.remove('on');
   });
@@ -7046,7 +7100,7 @@ function showListTab(name,el){
   else if(name==='eqnum'){_wEqnum=EQNUMS.slice();_selEqnumIdx=-1;renderEqnumList();}
   else if(name==='retrem'){
     _wRetrem=RETREMARKS.map(function(r){
-      return{label:r,needDetail:['ย้ายไปหน่วยวิกฤต','เครื่องมืออุปกรณ์ชำรุดขัดข้อง','อื่นๆ'].includes(r)};
+      return{label:r,needDetail:RETREMARKS_NEEDDETAIL.indexOf(r)!==-1};
     });
     _wRetremDisabled=RETREMARKS_DISABLED.slice();
     _selRetremIdx=-1;renderRetremList();
@@ -7058,6 +7112,17 @@ function showListTab(name,el){
     if(rEl)rEl.checked=true;
     var hrsEl=document.getElementById('circuitAlertHrs');
     if(hrsEl)hrsEl.value=String((CIRCUIT_ALERT&&CIRCUIT_ALERT.intervalHrs)||6);
+  }
+  else if(name==='newloanalert'){
+    var nm=(NEW_LOAN_ALERT&&NEW_LOAN_ALERT.mode)||'beep_speech';
+    var nrEl=document.getElementById('newLoanAlertMode'+(nm==='beep_speech'?'Speech':nm==='off'?'Off':'Beep'));
+    if(nrEl)nrEl.checked=true;
+    var nsEl=document.getElementById('newLoanAlertSpeech');
+    if(nsEl)nsEl.value=(NEW_LOAN_ALERT&&NEW_LOAN_ALERT.speechText)||_NEW_LOAN_ALERT_DEFAULT.speechText;
+    var nmnEl=document.getElementById('newLoanAlertStaleMin');
+    if(nmnEl)nmnEl.value=String((NEW_LOAN_ALERT&&NEW_LOAN_ALERT.staleMin)||15);
+    var nssEl=document.getElementById('newLoanAlertStaleSpeech');
+    if(nssEl)nssEl.value=(NEW_LOAN_ALERT&&NEW_LOAN_ALERT.staleSpeechText)||_NEW_LOAN_ALERT_DEFAULT.staleSpeechText;
   }
 }
 
@@ -7071,7 +7136,7 @@ function initListsTab(){
   _wAcc=ACCS.map(function(a){return{id:a.id,n:a.n,no:!!a.no,det:!!a.det};});
   _wEqnum=EQNUMS.slice();
   _wRetrem=RETREMARKS.map(function(r){
-    return{label:r,needDetail:['ย้ายไปหน่วยวิกฤต','เครื่องมืออุปกรณ์ชำรุดขัดข้อง','อื่นๆ'].includes(r)};
+    return{label:r,needDetail:RETREMARKS_NEEDDETAIL.indexOf(r)!==-1};
   });
   _wRetremDisabled=RETREMARKS_DISABLED.slice();
   showListTab('dept',document.getElementById('ltab-dept'));
@@ -7421,7 +7486,7 @@ function renderRetremList(){
     var isOff=_wRetremDisabled.indexOf(r.label)!==-1;
     return'<div onclick="selectRetremItem('+i+')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bd);cursor:pointer;opacity:'+(isOff?'.5':'1')+';background:'+(sel?'rgba(16,185,129,.1)':'transparent')+'">'
       +'<span style="flex:1;font-size:13px;text-decoration:'+(isOff?'line-through':'none')+'">'+r.label+(isOff?' <span style="font-size:9px;padding:1px 6px;background:rgba(139,148,158,.15);color:var(--mu);border-radius:8px">ปิดใช้งาน</span>':'')+'</span>'
-      +(r.needDetail?'<span style="font-size:10px;background:rgba(245,158,11,.15);color:var(--wn);border-radius:4px;padding:1px 5px">+รายละเอียด</span>':'')
+      +(isOther?'<span style="font-size:10px;background:rgba(245,158,11,.15);color:var(--wn);border-radius:4px;padding:1px 5px">+รายละเอียด</span>':'<button class="abt" style="font-size:10px;border-color:'+(r.needDetail?'var(--wn)':'var(--mu)')+';color:'+(r.needDetail?'var(--wn)':'var(--mu)')+'" onclick="event.stopPropagation();toggleRetremNeedDetail('+i+')" title="สลับ: ต้องกรอกรายละเอียดเพิ่มหรือไม่">'+(r.needDetail?'✓ ':'')+'รายละเอียด</button>')
       +(isOther?'<span style="font-size:10px;color:var(--mu)">ล็อค</span>':'<button class="abt" style="font-size:10px;border-color:'+(isOff?'var(--ok)':'var(--mu)')+';color:'+(isOff?'var(--ok)':'var(--mu)')+'" onclick="event.stopPropagation();toggleRetremDisabled('+i+')">'+(isOff?'▶':'⏸')+'</button> <button class="abt" style="font-size:10px;border-color:var(--er);color:var(--er)" onclick="event.stopPropagation();removeRetremAt('+i+')">✕</button>')
       +'</div>';
   }).join('')||'<div style="text-align:center;padding:20px;color:var(--mu);font-size:12px">ไม่มีรายการ</div>';
@@ -7435,6 +7500,11 @@ function toggleRetremDisabled(i){
   var label=_wRetrem[i]&&_wRetrem[i].label;if(!label||label==='อื่นๆ'){toast('ไม่สามารถปิดใช้งาน "อื่นๆ" ได้','warning');return;}
   var idx=_wRetremDisabled.indexOf(label);
   if(idx===-1)_wRetremDisabled.push(label);else _wRetremDisabled.splice(idx,1);
+  renderRetremList();
+}
+function toggleRetremNeedDetail(i){
+  if(_wRetrem[i]&&_wRetrem[i].label==='อื่นๆ'){toast('"อื่นๆ" ต้องกรอกรายละเอียดเสมอ แก้ไม่ได้','warning');return;}
+  if(_wRetrem[i])_wRetrem[i].needDetail=!_wRetrem[i].needDetail;
   renderRetremList();
 }
 function deleteSelectedRetrem(){if(_selRetremIdx<0){toast('กรุณาเลือกรายการก่อน','warning');return;}removeRetremAt(_selRetremIdx);}
@@ -7455,6 +7525,8 @@ function applyRetremChanges(){
   RETREMARKS=_wRetrem.map(function(r){return r.label;});
   saveConfig('retremarks',RETREMARKS);
   RETREMARKS_DISABLED=_wRetremDisabled.slice();saveConfig('retremarks_disabled',RETREMARKS_DISABLED);
+  RETREMARKS_NEEDDETAIL=_wRetrem.filter(function(r){return r.needDetail;}).map(function(r){return r.label;});
+  saveConfig('retremarks_needdetail',RETREMARKS_NEEDDETAIL);
   rebuildRetRemarkSelect();toast('บันทึกสำเร็จ! '+RETREMARKS.length+' รายการ','success');
 }
 
@@ -7636,6 +7708,104 @@ function testCircuitAlertSound(){
     setTimeout(function(){
       try{
         var u=new SpeechSynthesisUtterance('มีเครื่องครบเปลี่ยน Circuit รายละเอียดกรุณาเปิดดูในหน้าสถิติ');
+        u.lang='th-TH';u.rate=0.95;speechSynthesis.speak(u);
+      }catch(e){}
+    },600);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// แจ้งเตือนใบยืมใหม่ (poll loan_requests เป็นระยะ — ระบบนี้ไม่มี
+// Supabase Realtime/websocket ใช้อยู่ ต้องเช็คเป็นรอบๆ แทน)
+// ════════════════════════════════════════════════════════════
+var _lastSeenLoanID=null;         // LoanID ล่าสุดที่เคยเห็นแล้ว (กันแจ้งซ้ำ/แจ้งย้อนหลัง)
+var _newLoanAlertTimer=null;      // timer เช็คใบใหม่ ทุก 30 วิ
+var _staleLoanAlertTimer=null;    // timer เช็คใบค้าง PENDING ทุก 15 นาที
+
+// ตั้งค่า _lastSeenLoanID ให้เป็นใบล่าสุดที่มีอยู่แล้วตอนนี้ (เรียกครั้งเดียวหลัง loadAll() แรกสุด)
+// กันไม่ให้ระบบเข้าใจผิดว่าใบเก่าทั้งหมดเป็น "ใบใหม่" แล้วแจ้งเตือนรัวตอนเพิ่งเปิดหน้า
+function initNewLoanAlertBaseline(){
+  if(Array.isArray(loans)&&loans.length){
+    var sorted=loans.slice().sort(function(a,b){return new Date(b.CreatedAt||b.LoanDate||0)-new Date(a.CreatedAt||a.LoanDate||0);});
+    _lastSeenLoanID=S(sorted[0].LoanID);
+  }
+}
+async function checkNewLoanAlert(){
+  if(!NEW_LOAN_ALERT||NEW_LOAN_ALERT.mode==='off')return;
+  try{
+    var rows=await SB.get('loan_requests','select=loan_id,created_at&order=created_at.desc&limit=1');
+    if(!Array.isArray(rows)||!rows.length)return;
+    var latestID=S(rows[0].loan_id);
+    if(_lastSeenLoanID===null){_lastSeenLoanID=latestID;return;} // เพิ่งเปิดหน้า ยังไม่มีฐานเทียบ
+    if(latestID===_lastSeenLoanID)return; // ไม่มีใบใหม่
+    _lastSeenLoanID=latestID;
+    circuitBeep();
+    if(NEW_LOAN_ALERT.mode==='beep_speech'){
+      setTimeout(function(){
+        try{
+          var u=new SpeechSynthesisUtterance(NEW_LOAN_ALERT.speechText||_NEW_LOAN_ALERT_DEFAULT.speechText);
+          u.lang='th-TH';u.rate=0.95;speechSynthesis.speak(u);
+        }catch(e){}
+      },600);
+    }
+    if(window.toast)toast('มีใบยืมใหม่เข้ามา — รีเฟรชข้อมูลแล้ว','success');
+    loadAll();
+  }catch(e){console.warn('checkNewLoanAlert error:',e.message);}
+}
+async function checkStaleLoanAlert(){
+  if(!NEW_LOAN_ALERT||NEW_LOAN_ALERT.mode==='off')return;
+  try{
+    var staleMin=NEW_LOAN_ALERT.staleMin||15;
+    var cutoff=new Date(Date.now()-staleMin*60000).toISOString();
+    var rows=await SB.get('loan_requests','select=loan_id&status=eq.PENDING&created_at=lt.'+encodeURIComponent(cutoff));
+    if(!Array.isArray(rows)||!rows.length)return;
+    circuitBeep();
+    if(NEW_LOAN_ALERT.mode==='beep_speech'){
+      setTimeout(function(){
+        try{
+          var u=new SpeechSynthesisUtterance(NEW_LOAN_ALERT.staleSpeechText||_NEW_LOAN_ALERT_DEFAULT.staleSpeechText);
+          u.lang='th-TH';u.rate=0.95;speechSynthesis.speak(u);
+        }catch(e){}
+      },600);
+    }
+    if(window.toast)toast('มีใบยืมค้าง "รอบันทึก" เกิน '+staleMin+' นาที อยู่ '+rows.length+' ใบ','warning');
+  }catch(e){console.warn('checkStaleLoanAlert error:',e.message);}
+}
+function scheduleNewLoanAlert(){
+  if(_newLoanAlertTimer){clearInterval(_newLoanAlertTimer);_newLoanAlertTimer=null;}
+  if(!NEW_LOAN_ALERT||NEW_LOAN_ALERT.mode==='off')return;
+  _newLoanAlertTimer=setInterval(checkNewLoanAlert,30000);
+}
+function scheduleStaleLoanAlert(){
+  if(_staleLoanAlertTimer){clearInterval(_staleLoanAlertTimer);_staleLoanAlertTimer=null;}
+  if(!NEW_LOAN_ALERT||NEW_LOAN_ALERT.mode==='off')return;
+  _staleLoanAlertTimer=setInterval(checkStaleLoanAlert,15*60000);
+}
+function applyNewLoanAlertChanges(){
+  var modeEl=document.querySelector('input[name="newLoanAlertMode"]:checked');
+  var mode=modeEl?modeEl.value:'beep_speech';
+  var speechEl=document.getElementById('newLoanAlertSpeech');
+  var speechText=(speechEl&&speechEl.value.trim())||_NEW_LOAN_ALERT_DEFAULT.speechText;
+  var staleEl=document.getElementById('newLoanAlertStaleMin');
+  var staleMin=staleEl?parseInt(staleEl.value,10)||15:15;
+  var staleSpeechEl=document.getElementById('newLoanAlertStaleSpeech');
+  var staleSpeechText=(staleSpeechEl&&staleSpeechEl.value.trim())||_NEW_LOAN_ALERT_DEFAULT.staleSpeechText;
+  NEW_LOAN_ALERT={mode:mode,speechText:speechText,staleMin:staleMin,staleSpeechText:staleSpeechText};
+  saveConfig('new_loan_alert',NEW_LOAN_ALERT);
+  scheduleNewLoanAlert();scheduleStaleLoanAlert();
+  toast('บันทึกการตั้งค่าแจ้งเตือนสำเร็จ!','success');
+}
+function testNewLoanAlertSound(){
+  var modeEl=document.querySelector('input[name="newLoanAlertMode"]:checked');
+  var mode=modeEl?modeEl.value:'beep_speech';
+  if(mode==='off'){toast('เลือก "ปิดเสียง" อยู่ ไม่มีเสียงให้ทดสอบ','warning');return;}
+  circuitBeep();
+  if(mode==='beep_speech'){
+    var speechEl=document.getElementById('newLoanAlertSpeech');
+    var speechText=(speechEl&&speechEl.value.trim())||_NEW_LOAN_ALERT_DEFAULT.speechText;
+    setTimeout(function(){
+      try{
+        var u=new SpeechSynthesisUtterance(speechText);
         u.lang='th-TH';u.rate=0.95;speechSynthesis.speak(u);
       }catch(e){}
     },600);
