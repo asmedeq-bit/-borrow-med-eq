@@ -7,13 +7,38 @@
 <script>(function(){try{var t=localStorage.getItem('meq_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
 <title>ระบบยืมคืนเครื่องมือแพทย์ แผนกบริการเครื่องมือและอุปกรณ์ทางการแพทย์</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+║  สารบัญ CSS หลัก (กด Ctrl+F วางคำค้นเพื่อกระโดดไปหมวดนั้น)         ║
+╠══════════════════════════════════════════════════════════════════╣
+║ ตัวแปรสีธีม/พื้นฐาน                → §ROOT-THEME                  ║
+║ แถบเมนูบน                          → §NAV                          ║
+║ การ์ด + ฟอร์ม/input/dropdown       → §CARD-FORM                   ║
+║ ปุ่ม + ป้ายสถานะ                   → §BUTTONS-BADGES               ║
+║ ตารางข้อมูล                        → §TABLE                        ║
+║ แถบเส้นทางโอนย้ายเครื่อง            → §TRANSFER-TRAIL               ║
+║ กล่อง Modal                        → §MODAL                        ║
+║ การ์ดสถิติ + progress bar          → §STAT-CARDS                   ║
+║ การ์ดเครื่องสำรอง                  → §STANDBY-CARD                 ║
+║ Toast + Loading                    → §TOAST-LOADING                ║
+║ Responsive (จอเล็ก)                → §RESPONSIVE                   ║
+║ สไตล์หน้าแอดมิน                    → §ADMIN-CSS                    ║
+║ สไตล์อินโฟกราฟิก/คู่มือ (scoped)   → §INFOGRAPHIC-CSS              ║
+╚══════════════════════════════════════════════════════════════════╝
+-->
 <style>
+/* ─────────────────────────────────────────────── §ROOT-THEME
+   ตัวแปรสีธีม root + [data-theme=light]
+   ─────────────────────────────────────────────── */
 :root{--bg:#0d1117;--s1:#161b22;--s2:#1f2937;--bd:#30363d;--ac:#00c8ff;--ac2:#7c3aed;--ok:#10b981;--wn:#f59e0b;--er:#ef4444;--tx:#e6edf3;--mu:#8b949e;--fn:'Sarabun',sans-serif;--mo:'IBM Plex Mono',monospace}
 [data-theme="light"]{--bg:#f4f6f8;--s1:#ffffff;--s2:#f3f4f6;--bd:#e2e5e9;--ac:#0284c7;--ac2:#7c3aed;--ok:#059669;--wn:#b45309;--er:#dc2626;--tx:#1f2937;--mu:#6b7280}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px}
 #cfgBanner{background:rgba(239,68,68,.12);border-bottom:1px solid var(--er);padding:8px 16px;font-size:12px;color:var(--er);display:none;text-align:center}
 #cfgBanner.on{display:block}
+/* ─────────────────────────────────────────────── §NAV
+   แถบเมนูบน (nav/nav-tabs)
+   ─────────────────────────────────────────────── */
 .nav{background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:center;position:sticky;top:0;z-index:100;overflow:hidden}
 .nav-brand{padding:10px 13px;font-weight:700;font-size:12px;color:var(--ac);border-right:1px solid var(--bd);white-space:nowrap;flex-shrink:0}
 .nav-tabs{display:flex;overflow-x:auto;flex:1}
@@ -21,6 +46,9 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100vh
 .nt:hover{color:var(--tx);background:var(--s2)}.nt.on{color:var(--ac);border-bottom-color:var(--ac);background:var(--s2)}
 .nt.admin-tab{color:#f59e0b}.nt.admin-tab.on{color:#f59e0b;border-bottom-color:#f59e0b}
 .pg{display:none;padding:14px;max-width:1500px;margin:0 auto}.pg.on{display:block}
+/* ─────────────────────────────────────────────── §CARD-FORM
+   การ์ด (card) + ฟอร์ม/input/dropdown ค้นหา
+   ─────────────────────────────────────────────── */
 .card{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:13px;margin-bottom:11px}
 .ctitle{font-size:12px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .fg{display:flex;flex-direction:column;gap:3px}
@@ -37,6 +65,9 @@ select option{background:var(--s1)}
 .ssi{padding:7px 10px;cursor:pointer;font-size:13px;display:flex;gap:7px;align-items:center}
 .ssi:hover{background:var(--s2)}
 .seld{margin-top:4px;background:rgba(0,200,255,.06);border:1px solid rgba(0,200,255,.2);padding:5px 8px;border-radius:5px;font-size:12px;display:none}
+/* ─────────────────────────────────────────────── §BUTTONS-BADGES
+   ปุ่ม (btn) + ป้ายสถานะ (badge)
+   ─────────────────────────────────────────────── */
 .btn{padding:6px 13px;border:none;border-radius:5px;font-family:var(--fn);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:4px}
 .bp{background:var(--ac);color:#000}.bp:hover{opacity:.85}
 .bg{background:transparent;border:1px solid var(--bd);color:var(--tx)}.bg:hover{border-color:var(--ac);color:var(--ac)}
@@ -53,6 +84,9 @@ select option{background:var(--s1)}
 .bc2{background:rgba(239,68,68,.15);color:var(--er);border:1px solid rgba(239,68,68,.3)}
 .bap{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.4);font-size:10px}
 .btr{background:rgba(124,58,237,.12);color:#a78bfa;border:1px solid rgba(124,58,237,.35);font-size:10px}
+/* ─────────────────────────────────────────────── §TABLE
+   ตารางข้อมูล (dt) + แถวรายการยืม
+   ─────────────────────────────────────────────── */
 .dtw{overflow-x:auto}
 .dt{width:100%;border-collapse:collapse;font-size:13px}
 .dt th{background:var(--s2);color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:.4px;padding:7px 9px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
@@ -65,6 +99,9 @@ select option{background:var(--s1)}
 .item-row{border-left:3px solid transparent}
 .item-row td{padding:5px 9px;border-bottom:1px solid rgba(48,54,61,.5);background:rgba(255,255,255,.006)}
 .item-row:last-child td{border-bottom:2px solid var(--bd)}
+/* ─────────────────────────────────────────────── §TRANSFER-TRAIL
+   แถบแสดงเส้นทางโอนย้ายเครื่อง
+   ─────────────────────────────────────────────── */
 .transfer-trail{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:5px;font-size:11px}
 .tr-label{color:var(--mu);margin-right:2px;font-size:11px}
 .tr-arr{color:var(--mu);font-size:10px}
@@ -72,6 +109,9 @@ select option{background:var(--s1)}
 .tr-chip-cur{background:rgba(0,200,255,.12);border:1px solid rgba(0,200,255,.4);border-radius:4px;padding:1px 7px;color:var(--ac);font-weight:700;font-size:11px;display:inline-flex;align-items:center;gap:4px}
 .tr-now{font-size:9px;background:rgba(0,200,255,.2);border-radius:99px;padding:0 5px;color:var(--ac)}
 .tr-meta{width:100%;font-size:10px;color:var(--mu);padding-left:2px;margin-top:2px}
+/* ─────────────────────────────────────────────── §MODAL
+   กล่อง Modal (mbk/mdl)
+   ─────────────────────────────────────────────── */
 .mbk{position:fixed;inset:0;background:rgba(0,0,0,.77);z-index:500;display:none;align-items:center;justify-content:center;padding:10px}
 .mbk.on{display:flex}
 .mdl{background:var(--s1);border:1px solid var(--bd);border-radius:9px;width:100%;max-width:800px;max-height:93vh;overflow-y:auto}
@@ -81,6 +121,9 @@ select option{background:var(--s1)}
 .mcls{background:none;border:none;color:var(--mu);font-size:17px;cursor:pointer;padding:0 3px}
 .mbdy{padding:16px}
 .mftr{padding:10px 17px;border-top:1px solid var(--bd);display:flex;gap:6px;justify-content:flex-end}
+/* ─────────────────────────────────────────────── §STAT-CARDS
+   การ์ดสถิติ (sgrid/sc) + แถบ progress bar
+   ─────────────────────────────────────────────── */
 .fbar{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-end;margin-bottom:9px}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin-bottom:12px}
 .sc{background:var(--s1);border:1px solid var(--bd);border-radius:7px;padding:12px;position:relative;overflow:hidden}
@@ -94,9 +137,15 @@ select option{background:var(--s1)}
 .btrk{flex:1;height:15px;background:var(--bg);border-radius:3px;overflow:hidden}
 .bfil{height:100%;background:var(--ac);border-radius:3px;transition:width .5s}
 .bval{width:30px;font-size:11px;font-family:var(--mo)}
+/* ─────────────────────────────────────────────── §STANDBY-CARD
+   การ์ดเครื่องสำรอง (Standby)
+   ─────────────────────────────────────────────── */
 #standbyCard:hover{background:rgba(245,158,11,.1)!important;border-color:#f59e0b!important}
 #standbyPanel input[type=number],#standbyPanel input[type=text]{border-color:rgba(245,158,11,.35)}
 #standbyPanel input:focus{border-color:#f59e0b!important}
+/* ─────────────────────────────────────────────── §TOAST-LOADING
+   Toast แจ้งเตือน + Loading spinner
+   ─────────────────────────────────────────────── */
 .tw{position:fixed;bottom:14px;right:14px;z-index:999;display:flex;flex-direction:column;gap:6px}
 .toast{background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:9px 13px;font-size:12px;min-width:200px;animation:slin .25s ease}
 .toast.success{border-color:var(--ok)}.toast.error{border-color:var(--er)}.toast.warning{border-color:var(--wn)}
@@ -106,10 +155,13 @@ select option{background:var(--s1)}
 @keyframes spn{to{transform:rotate(360deg)}}
 .hwarn{background:rgba(239,68,68,.08);border:1px solid var(--er);border-radius:7px;padding:10px;display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .sth{display:none;margin-top:4px}
+/* ─────────────────────────────────────────────── §RESPONSIVE
+   Responsive (จอเล็ก)
+   ─────────────────────────────────────────────── */
 input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac)}
 @media(max-width:768px){.nav-brand{display:none}.pg{padding:8px}.fgrid{grid-template-columns:1fr}}
 
-/* ── ADMIN STYLES ── */
+/* ── ADMIN STYLES ── §ADMIN-CSS */
 .admin-banner{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(239,68,68,.08));border:1px solid rgba(245,158,11,.4);border-radius:8px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
 .admin-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
 .atab{padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--mu);transition:all .2s;font-family:var(--fn)}
@@ -126,7 +178,7 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--ac
 .adm-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 12px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:6px;margin-bottom:10px}
 .adm-count{font-size:11px;color:var(--mu);margin-left:auto}
 
-/* ── INFOGRAPHIC SCOPED ── */
+/* ── INFOGRAPHIC SCOPED ── §INFOGRAPHIC-CSS (มี sub-section คั่นในตัวอยู่แล้ว: HERO/SECTION/USER ROLES/WORKFLOW/STATUS BADGES/NAV TABS/TIPS/HFNC ALERT/ADMIN SECTION/DIVIDER/FOOTER/PRINT-EXPORT/ANIMATION) */
 #infographic-host{font-family:"Sarabun",sans-serif!important}
  {
 
@@ -2680,6 +2732,10 @@ function toggleTheme(){
         <tbody id="pfBack"></tbody>
       </table>
       <div id="pfColResizersBackTop"></div>
+      <div class="pf-rowbtns" style="margin-top:4px;display:flex;gap:8px">
+        <button style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:700;border-radius:6px;border:1px solid #10b981;background:#e6f7f1;color:#0a6b4f;cursor:pointer" onclick="pfBackAppend()" title="เพิ่มแถวท้ายตารางยืมคืน">＋ เพิ่มแถว</button>
+        <button style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:700;border-radius:6px;border:1px solid #ef4444;background:#fdecec;color:#a12a2a;cursor:pointer" onclick="pfBackRemoveLast()" title="ลบแถวท้ายตารางยืมคืน">－ ลดแถว</button>
+      </div>
 
       <div id="pfManualZone">
       <div class="pf-sumwrap" style="display:flex;gap:0;margin-top:8px;align-items:stretch">
@@ -2698,7 +2754,7 @@ function toggleTheme(){
                โดยเจตนา (ยืนยันชัดเจน 2 รอบ แม้ทราบแล้วว่าเป็นข้อมูลเฉพาะวันที่ 19-20 ส.ค. 2569
                ไม่ใช่ค่าที่คำนวณทั่วไป) — ถ้าต้องการเปลี่ยน ให้แก้ตัวเลขในแถวด้านล่างตรงๆ -->
           <tbody id="pfSbBody">
-          <tr><td rowspan="15" class="pf-vs" id="pfSbLabel" contenteditable>stand by</td><td class="tl" contenteditable>อช</td><td contenteditable>49</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td rowspan="11" class="pf-vs" id="pfSbLabel" contenteditable>stand by</td><td class="tl" contenteditable>อช</td><td contenteditable>49</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>อญ</td><td contenteditable>42</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>ศช</td><td contenteditable>14</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>ศญ</td><td contenteditable>73</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
@@ -2709,13 +2765,13 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           </tbody>
         </table>
         <div id="pfColResizersSum1"></div>
+        <div class="pf-rowbtns" style="margin-top:4px;display:flex;gap:6px">
+          <button style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:700;border-radius:6px;border:1px solid #10b981;background:#e6f7f1;color:#0a6b4f;cursor:pointer" onclick="pfSumAddAll()" title="เพิ่มแถวท้ายทั้ง 3 ตาราง (สรุปยอดยืม-คืน/HME/ตึก) พร้อมกัน">＋ เพิ่มแถว</button>
+          <button style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:700;border-radius:6px;border:1px solid #ef4444;background:#fdecec;color:#a12a2a;cursor:pointer" onclick="pfSumDelAll()" title="ลบแถวท้ายทั้ง 3 ตาราง (สรุปยอดยืม-คืน/HME/ตึก) พร้อมกัน">－ ลดแถว</button>
+        </div>
         </div>
 
         <!-- ── บล็อก 2: การใช้ HME ── -->
@@ -2740,10 +2796,6 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           </tbody>
         </table>
         <div id="pfColResizersSum2"></div>
@@ -2755,7 +2807,7 @@ function toggleTheme(){
           <colgroup id="pfSumCols3"><col style="width:30%"><col style="width:20%"><col style="width:50%"></colgroup>
           <tr><td class="pf-sec" colspan="2" contenteditable>การใช้ HME</td><td class="pf-sec" contenteditable>ปัญหาข้อขัดข้อง/ข้อเสนอแนะ</td></tr>
           <tbody id="pfProbBody">
-          <tr><td contenteditable>ตึก</td><td contenteditable>จำนวน</td><td rowspan="20" id="pfProbNote" contenteditable style="vertical-align:top"></td></tr>
+          <tr><td contenteditable>ตึก</td><td contenteditable>จำนวน</td><td rowspan="16" id="pfProbNote" contenteditable style="vertical-align:top"></td></tr>
           <tr><td class="tl" contenteditable>100/9</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>100/6</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>80/10</td><td contenteditable></td></tr>
@@ -2770,10 +2822,6 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable>CICU</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>SICU</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>MICU</td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
-          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
           </tbody>
         </table>
@@ -2823,6 +2871,41 @@ function toggleTheme(){
 
 
 <script>
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  สารบัญ (TABLE OF CONTENTS) — สคริปต์หลักของระบบ (~6,000 บรรทัด)   ║
+// ║  วิธีใช้: กด Ctrl+F แล้ววาง "คำค้น" ด้านล่างเพื่อกระโดดไปหมวดนั้น    ║
+// ║  (ไม่ใช้เลขบรรทัดเพราะเลื่อนได้ทุกครั้งที่แก้โค้ด — ใช้คำค้นแทนจะแม่นกว่า) ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║ 01. ตั้งค่าระบบ (Supabase URL/Key, PIN)      → ★★★  CONFIG  ★★★
+// ║ 02. เข้าสู่ระบบ (Supabase Auth, session)      → §AUTH
+// ║ 03. Session & localStorage helper ทั่วไป     → §STORAGE-HELPERS
+// ║ 04. ตัวแปร/ฟิลเตอร์เริ่มต้น (แผนก/เครื่อง/ฯลฯ) → §INIT-FILTERS
+// ║ 05. Filter หน้าสรุป + realtime refresh       → §SUM-FILTERS
+// ║ 06. เครื่องสำรอง (Standby)                    → §STANDBY
+// ║ 07. การ์ดอุปกรณ์ + ค้นหาแบบ dropdown (SSL)    → §EQCARD-SEARCH
+// ║ 08. Utility เล็ก (escape/สถานะ/badge/sort)    → §UTIL-CORE
+// ║ 09. แท็บ "รายการยืม-คืน" (rec)                → §TAB-REC
+// ║ 10. PIN ยืนยัน + การยืม/คืน/โอนย้าย            → §LOAN-ACTIONS
+// ║ 11. แท็บ "สรุปรายวัน" (Daily)                 → §TAB-DAILY
+// ║ 12. แท็บ "ทั้งหมด" (All)                       → §TAB-ALL
+// ║ 13. Dashboard หลัก (การ์ดสถิติ, กราฟ, ตาราง)   → §DASHBOARD
+// ║ 14. กราฟเปรียบเทียบปีงบประมาณ                 → §COMPARE-CHARTS
+// ║ 15. ตัวกรอง Dashboard/รายละเอียด               → §DASH-FILTERS
+// ║ 16. คลังข้อมูลเก่า (Archive)                   → §ARCHIVE
+// ║ 17. แอดมิน: PIN + สลับแท็บย่อย                → §ADMIN-CORE
+// ║ 18. แอดมิน: ใบยืม/ยืมอุปกรณ์ (แก้/ลบ/เพิ่ม)     → §ADMIN-LOANS
+// ║ 19. แอดมิน: ค้นหาด่วน + Bulk actions           → §ADMIN-BULK
+// ║ 20. แอดมิน: จัดการรายการ (แผนก/พนักงาน/เครื่อง/
+// ║     อุปกรณ์เสริม/เลขเครื่อง/เหตุผลคืน)         → §ADMIN-LISTS
+// ║ 21. แอดมิน: ตั้งค่า HFNC                       → §ADMIN-HFNC
+// ║ 22. แจ้งเตือนเสียง (circuit ค้าง + ใบยืมใหม่)  → §ALERTS-SOUND
+// ║ 23. เตรียม select/datalist + Export ไฟล์       → §EXPORT-SELECT
+// ║ 24. Modal & Toast ใช้ร่วมทั้งระบบ              → §MODAL-TOAST
+// ║ 25. พิมพ์ฟอร์ม (Print Form) — ใหญ่สุด ~900 บรรทัด → §PRINT-FORM
+// ║ 26. คลังอุปกรณ์ (Inventory) + แอดมินคลัง        → §INVENTORY
+// ║ 27. คู่มือ/Word viewer/ดาวน์โหลดคู่มือ          → §MANUAL-VIEWER
+// ║ 28. เปลี่ยน PIN ผู้ใช้                         → §CHANGE-PIN
+// ╚══════════════════════════════════════════════════════════════════╝
 // ============================================================
 //  ★★★  CONFIG  ★★★
 // ============================================================
@@ -2834,7 +2917,7 @@ var ADMIN_PIN         = '9999';   // ← เปลี่ยน Admin PIN ได�
 
 SUPABASE_URL = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
 
-// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════ §AUTH
 // AUTH (Supabase Auth) — เข้าสู่ระบบจริงด้วย email/password ที่สร้างไว้ใน
 // Supabase Authentication → Users (แทนการเช็ค user/pass แบบ hardcode)
 // ────────────────────────────────────────────────────────────
@@ -3025,6 +3108,9 @@ var API = {
     return{success:true,recordID:inserted[0].record_id};
   },
   returnEquipment: async function(recordID,returnData){
+// ─────────────────────────────────────────────────────────── §STORAGE-HELPERS
+// Session & localStorage helper ทั่วไป
+// ───────────────────────────────────────────────────────────
     var recs=await SB.get('borrow_records','record_id=eq.'+encodeURIComponent(recordID));
     if(!recs.length)throw new Error('Record not found: '+recordID);
     var rec=recs[0];var machineReturned=returnData.machineReturned;var newStatus=machineReturned?'RETURNED':'ACTIVE';
@@ -3099,6 +3185,9 @@ async function loadConfig(){
         case 'new_loan_alert': NEW_LOAN_ALERT=r.value; if(typeof scheduleNewLoanAlert==='function'){scheduleNewLoanAlert();scheduleStaleLoanAlert();} break;
         // 'hfncset': ไม่ต้องตั้งตัวแปรเพิ่ม — _hfncSetGet() อ่านจาก localStorage
         // (ที่ sync แล้วข้างบน) สดทุกครั้งที่ใช้งานอยู่แล้ว
+// ─────────────────────────────────────────────────────────── §INIT-FILTERS
+// ตัวแปร/ฟิลเตอร์เริ่มต้น (แผนก/เครื่อง/ฯลฯ)
+// ───────────────────────────────────────────────────────────
       }
     });
   }catch(e){
@@ -3148,6 +3237,9 @@ var _pinUnlocked=false,_adminUnlocked=false,arTimer=null;
 var _bulkPendingLoans=[],_bulkPendingBors=[];
 
 document.addEventListener('DOMContentLoaded',async function(){
+// ─────────────────────────────────────────────────────────── §SUM-FILTERS
+// Filter หน้าสรุป + realtime refresh
+// ───────────────────────────────────────────────────────────
   if(SUPABASE_URL.includes('YOUR_PROJECT_ID')||SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY')){document.getElementById('cfgBanner').classList.add('on');}
   // โหลดค่าตั้งค่าที่ sync จาก Supabase (DEPTS/EQL/ACCS/STAFF/EQNUMS/RETREMARKS/inventory/hfncset)
   // ก่อนสร้าง UI ที่ใช้ค่าเหล่านี้ — จำกัดเวลารอไม่เกิน 3 วิ ถ้าเน็ตช้า/Supabase ไม่พร้อม
@@ -3201,6 +3293,9 @@ function updateSumFilterBadges(){
   var stat=(document.getElementById('sumStat')||{}).value||'';
   var ds=(document.getElementById('sumS')||{}).value||'';
   var de=(document.getElementById('sumE')||{}).value||'';
+// ─────────────────────────────────────────────────────────── §STANDBY
+// เครื่องสำรอง (Standby)
+// ───────────────────────────────────────────────────────────
   var bd=document.getElementById('sumFilterBadges');if(!bd)return;
   var badges=[];
   if(ds||de)badges.push('<span style="background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.3);border-radius:12px;padding:2px 10px;font-size:11px;color:var(--ac)">📅 '+(ds||'...')+' → '+(de||'...')+'</span>');
@@ -3280,6 +3375,9 @@ function onStandbyTypeChange(){
   updateStandbySummary();
 }
 
+// ─────────────────────────────────────────────────────────── §EQCARD-SEARCH
+// การ์ดอุปกรณ์ + ค้นหาแบบ dropdown (SSL)
+// ───────────────────────────────────────────────────────────
 function updateStandbyLabels(){
   // highlight selected radio label
   ['sbyVentLabel','sbyHfncLabel'].forEach(function(lid){
@@ -3348,6 +3446,9 @@ function selEq(i){
   if(vhp){vhp.style.display='block';setTimeout(function(){var el=document.getElementById('vheqno_'+i);if(el)el.focus();},80);}
   _selEqIdx=i;
 }
+// ─────────────────────────────────────────────────────────── §UTIL-CORE
+// Utility เล็ก (escape/สถานะ/badge/sort)
+// ───────────────────────────────────────────────────────────
 function buildAccTable(){document.getElementById('accBody').innerHTML=ACCS.map(function(a){var inp;if(a.no){inp='<div style="display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:var(--mu);font-weight:600;white-space:nowrap">No.</span><input type="number" id="accno_'+a.id+'" placeholder="0" min="0" style="width:80px;padding:4px 6px;font-size:13px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)"></div>';}else if(a.det){inp='<input type="text" id="accno_'+a.id+'" placeholder="'+(a.id==='a4'?'ระบุหมายเลข/รายละเอียด...':'รายละเอียด...')+'" style="width:160px;padding:4px 6px;font-size:12px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx)">';}else{inp='-';}return'<tr><td style="padding:5px 7px;border-bottom:1px solid var(--bd)"><input type="checkbox" id="acc_'+a.id+'" onchange="toggleAcc(\''+a.id+'\',\''+a.n.replace(/'/g,"\\'")+'\')"></td><td style="padding:5px 7px;border-bottom:1px solid var(--bd);font-size:13px">'+a.n+'</td><td style="padding:5px 7px;border-bottom:1px solid var(--bd)">'+inp+'</td></tr>';}).join('');}
 function toggleAcc(id,name){var c=document.getElementById('acc_'+id);if(c.checked){var n=document.getElementById('accno_'+id);selAccs[id]={id:id,name:name,no:n?String(n.value).trim():''};}else delete selAccs[id];renderAccTags();}
 function renderAccTags(){document.getElementById('accTags').innerHTML=Object.values(selAccs).map(function(a){var accDef=ACCS.find(function(x){return x.id===a.id;});var valTxt='';if(a.no){if(accDef&&accDef.no)valTxt=' <span style="font-family:var(--mo);color:var(--ac);font-weight:700">No.'+a.no+'</span>';else valTxt=' <span style="color:var(--mu);font-size:11px">('+a.no+')</span>';}return'<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:11px;padding:2px 8px;font-size:11px;margin:2px">'+a.name+valTxt+' <span style="cursor:pointer;color:var(--er);font-weight:700" onclick="rmAcc(\''+a.id+'\')">✕</span></span>';}).join('');}
@@ -3366,6 +3467,9 @@ async function loadAll(){
   try{
     var[ld,bd]=await Promise.all([API.getAllLoans(),API.getAllBorrows()]);
     loans=ld;borrows=bd;
+    // โหลดทะเบียนเครื่องมือรายตัว — ไม่ await ตรงนี้ ให้ทำงานคู่ขนานแบบไม่บล็อก
+    // การแสดงผลหลัก (loans/borrows สำคัญกว่า ต้องไม่ช้าเพราะรอทะเบียนเครื่องมือ)
+    if(typeof loadEquipmentUnits==='function')loadEquipmentUnits().catch(function(e){console.error('loadEquipmentUnits:',e);});
     // ทุกครั้งที่รีเฟรชข้อมูล (ไม่ว่าจะจากการเปิดหน้า, กดปุ่ม, หรือบันทึกใบยืม/ใบบันทึกยืมเอง)
     // ให้อัปเดต "ใบล่าสุดที่เคยเห็น" ของระบบแจ้งเตือนด้วยเสมอ กันแจ้งเตือนใบที่เครื่องนี้เพิ่งทำเอง
     if(typeof initNewLoanAlertBaseline==='function')initNewLoanAlertBaseline();
@@ -3379,6 +3483,9 @@ async function loadAll(){
     if(document.getElementById('adm-loan-mgr')&&document.getElementById('adm-loan-mgr').classList.contains('on'))renderAdminLoans();
     if(document.getElementById('adm-borrow-mgr')&&document.getElementById('adm-borrow-mgr').classList.contains('on'))renderAdminBorrows();
     if(arTimer)clearTimeout(arTimer);
+// ─────────────────────────────────────────────────────────── §TAB-REC
+// แท็บ "รายการยืม-คืน" (rec)
+// ───────────────────────────────────────────────────────────
     arTimer=setTimeout(loadAll,15*60*1000); // auto-refresh ทุก 15 นาที
   }catch(e){console.error(e);toast('โหลดข้อมูลล้มเหลว: '+e.message,'error');if(rb)rb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--er);padding:24px">❌ โหลดข้อมูลล้มเหลว</td></tr>';}
 }
@@ -3485,6 +3592,9 @@ function _renderRecPager(totalGroups){
 }
 
 function renderRec(){
+// ─────────────────────────────────────────────────────────── §LOAN-ACTIONS
+// PIN ยืนยัน + การยืม/คืน/โอนย้าย
+// ───────────────────────────────────────────────────────────
   var tbody=document.getElementById('recBody');if(!tbody)return;
   if(loans===null){tbody.innerHTML='<tr><td colspan="5"><div class="lding"><div class="spin"></div></div></td></tr>';return;}
   _recGroupsFiltered=_getRecGroups();
@@ -3567,6 +3677,9 @@ async function submitLoan(){
   }
   var _slBtn=document.getElementById('submitLoanBtn');
   if(_slBtn){if(_slBtn.disabled)return;_slBtn.disabled=true;_slBtn.dataset._t=_slBtn.innerHTML;_slBtn.innerHTML='⏳ กำลังส่ง...';}
+// ─────────────────────────────────────────────────────────── §TAB-DAILY
+// แท็บ "สรุปรายวัน" (Daily)
+// ───────────────────────────────────────────────────────────
   try{
     var id=await API.submitLoan({loanDate,borrowerName,deptCode,deptName,patientName,equipmentList});
     bigToast('ส่งแบบฟอร์มสำเร็จ!\nID: '+id,'success');clearLoan();setTimeout(loadAll,1500);
@@ -3763,6 +3876,9 @@ function renderDaily(){
     var curPage=_dailyPages[eqName];
     var from=(curPage-1)*_dailyPageSize;
     var pageItems=allItems.slice(from,from+_dailyPageSize);
+// ─────────────────────────────────────────────────────────── §TAB-ALL
+// แท็บ "ทั้งหมด" (All)
+// ───────────────────────────────────────────────────────────
     var rows=pageItems.map(function(item){return _buildDailyRow(item,now,_dMap);}).join('');
     var pager=_buildDailyPager(eqName,curPage,totalPages,total,from);
     return'<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">'
@@ -3839,6 +3955,9 @@ function renderAll(){
   var total=items.length;
   if(!total){
     tbody.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--mu);padding:24px">ไม่มีข้อมูล</td></tr>';
+// ─────────────────────────────────────────────────────────── §DASHBOARD
+// Dashboard หลัก (การ์ดสถิติ, กราฟ, ตาราง)
+// ───────────────────────────────────────────────────────────
     var pe=document.getElementById('allPager');if(pe)pe.innerHTML='';
     return;
   }
@@ -6052,6 +6171,9 @@ async function renderSum(r){
     var row=e.target.closest('.al-bar-row');if(!row)return;
     var eq=row.dataset.eq;if(!eq)return;
     // highlight selected bar
+// ─────────────────────────────────────────────────────────── §COMPARE-CHARTS
+// กราฟเปรียบเทียบปีงบประมาณ
+// ───────────────────────────────────────────────────────────
     sc.querySelectorAll('.al-bar-row').forEach(function(r){r.style.background='';});
     row.style.background='rgba(0,200,255,.08)';
     // filter alTbody
@@ -6242,6 +6364,9 @@ function _cmpDraw(){
   var mthEl=document.getElementById('cmpMthTbl');
   if(mthEl){
     var h2='<tr style="background:var(--s2)"><th style="padding:5px 8px;text-align:left;border-bottom:1px solid var(--bd);font-weight:400;color:var(--mu)">เดือน</th>';
+// ─────────────────────────────────────────────────────────── §DASH-FILTERS
+// ตัวกรอง Dashboard/รายละเอียด
+// ───────────────────────────────────────────────────────────
     yrs.forEach(function(yr,i){h2+='<th colspan="2" style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--bd);border-left:1px solid var(--bd);color:'+CLR[Math.min(i,4)]+'">'+(parseInt(yr)+543)+'</th>';});
     h2+='<th style="padding:5px 8px;text-align:center;border-bottom:1px solid var(--bd);border-left:1px solid var(--bd);font-size:10px;font-weight:400;color:var(--mu)">เทรนด์</th></tr>';
     h2+='<tr style="background:var(--s2)"><th style="padding:3px 8px;border-bottom:1px solid var(--bd)"></th>';
@@ -6435,6 +6560,9 @@ async function runArchiveMove(){
       await loadArchiveDash();
       await loadAll();
     }else{
+// ─────────────────────────────────────────────────────────── §ARCHIVE
+// คลังข้อมูลเก่า (Archive)
+// ───────────────────────────────────────────────────────────
       if(res)res.innerHTML='<span style="color:var(--er)">❌ เกิดข้อผิดพลาด: '+(data.message||JSON.stringify(data))+'</span>';
     }
   }catch(e){
@@ -6574,6 +6702,9 @@ function _renderArchivePage(){
     }).join('')
     +'</tbody></table></div>'
     +'<div style="font-size:11px;color:var(--mu);margin-top:6px;text-align:right">แสดง '+(start+1)+'–'+Math.min(start+_archivePageSize,total)+' จาก '+total.toLocaleString()+' รายการ</div>';
+// ─────────────────────────────────────────────────────────── §ADMIN-CORE
+// แอดมิน: PIN + สลับแท็บย่อย
+// ───────────────────────────────────────────────────────────
   // pager
   var pager=document.getElementById('archPager');
   if(pager){
@@ -6626,6 +6757,9 @@ document.addEventListener('DOMContentLoaded',function(){
   var inp=document.getElementById('adminPinInput');
   if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')checkAdminPin();});
 });
+// ─────────────────────────────────────────────────────────── §ADMIN-LOANS
+// แอดมิน: ใบยืม/ยืมอุปกรณ์ (แก้/ลบ/เพิ่ม)
+// ───────────────────────────────────────────────────────────
 function lockAdmin(){
   _adminUnlocked=false;
   document.getElementById('adminLock').style.display='flex';
@@ -6892,6 +7026,9 @@ async function admSaveEditBorrow(){
   var ACC_ID_TO_COL={a1:'acc1_flow_meter_pto',a2:'acc2_flow_meter_70',a3:'acc3_self_inflating',a4:'acc4_full_face_mask',a5:'acc5_nasal_cannula',a7:'acc7_regulator_pto',a6:'acc6_other'};
   document.querySelectorAll('.admEditAccNo').forEach(function(inp){
     var col=ACC_ID_TO_COL[inp.dataset.accid];
+// ─────────────────────────────────────────────────────────── §ADMIN-BULK
+// แอดมิน: ค้นหาด่วน + Bulk actions
+// ───────────────────────────────────────────────────────────
     if(col)body[col]=inp.value.trim()||'✓';
   });
   try{
@@ -7051,6 +7188,9 @@ async function bulkDeleteByStatus(){
 async function executeBulkDelete(){
   if(!_bulkDelList.length)return;
   if(!confirm('⚠️ ยืนยันการลบ '+_bulkDelList.length+' รายการ?\n(ไม่สามารถกู้คืนได้!!)'))return;
+// ─────────────────────────────────────────────────────────── §ADMIN-LISTS
+// แอดมิน: จัดการรายการ (แผนก/พนักงาน/เครื่อง/อุปกรณ์เสริม/เลขเครื่อง/เหตุผลคืน)
+// ───────────────────────────────────────────────────────────
   try{
     var done=0;
     for(var i=0;i<_bulkDelList.length;i++){await API.deleteLoan(_bulkDelList[i]);done++;}
@@ -7504,6 +7644,9 @@ function toggleRetremDisabled(i){
 }
 function toggleRetremNeedDetail(i){
   if(_wRetrem[i]&&_wRetrem[i].label==='อื่นๆ'){toast('"อื่นๆ" ต้องกรอกรายละเอียดเสมอ แก้ไม่ได้','warning');return;}
+// ─────────────────────────────────────────────────────────── §ADMIN-HFNC
+// แอดมิน: ตั้งค่า HFNC
+// ───────────────────────────────────────────────────────────
   if(_wRetrem[i])_wRetrem[i].needDetail=!_wRetrem[i].needDetail;
   renderRetremList();
 }
@@ -7609,6 +7752,9 @@ function hfncSetUpdateLabel(si,val){
   sets[si].label=val.trim();_hfncSetSave(sets);
 }
 function hfncSetUpdateColor(si,val){
+// ─────────────────────────────────────────────────────────── §ALERTS-SOUND
+// แจ้งเตือนเสียง (circuit ค้าง + ใบยืมใหม่)
+// ───────────────────────────────────────────────────────────
   var sets=_hfncSetGet();if(!sets[si])return;
   sets[si].color=val;_hfncSetSave(sets);
   var lbl=document.getElementById('hfncSetLabel_'+si);
@@ -7777,6 +7923,9 @@ function scheduleNewLoanAlert(){
   _newLoanAlertTimer=setInterval(checkNewLoanAlert,30000);
 }
 function scheduleStaleLoanAlert(){
+// ─────────────────────────────────────────────────────────── §EXPORT-SELECT
+// เตรียม select/datalist + Export ไฟล์
+// ───────────────────────────────────────────────────────────
   if(_staleLoanAlertTimer){clearInterval(_staleLoanAlertTimer);_staleLoanAlertTimer=null;}
   if(!NEW_LOAN_ALERT||NEW_LOAN_ALERT.mode==='off')return;
   _staleLoanAlertTimer=setInterval(checkStaleLoanAlert,15*60000);
@@ -8042,6 +8191,9 @@ function dlPage(page,fmt){
   if(fmt==='csv'){dlCSV(rows.map(function(r){return r.map(function(c){return'"'+String(c==null?'':c).replace(/"/g,'""')+'"';}).join(',');}).join('\n'),fname+'.csv');}
   else if(fmt==='xlsx'||fmt==='xls'){
     var xml='<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1a1a2e" ss:Pattern="Solid"/></Style></Styles><Worksheet ss:Name="ข้อมูล"><Table>'+rows.map(function(row,ri){return'<Row>'+row.map(function(cell){var v=String(cell==null?'':cell).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');var isNum=v!==''&&!isNaN(v)&&ri>0;if(ri===0)return'<Cell ss:StyleID="h"><Data ss:Type="String">'+v+'</Data></Cell>';if(isNum)return'<Cell><Data ss:Type="Number">'+v+'</Data></Cell>';return'<Cell><Data ss:Type="String">'+v+'</Data></Cell>';}).join('')+'</Row>';}).join('')+'</Table></Worksheet></Workbook>';
+// ─────────────────────────────────────────────────────────── §MODAL-TOAST
+// Modal & Toast ใช้ร่วมทั้งระบบ
+// ───────────────────────────────────────────────────────────
     var blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
     var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname+(fmt==='xlsx'?'.xlsx':'.xls');a.click();
   }
@@ -8056,6 +8208,9 @@ function showPg(page,el){
   // หยุด timer ถ้าออกจากหน้าสถิติ
   if(page!=='sum'&&window.stopSumRealtime)stopSumRealtime();
   if(loans===null){
+// ─────────────────────────────────────────────────────────── §PRINT-FORM
+// พิมพ์ฟอร์ม (Print Form)
+// ───────────────────────────────────────────────────────────
     loadAll().then(function(){
       if(page==='sum'){initSumFilters();loadSum().then(function(){startSumRealtime();setTimeout(function(){if(typeof _cmpInit==='function')_cmpInit();},100);});}
     });
@@ -8347,6 +8502,27 @@ function pfRenderBack(){
   }
   b.innerHTML=h;
 }
+// ปุ่มมุมซ้ายล่างใต้ตารางยืมคืน (pfBack) — เพิ่ม/ลบแถวท้ายตาราง
+function pfBackAppend(){
+  var b=document.getElementById('pfBack');if(!b)return;
+  if(typeof _pfPushUndo==='function')_pfPushUndo();
+  var tr=document.createElement('tr');
+  var h='<td contenteditable></td>';
+  for(var k=0;k<20;k++)h+=_pfCell();
+  h+='<td contenteditable></td>';
+  tr.innerHTML=h;
+  b.appendChild(tr);
+  if(typeof _pfFitBack==='function')_pfFitBack();
+  if(typeof _pfSaveManualData==='function')_pfSaveManualData();
+}
+function pfBackRemoveLast(){
+  var b=document.getElementById('pfBack');if(!b)return;
+  if(b.children.length<=1)return;
+  if(typeof _pfPushUndo==='function')_pfPushUndo();
+  b.lastElementChild.remove();
+  if(typeof _pfFitBack==='function')_pfFitBack();
+  if(typeof _pfSaveManualData==='function')_pfSaveManualData();
+}
 // วัด 1mm = กี่ px จริงในเบราว์เซอร์ (สำหรับคำนวณขอบ A4 แม่นยำ)
 function _pfMM(){
   var d=document.createElement('div');d.style.cssText='height:100mm;position:absolute;visibility:hidden';
@@ -8624,9 +8800,10 @@ function _pfFitBack(){
       for(var i=0;i<bd.children.length;i++)bd.children[i].style.height=maxRowH.toFixed(2)+'px';
     });
     var totals=[];
-    for(var t=0;t<wrap.children.length;t++)totals.push(wrap.children[t].getBoundingClientRect().height);
+    var blockDivs=[document.getElementById('pfSumBlock1'),document.getElementById('pfSumBlock2'),document.getElementById('pfSumBlock3')];
+    for(var t=0;t<blockDivs.length;t++)totals.push(blockDivs[t]?blockDivs[t].getBoundingClientRect().height:0);
     var maxTotal=Math.max.apply(null,totals);
-    for(var t=0;t<wrap.children.length;t++){
+    for(var t=0;t<blockDivs.length;t++){
       var diff=maxTotal-totals[t];
       if(diff>0.5){
         var bd=bodies[t];
@@ -8977,6 +9154,9 @@ function pfPrintPage(n){
 // - หน้าลงบันทึก: แสดง Standby badge ใน action row
 // - Admin: แท็บจัดการสถานะเครื่องมือ
 // ═══════════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────── §INVENTORY
+// คลังอุปกรณ์ (Inventory) + แอดมินคลัง
+// ───────────────────────────────────────────────────────────
 (function(){
 
 // ── CSS เพิ่มเติม ──────────────────────────────────────────────────
@@ -9135,7 +9315,10 @@ window.renderInventoryTable=function(){
     +'</div>';
 };
 
-window.refreshInventoryTable=function(){
+window.refreshInventoryTable=async function(){
+  // ขยายเล็กน้อยจากเดิม: โหลดทะเบียนรายเครื่องใหม่ด้วย (ไม่ใช่แค่ localStorage)
+  // เพื่อให้การ์ดสรุปในหน้า Dashboard ตรงกับทะเบียนล่าสุดเสมอ
+  try{if(typeof loadEquipmentUnits==='function')await loadEquipmentUnits();}catch(e){console.error(e);}
   window._EQ_INV=_invGet();renderInventoryTable();
   var el=document.getElementById('invLastUpdate');
   if(el)el.textContent=new Date().toLocaleString('th-TH');
@@ -9246,80 +9429,441 @@ window.cancelRecordItem=async function(key){
 // ════════════════════════════════════════════════════════════════
 // ADMIN: Equipment Inventory Manager tab
 // ════════════════════════════════════════════════════════════════
-function buildInvRows(inv){
-  return inv.map(function(eq,i){
-    return '<tr onmouseover="this.style.background=\'rgba(245,158,11,.04)\'" onmouseout="this.style.background=\'transparent\'">'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd)">'
-        +'<input class="inline-edit" style="width:220px;font-size:12px" value="'+eq.name.replace(/"/g,'&quot;')+'" onchange="invUpdateName('+i+',this.value)">'
-      +'</td>'
+// ── ทะเบียนเครื่องมือรายตัว (equipment_units) ──────────────────────
+// แต่ละชนิดเครื่องมือ (Ventilator, HFNC, ...) มีเครื่องจริงแยกทีละหมายเลข
+// (No.1-74 ฯลฯ) พร้อม NVH No./หมายเลขทะเบียนคุรุภัณฑ์/ยี่ห้อ/รุ่น/สถานะ — โหลดจาก Supabase
+// ตาราง equipment_units แล้วนับสรุป Total/ซ่อม/รอจำหน่าย/ForDept อัตโนมัติ
+// ป้อนกลับเข้า _invGet()/_EQ_INV เดิม (คงโครงสร้างเดิมไว้) เพื่อให้ทุกจุดที่
+// เคยอ่าน total/inactive/forDept จาก inventory เดิม (Dashboard, พิมพ์ฟอร์ม,
+// กราฟเปรียบเทียบปี ฯลฯ) ยังทำงานถูกต้องเหมือนเดิมโดยไม่ต้องแก้จุดอื่นเลย
+window._EQ_UNITS={};        // {equipment_type: [unit,...]} เรียงตาม unit_no
+window._EQ_UNITS_BY_ID={};  // {id: unit} สำหรับหาแถวเร็วตอนแก้ทีละช่อง
+var _invExpandedSet=new Set();
+var INV_STATUSES=['คงเหลือ','ยืม','ซ่อม','รอจำหน่าย','ใช้ประจำแผนก','ว่าง'];
+var INV_STATUS_COLOR={'คงเหลือ':'var(--ok)','ยืม':'var(--ac)','ซ่อม':'#f59e0b','รอจำหน่าย':'var(--er)','ใช้ประจำแผนก':'#a78bfa','ว่าง':'var(--mu)'};
+
+// เรียงแบบ "รู้จักตัวเลข" — ถ้าเป็นเลขล้วนเรียงตามค่าจริง (1,2,3...223)
+// ถ้าเป็นตัวอักษร (เช่น O2FLO1/MEK1) เรียงเป็นกลุ่มต่อท้ายเลขล้วนเสมอ
+function _invNaturalCompare(a,b){
+  var na=parseInt(a,10),nb=parseInt(b,10);
+  var aNum=!isNaN(na)&&String(na)===String(a).trim();
+  var bNum=!isNaN(nb)&&String(nb)===String(b).trim();
+  if(aNum&&bNum)return na-nb;
+  if(aNum&&!bNum)return -1;
+  if(!aNum&&bNum)return 1;
+  return String(a).localeCompare(String(b),'th');
+}
+
+async function loadEquipmentUnits(){
+  var rows=await SB.get('equipment_units','order=equipment_type.asc,id.asc&limit=5000');
+  var grp={},byId={};
+  rows.forEach(function(r){
+    if(!grp[r.equipment_type])grp[r.equipment_type]=[];
+    grp[r.equipment_type].push(r);
+    byId[r.id]=r;
+  });
+  // เรียงแต่ละชนิดด้วย natural sort ของ unit_no โดยตรง — ไม่พึ่งลำดับที่ฐานข้อมูล
+  // คืนมา (ตอน seed ข้อมูลรอบแรกไม่ได้ล็อกลำดับ insert ต่อชนิดไว้ชัดเจน)
+  Object.keys(grp).forEach(function(type){grp[type].sort(function(x,y){return _invNaturalCompare(x.unit_no,y.unit_no);});});
+  window._EQ_UNITS=grp;
+  window._EQ_UNITS_BY_ID=byId;
+  _invRecalcFromUnits();
+}
+
+// นับ Total/ซ่อม/รอจำหน่าย/ForDept จากรายเครื่องจริง แล้วเขียนกลับเข้า
+// _invGet()/_EQ_INV/app_settings เดิม — คงชื่อชนิดตามลำดับเดิมไว้เสมอ
+function _invRecalcFromUnits(){
+  var oldInv=_invGet();
+  var orderedNames=oldInv.map(function(e){return e.name;});
+  Object.keys(window._EQ_UNITS||{}).forEach(function(n){if(orderedNames.indexOf(n)===-1)orderedNames.push(n);});
+  var newInv=orderedNames.map(function(name){
+    var units=(window._EQ_UNITS&&window._EQ_UNITS[name])||[];
+    var repair=0,dispose=0,dept=0,vacant=0;
+    units.forEach(function(u){
+      if(u.status==='ซ่อม')repair++;
+      else if(u.status==='รอจำหน่าย')dispose++;
+      else if(u.status==='ใช้ประจำแผนก')dept++;
+      else if(u.status==='ว่าง')vacant++;
+    });
+    // "ว่าง" = เลขที่จำหน่ายไปแล้วยังไม่มีเครื่องมาแทน — ไม่นับรวมใน Total ตามที่ตกลง
+    return{name:name,total:units.length-vacant,inactive:repair+dispose,forDept:dept};
+  });
+  _invSet(newInv);
+  window._EQ_INV=newInv;
+  saveConfig('inventory',newInv);
+}
+
+function _csvRow(arr){return arr.map(function(v){v=String(v==null?'':v);return'"'+v.replace(/"/g,'""')+'"';}).join(',');}
+
+function buildInvRows(){
+  var inv=_invGet();
+  var onLoanMap=getOnLoanByName();
+  return inv.map(function(eq){
+    var units=(window._EQ_UNITS&&window._EQ_UNITS[eq.name])||[];
+    var repair=0,dispose=0,dept=0,vacant=0;
+    units.forEach(function(u){
+      if(u.status==='ซ่อม')repair++;
+      else if(u.status==='รอจำหน่าย')dispose++;
+      else if(u.status==='ใช้ประจำแผนก')dept++;
+      else if(u.status==='ว่าง')vacant++;
+    });
+    var total=units.length-vacant; // "ว่าง" ไม่นับรวมใน Total
+    var onLoan=onLoanMap[eq.name]||0;
+    var active=total-repair-dispose-dept;
+    var available=active-onLoan;
+    var isOpen=_invExpandedSet.has(eq.name);
+    var out='<tr data-eqtype="'+esc(eq.name)+'" onmouseover="this.style.background=\'rgba(245,158,11,.04)\'" onmouseout="this.style.background=\'transparent\'">'
+      +'<td style="padding:7px 8px;border-bottom:1px solid var(--bd);width:22px;text-align:center;cursor:pointer;color:var(--ac);font-size:11px" onclick="invToggleExpand(this)">'+(isOpen?'▼':'▶')+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);font-weight:600">'+esc(eq.name)+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo)">'+total+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:#f59e0b">'+repair+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:var(--er)">'+dispose+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:#a78bfa">'+dept+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:var(--ac)">'+onLoan+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:var(--ok);font-weight:700">'+available+'</td>'
       +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
-        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center" value="'+(eq.total||0)+'" onchange="invUpdate('+i+',\'total\',this.value)">'
-      +'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
-        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center;border-color:var(--er)" value="'+(eq.inactive||0)+'" onchange="invUpdate('+i+',\'inactive\',this.value)">'
-      +'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
-        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center;border-color:#f59e0b" value="'+(eq.forDept||0)+'" onchange="invUpdate('+i+',\'forDept\',this.value)">'
-      +'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
-        +'<button class="abt" style="font-size:11px;border-color:var(--er);color:var(--er)" onclick="invRemove('+i+')">✕ ลบ</button>'
+        +'<button class="abt" style="font-size:11px;border-color:var(--er);color:var(--er)" onclick="invRemoveType(this)">✕ ลบ</button>'
       +'</td></tr>';
+    if(isOpen){
+      out+='<tr><td colspan="9" style="padding:0;border-bottom:1px solid var(--bd)"><div style="padding:10px 14px;background:var(--bg)">'+buildUnitTable(eq.name,units)+'</div></td></tr>';
+    }
+    return out;
   }).join('');
 }
 
+// หาเลขที่ "ตัวเลขล้วน" สูงสุดในทะเบียน (ใช้แค่แนะนำเลขถัดไปตอนเพิ่มเครื่องใหม่
+// เท่านั้น ไม่ยุ่งกับเลขที่ตั้งชื่อเป็นตัวอักษรเช่น O2FLO1/MEK1)
+function _invMaxNumericNo(units){
+  var max=0;
+  units.forEach(function(u){
+    var n=parseInt(u.unit_no,10);
+    if(!isNaN(n)&&n>max)max=n;
+  });
+  return max;
+}
+
+function buildUnitTable(typeName,units){
+  var maxNo=_invMaxNumericNo(units);
+  var rowsHtml=units.map(function(u){
+    var c=INV_STATUS_COLOR[u.status]||'var(--mu)';
+    var opts=INV_STATUSES.map(function(s){return'<option'+(s===u.status?' selected':'')+'>'+s+'</option>';}).join('');
+    return '<tr style="border-bottom:1px solid var(--bd)">'
+      +'<td style="padding:4px 6px"><input class="inline-edit" style="width:100%;text-align:center;font-family:var(--mo)" value="'+esc(u.unit_no)+'" onchange="invUnitField('+u.id+',\'unit_no\',this.value,this)"></td>'
+      +'<td style="padding:4px 6px"><select class="inline-edit" style="color:'+c+';font-weight:700" onchange="invUnitStatus('+u.id+',this.value)">'+opts+'</select></td>'
+      +'<td style="padding:4px 6px"><input class="inline-edit" style="width:100%" placeholder="เฉพาะกรณีใช้ประจำแผนก" value="'+esc(u.dept_name||'')+'" onchange="invUnitField('+u.id+',\'dept_name\',this.value,this)"></td>'
+      +'<td style="padding:4px 6px;text-align:center"><button class="abt" style="font-size:11px;border-color:var(--er);color:var(--er)" onclick="invDeleteUnit('+u.id+')">✕</button></td>'
+      +'</tr>';
+  }).join('');
+  return '<div class="inv-unit-wrap" data-eqtype="'+esc(typeName)+'" data-maxno="'+maxNo+'">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">'
+    +'<div style="font-size:11px;color:var(--mu)">ทะเบียนรายเครื่อง — '+units.length+' เครื่อง (แก้เลขที่ได้โดยตรง — เช่น O2FLO1, MEK1 — แก้แล้วเรียงตำแหน่งใหม่ให้อัตโนมัติ)</div>'
+    +'<button class="btn bg sm" onclick="invExportUnitsCSV(this)">⬇ Export ชนิดนี้</button>'
+    +'</div>'
+    +(units.length?('<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+      +'<thead><tr style="color:var(--mu);font-size:10px;text-transform:uppercase">'
+      +'<th style="text-align:center;padding:4px 6px">No.</th><th style="text-align:left;padding:4px 6px">สถานะ</th><th style="text-align:left;padding:4px 6px">แผนกประจำ</th><th style="text-align:center;padding:4px 6px">จัดการ</th>'
+      +'</tr></thead><tbody>'+rowsHtml+'</tbody></table></div>')
+      :'<div style="color:var(--mu);font-size:12px;padding:8px 0">ยังไม่มีเครื่องในทะเบียน — กด "เพิ่มเครื่องใหม่" ด้านล่าง</div>')
+    +'<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd)">'
+    +'<button class="btn bg sm" onclick="invShowAddForm(this)">➕ เพิ่มเครื่องใหม่</button>'
+    +'<div class="inv-add-box" style="display:none;margin-top:8px"></div>'
+    +'</div></div>';
+}
+
+window.invToggleExpand=function(el){
+  var tr=el.closest('tr[data-eqtype]');if(!tr)return;
+  var name=tr.getAttribute('data-eqtype');
+  if(_invExpandedSet.has(name))_invExpandedSet.delete(name);else _invExpandedSet.add(name);
+  var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
+};
+
+window.invUnitField=async function(id,field,value,el){
+  var u=window._EQ_UNITS_BY_ID[id];if(!u)return;
+  var old=u[field];
+  var body={};body[field]=value;
+  try{
+    await SB.patch('equipment_units','id=eq.'+id,body);
+    u[field]=value;
+  }catch(e){
+    var dup=field==='unit_no'&&/duplicate|unique/i.test(e.message||'');
+    var msg=dup?('เลข "'+value+'" ซ้ำกับเครื่องอื่นในชนิดเดียวกันแล้ว — ใช้เลขอื่น'):('บันทึกไม่สำเร็จ: '+e.message);
+    if(window.toast)window.toast(msg,'error');
+    if(el)el.value=old||'';
+  }
+};
+
+window.invUnitStatus=async function(id,value){
+  var u=window._EQ_UNITS_BY_ID[id];if(!u)return;
+  try{
+    await SB.patch('equipment_units','id=eq.'+id,{status:value});
+    u.status=value;
+    _invRecalcFromUnits();
+    var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
+    if(window.toast)window.toast('เปลี่ยนสถานะเป็น "'+value+'" แล้ว','success');
+  }catch(e){if(window.toast)window.toast('เปลี่ยนสถานะไม่สำเร็จ: '+e.message,'error');}
+};
+
+window.invShowAddForm=function(el){
+  var wrap=el.closest('.inv-unit-wrap');if(!wrap)return;
+  var box=wrap.querySelector('.inv-add-box');if(!box)return;
+  box.style.display='block';
+  box.innerHTML='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+    +'<label style="font-size:11px;color:var(--mu)">จำนวนเครื่องที่รับเข้าใหม่</label>'
+    +'<input type="number" min="1" max="200" value="1" class="inline-edit" style="width:70px" id="invAddQty" oninput="invAddPreview(this)">'
+    +'<span style="font-size:11px;color:var(--mu)">เครื่อง — แก้เลขที่แต่ละแถวได้ก่อนยืนยัน (เช่น O2FLO4, MEK6)</span>'
+    +'</div>'
+    +'<div id="invAddPreviewBox"></div>'
+    +'<div style="margin-top:8px;display:flex;gap:8px">'
+    +'<button class="btn bok sm" onclick="invConfirmAdd(this)">✓ ยืนยันเพิ่ม</button>'
+    +'<button class="btn bg sm" onclick="this.closest(\'.inv-add-box\').style.display=\'none\'">ยกเลิก</button>'
+    +'</div>';
+  el.style.display='none';
+  invAddPreview(document.getElementById('invAddQty'));
+};
+
+window.invAddPreview=function(qtyEl){
+  var box=document.getElementById('invAddPreviewBox');if(!box)return;
+  var wrap=qtyEl.closest('.inv-unit-wrap');if(!wrap)return;
+  var maxNo=parseInt(wrap.getAttribute('data-maxno'),10)||0;
+  var qty=Math.max(1,Math.min(200,parseInt(qtyEl.value,10)||1));
+  var html='<div style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">';
+  for(var i=1;i<=qty;i++){
+    html+='<input class="inline-edit invAddLabel" style="width:140px" value="'+(maxNo+i)+'">';
+  }
+  html+='</div>';
+  box.innerHTML=html;
+};
+
+window.invConfirmAdd=async function(el){
+  var wrap=el.closest('.inv-unit-wrap');if(!wrap)return;
+  var type=wrap.getAttribute('data-eqtype');
+  var labelInputs=wrap.querySelectorAll('.invAddLabel');
+  var labels=Array.prototype.map.call(labelInputs,function(inp){return inp.value.trim();}).filter(Boolean);
+  if(!labels.length){if(window.toast)window.toast('กรุณาระบุจำนวนเครื่อง','error');return;}
+  var seen={};
+  for(var i=0;i<labels.length;i++){
+    if(seen[labels[i]]){if(window.toast)window.toast('เลข "'+labels[i]+'" ซ้ำกันเองในรายการที่กำลังเพิ่ม','error');return;}
+    seen[labels[i]]=true;
+  }
+  var rows=labels.map(function(no){return{equipment_type:type,unit_no:no};});
+  try{
+    await SB.post('equipment_units',rows);
+    await loadEquipmentUnits();
+    var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
+    if(window.toast)window.toast('เพิ่ม '+labels.length+' เครื่องสำเร็จ','success');
+  }catch(e){
+    var dup=/duplicate|unique/i.test(e.message||'');
+    if(window.toast)window.toast(dup?'มีเลขที่ซ้ำกับเครื่องเดิมในทะเบียน — แก้เลขแล้วลองใหม่':('เพิ่มไม่สำเร็จ: '+e.message),'error');
+  }
+};
+
+// ✕ ลบเฉพาะแถวที่เลือก — เลือกลบเครื่องตัวไหนก็ได้ตรงๆ ไม่ต้องเป็นตัวสุดท้าย
+// (ปกติเครื่องที่จำหน่ายจริงให้เปลี่ยนสถานะเป็น "ว่าง" แทนการลบ เพื่อคงเลขที่ไว้
+// ไม่เอาไปใช้ซ้ำ ตามที่ตกลงกันไว้ — ปุ่มนี้ไว้ใช้แก้กรณีเพิ่มผิด/เพิ่มเกินโดยไม่ตั้งใจ)
+window.invDeleteUnit=async function(id){
+  var u=window._EQ_UNITS_BY_ID[id];if(!u)return;
+  if(!confirm('ลบ '+u.equipment_type+' No.'+u.unit_no+' ออกจากทะเบียน?\n(ข้อมูลสถานะ/แผนกประจำของเครื่องนี้จะหายไปถาวร — ถ้าแค่จำหน่ายแล้วยังไม่มีของแทน แนะนำเปลี่ยนสถานะเป็น "ว่าง" แทนการลบ)'))return;
+  try{
+    await SB.del('equipment_units','id=eq.'+id);
+    await loadEquipmentUnits();
+    var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
+    if(window.toast)window.toast('ลบ No.'+u.unit_no+' สำเร็จ','success');
+  }catch(e){if(window.toast)window.toast('ลบไม่สำเร็จ: '+e.message,'error');}
+};
+
+window.invExportUnitsCSV=function(el){
+  var wrap=el.closest('.inv-unit-wrap');if(!wrap)return;
+  var type=wrap.getAttribute('data-eqtype');
+  var units=(window._EQ_UNITS&&window._EQ_UNITS[type])||[];
+  var lines=[_csvRow(['ชนิดเครื่องมือ','No.','สถานะ','แผนกประจำ'])];
+  units.forEach(function(u){lines.push(_csvRow([type,u.unit_no,u.status,u.dept_name||'']));});
+  dlCSV(lines.join('\r\n'),'ทะเบียนเครื่องมือ_'+type+'.csv');
+};
+
+window.invExportAllCSV=function(){
+  var lines=[_csvRow(['ชนิดเครื่องมือ','No.','สถานะ','แผนกประจำ'])];
+  Object.keys(window._EQ_UNITS||{}).forEach(function(type){
+    (window._EQ_UNITS[type]||[]).forEach(function(u){lines.push(_csvRow([type,u.unit_no,u.status,u.dept_name||'']));});
+  });
+  dlCSV(lines.join('\r\n'),'ทะเบียนเครื่องมือทั้งหมด_'+localDateStr(new Date())+'.csv');
+};
+
 function buildInvAdminHTML(){
-  var inv=_invGet();
   return '<div class="card">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
     +'<div class="ctitle" style="margin:0;color:#f59e0b">📊 จัดการสถานะเครื่องมือแพทย์</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-    +'<button class="btn bg sm" onclick="invReload()">🔄 โหลด</button>'
-    +'<button class="btn badm sm" onclick="invSave()">✅ บันทึก</button></div></div>'
+    +'<button class="btn bg sm" onclick="invReload()">🔄 รีเฟรช</button>'
+    +'<button class="btn bg sm" onclick="invExportAllCSV()">⬇ Export ทั้งหมด</button></div></div>'
     +'<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:var(--mu)">'
-    +'Active = Total−Inactive−ForDept &nbsp;|&nbsp; On Loan = อัตโนมัติ &nbsp;|&nbsp; Available = Active−OnLoan &nbsp;|&nbsp; % คำนวณอัตโนมัติ'
+    +'Total/ซ่อม/รอจำหน่าย/For Dept นับอัตโนมัติจากทะเบียนรายเครื่อง (กด ▶ เพื่อดู/แก้รายเครื่อง) &nbsp;|&nbsp; Active = Total−ซ่อม−รอจำหน่าย−ForDept &nbsp;|&nbsp; On Loan = อัตโนมัติ &nbsp;|&nbsp; Available = Active−OnLoan'
     +'</div>'
     +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'
     +'<thead><tr style="background:var(--s2)">'
+    +'<th style="width:22px;border-bottom:2px solid var(--bd)"></th>'
     +'<th style="text-align:left;padding:8px 10px;font-size:10px;color:var(--mu);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">ชื่อเครื่องมือ</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Total ✏️</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--er);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Inactive ✏️</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:#f59e0b;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">For Dept Use ✏️</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Total</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:#f59e0b;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">ซ่อม</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--er);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">รอจำหน่าย</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:#a78bfa;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">For Dept Use</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--ac);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">ยืม</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--ok);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">คงเหลือ</th>'
     +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--mu);font-weight:700;border-bottom:2px solid var(--bd)">จัดการ</th>'
     +'</tr></thead>'
-    +'<tbody id="invAdminBody">'+buildInvRows(inv)+'</tbody></table></div>'
+    +'<tbody id="invAdminBody">'+buildInvRows()+'</tbody></table></div>'
     +'<div style="margin-top:14px;padding:14px;background:var(--s2);border-radius:8px">'
-    +'<div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:10px">➕ เพิ่มรายการเครื่องมือใหม่</div>'
+    +'<div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:10px">➕ เพิ่มชนิดเครื่องมือใหม่</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">'
-    +'<div class="fg"><label>ชื่อเครื่องมือ *</label><input type="text" id="newInvName" placeholder="เช่น New Device" style="min-width:180px"></div>'
-    +'<div class="fg"><label>Total</label><input type="number" min="0" id="newInvTotal" value="0" style="width:80px;text-align:center"></div>'
-    +'<div class="fg"><label>Inactive</label><input type="number" min="0" id="newInvInactive" value="0" style="width:80px;text-align:center"></div>'
-    +'<div class="fg"><label>For Dept Use</label><input type="number" min="0" id="newInvForDept" value="0" style="width:80px;text-align:center"></div>'
-    +'<button class="btn badm" style="margin-bottom:3px" onclick="invAdd()">➕ เพิ่ม</button>'
-    +'</div></div></div>';
+    +'<div class="fg"><label>ชื่อเครื่องมือ *</label><input type="text" id="newInvName" placeholder="เช่น New Device" style="min-width:220px"></div>'
+    +'<button class="btn badm" style="margin-bottom:3px" onclick="invAddType()">➕ เพิ่ม</button>'
+    +'</div><div style="font-size:11px;color:var(--mu);margin-top:6px">เพิ่มชนิดใหม่แล้วจะเริ่มจาก 0 เครื่อง — กด ▶ ที่แถวนั้นแล้วกด "เพิ่มเครื่องใหม่" เพื่อใส่จำนวนเครื่องจริง</div>'
+    +'</div></div>';
 }
 
-window.invUpdate=function(i,field,val){var inv=_invGet();if(!inv[i])return;inv[i][field]=parseInt(val,10)||0;_invSet(inv);window._EQ_INV=inv;};
-window.invUpdateName=function(i,val){var inv=_invGet();if(!inv[i])return;inv[i].name=(val||'').trim();_invSet(inv);window._EQ_INV=inv;};
-window.invAdd=function(){
+window.invAddType=function(){
   var name=(document.getElementById('newInvName').value||'').trim();
   if(!name){if(window.toast)window.toast('กรุณาระบุชื่อเครื่องมือ','error');return;}
   var inv=_invGet();
-  inv.push({name:name,total:parseInt(document.getElementById('newInvTotal').value,10)||0,inactive:parseInt(document.getElementById('newInvInactive').value,10)||0,forDept:parseInt(document.getElementById('newInvForDept').value,10)||0});
+  if(inv.some(function(e){return e.name===name;})){if(window.toast)window.toast('มีชื่อนี้อยู่แล้ว','warning');return;}
+  inv.push({name:name,total:0,inactive:0,forDept:0});
   _invSet(inv);window._EQ_INV=inv;saveConfig('inventory',inv);
   document.getElementById('newInvName').value='';
-  document.getElementById('newInvTotal').value='0';
-  document.getElementById('newInvInactive').value='0';
-  document.getElementById('newInvForDept').value='0';
-  var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows(_invGet());
-  if(window.toast)window.toast('เพิ่มรายการสำเร็จ','success');
+  invReload();
+  if(window.toast)window.toast('เพิ่มชนิด "'+name+'" แล้ว (0 เครื่อง)','success');
 };
-window.invRemove=function(i){
-  var inv=_invGet();if(!inv[i])return;
-  if(!confirm('ลบ "'+inv[i].name+'" ?'))return;
-  inv.splice(i,1);_invSet(inv);window._EQ_INV=inv;saveConfig('inventory',inv);invReload();
+
+window.invRemoveType=async function(el){
+  var tr=el.closest('tr[data-eqtype]');if(!tr)return;
+  var name=tr.getAttribute('data-eqtype');
+  var units=(window._EQ_UNITS&&window._EQ_UNITS[name])||[];
+  var msg=units.length?('ลบ "'+name+'" — จะลบเครื่องทั้งหมด '+units.length+' เครื่องในทะเบียนด้วย ลบแล้วกู้คืนไม่ได้ ยืนยัน?'):('ลบ "'+name+'" ?');
+  if(!confirm(msg))return;
+  try{
+    if(units.length)await SB.del('equipment_units','equipment_type=eq.'+encodeURIComponent(name));
+    var inv=_invGet().filter(function(e){return e.name!==name;});
+    _invSet(inv);window._EQ_INV=inv;
+    delete window._EQ_UNITS[name];
+    _invExpandedSet.delete(name);
+    saveConfig('inventory',inv);
+    var p=document.getElementById('adm-inv-mgr');if(p)p.innerHTML=buildInvAdminHTML();
+    if(window.toast)window.toast('ลบสำเร็จ','success');
+  }catch(e){if(window.toast)window.toast('ลบไม่สำเร็จ: '+e.message,'error');}
 };
-window.invSave=function(){_invSet(_invGet());window._EQ_INV=_invGet();saveConfig('inventory',_invGet());renderInventoryTable();if(window.toast)window.toast('บันทึกสำเร็จ!','success');};
-window.invReload=function(){window._EQ_INV=_invGet();var p=document.getElementById('adm-inv-mgr');if(p)p.innerHTML=buildInvAdminHTML();};
+
+window.invReload=async function(){
+  try{await loadEquipmentUnits();}catch(e){console.error('loadEquipmentUnits failed:',e);}
+  var p=document.getElementById('adm-inv-mgr');if(p)p.innerHTML=buildInvAdminHTML();
+};
+
+// ── สรุปรายเครื่อง (แท็บแยกต่างหาก) ────────────────────────────────
+// "ยืม" ในสรุปนี้ดึงจากใบยืมที่ ACTIVE จริง (จับคู่หมายเลขเครื่อง+ชนิด)
+// ไม่ใช่จาก status ในทะเบียน — เพราะระบบยืม-คืนยังไม่เชื่อมกับทะเบียน
+// อัตโนมัติ (เฟส 2) การอ่านข้อมูลสดแบบนี้จึงแม่นกว่าและไม่ต้องรอเฟส 2
+var INV_SUM_ORDER=['ยืม','ใช้ประจำแผนก','คงเหลือ','ซ่อม','รอจำหน่าย','ว่าง'];
+var INV_SUM_COLOR={'ยืม':'#00c8ff','คงเหลือ':'#10b981','ซ่อม':'#f59e0b','รอจำหน่าย':'#ef4444','ใช้ประจำแผนก':'#a78bfa','ว่าง':'#8b949e'};
+
+function _liveLoansByTypeNo(type){
+  var map={};
+  if(!window.expanded)return map;
+  (window.expanded()||[]).forEach(function(item){
+    if(item.status!=='ACTIVE')return;
+    var n=(item.eq&&item.eq.name)||'';
+    if(S(n)!==S(type))return;
+    var no=item.borrow?S(item.borrow.EquipmentNo):'';
+    if(!no)return;
+    map[no]=(item.loan&&item.loan.DeptName)?S(item.loan.DeptName):'';
+  });
+  return map;
+}
+
+function _invSumGroups(type){
+  var units=(window._EQ_UNITS&&window._EQ_UNITS[type])||[];
+  var loanMap=_liveLoansByTypeNo(type);
+  var groups={'ยืม':[],'คงเหลือ':[],'ซ่อม':[],'รอจำหน่าย':[],'ใช้ประจำแผนก':[],'ว่าง':[]};
+  units.forEach(function(u){
+    var noStr=String(u.unit_no);
+    if(Object.prototype.hasOwnProperty.call(loanMap,noStr)){
+      groups['ยืม'].push({no:u.unit_no,dept:loanMap[noStr]||'ไม่ระบุแผนก'});
+    }else if(u.status==='ใช้ประจำแผนก'){
+      groups['ใช้ประจำแผนก'].push({no:u.unit_no,dept:u.dept_name||'ยังไม่ระบุแผนก'});
+    }else if(u.status==='ซ่อม'){
+      groups['ซ่อม'].push({no:u.unit_no});
+    }else if(u.status==='รอจำหน่าย'){
+      groups['รอจำหน่าย'].push({no:u.unit_no});
+    }else if(u.status==='ว่าง'){
+      groups['ว่าง'].push({no:u.unit_no});
+    }else{
+      groups['คงเหลือ'].push({no:u.unit_no});
+    }
+  });
+  Object.keys(groups).forEach(function(k){groups[k].sort(function(a,b){return a.no-b.no;});});
+  return groups;
+}
+
+function buildInvSummaryHTML(){
+  var inv=_invGet();
+  var first=inv[0]?inv[0].name:'';
+  return '<div class="card">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
+    +'<div class="ctitle" style="margin:0;color:#f59e0b">📋 สรุปรายเครื่อง</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+    +'<select id="invSumType" class="inline-edit" style="min-width:220px" onchange="invSumRender()">'
+    +inv.map(function(e){return'<option value="'+esc(e.name)+'">'+esc(e.name)+'</option>';}).join('')
+    +'</select>'
+    +'<button class="btn bg sm" onclick="invSumReload()">🔄 รีเฟรช</button>'
+    +'<button class="btn bg sm" onclick="invSumExportCSV()">⬇ Export</button>'
+    +'</div></div>'
+    +'<div style="font-size:11px;color:var(--mu);margin-bottom:10px">"ยืม" อ่านจากใบยืมที่ยังไม่คืนจริง (สด) &nbsp;|&nbsp; "ใช้ประจำแผนก" มาจากช่องแผนกประจำในทะเบียนรายเครื่อง</div>'
+    +'<input type="text" id="invSumSearch" class="inline-edit" placeholder="ค้นหาเลขเครื่องหรือแผนก..." style="width:100%;box-sizing:border-box;margin-bottom:10px" oninput="invSumRender()">'
+    +'<div id="invSumBody"></div>'
+    +'</div>';
+}
+
+window.invSumRender=function(){
+  var sel=document.getElementById('invSumType');
+  var type=sel?sel.value:'';
+  var body=document.getElementById('invSumBody');if(!body)return;
+  if(!type){body.innerHTML='<div style="color:var(--mu);font-size:12px">ไม่มีชนิดเครื่องมือ</div>';return;}
+  var qEl=document.getElementById('invSumSearch');
+  var q=qEl?qEl.value.trim().toLowerCase():'';
+  var groups=_invSumGroups(type);
+  body.innerHTML=INV_SUM_ORDER.map(function(label){
+    var items=groups[label]||[];
+    // เรียงตามหมายเลขเสมอ (ไม่จัดกลุ่มตามแผนก) — กรองด้วยคำค้นถ้ามี ไม่เปลี่ยนลำดับ
+    if(q)items=items.filter(function(it){
+      return String(it.no).indexOf(q)!==-1||(it.dept&&it.dept.toLowerCase().indexOf(q)!==-1);
+    });
+    var color=INV_SUM_COLOR[label];
+    var cells=items.length?('<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px">'
+      +items.map(function(it){
+        return '<div style="background:'+color+'0f;border:1px solid '+color+'40;border-radius:6px;padding:5px 4px;text-align:center">'
+          +'<div style="color:'+color+';font-size:14px;font-weight:700;font-family:var(--mo);line-height:1.2">'+it.no+'</div>'
+          +(it.dept?('<div style="color:var(--mu);font-size:10px;line-height:1.2;margin-top:1px">'+esc(it.dept)+'</div>'):'')
+          +'</div>';
+      }).join('')+'</div>')
+      :'<span style="color:var(--mu);font-size:12px">'+(q?'— ไม่พบ —':'— ไม่มี —')+'</span>';
+    return '<div style="margin-bottom:10px;padding:10px 12px;background:var(--s1);border:1px solid var(--bd);border-left:3px solid '+color+';border-radius:6px">'
+      +'<div style="color:'+color+';font-size:12px;font-weight:700;margin-bottom:8px">'+label+' ('+items.length+(q?'/'+(groups[label]||[]).length:'')+')</div>'
+      +cells
+      +'</div>';
+  }).join('');
+};
+
+window.invSumReload=async function(){
+  try{if(typeof loadEquipmentUnits==='function')await loadEquipmentUnits();}catch(e){console.error(e);}
+  invSumRender();
+};
+
+window.invSumExportCSV=function(){
+  var sel=document.getElementById('invSumType');
+  var type=sel?sel.value:'';if(!type)return;
+  var groups=_invSumGroups(type);
+  var lines=[_csvRow(['ชนิดเครื่องมือ','สถานะ','No.','แผนก'])];
+  INV_SUM_ORDER.forEach(function(label){
+    (groups[label]||[]).forEach(function(it){lines.push(_csvRow([type,label,it.no,it.dept||'']));});
+  });
+  dlCSV(lines.join('\r\n'),'สรุปรายเครื่อง_'+type+'.csv');
+};
 
 function injectInvAdminTab(){
   var ac=document.getElementById('adminContent');if(!ac||document.getElementById('atab-inv'))return;
@@ -9330,12 +9874,22 @@ function injectInvAdminTab(){
     btn.setAttribute('onclick','showAdminTab(\'inv-mgr\',this)');
     btn.innerHTML='📊 จัดการสถานะเครื่องมือ';
     tabs.appendChild(btn);
+    var btn2=document.createElement('button');
+    btn2.className='atab';btn2.id='atab-invsum';
+    btn2.setAttribute('onclick','showAdminTab(\'invsum-mgr\',this)');
+    btn2.innerHTML='📋 สรุปรายเครื่อง';
+    tabs.appendChild(btn2);
   }
   var panel=document.createElement('div');
   panel.className='admin-sub';panel.id='adm-inv-mgr';
   panel.style.display='none';
   panel.innerHTML=buildInvAdminHTML();
   ac.appendChild(panel);
+  var panel2=document.createElement('div');
+  panel2.className='admin-sub';panel2.id='adm-invsum-mgr';
+  panel2.style.display='none';
+  panel2.innerHTML=buildInvSummaryHTML();
+  ac.appendChild(panel2);
 }
 
 var _origSAT=window.showAdminTab;
@@ -9348,7 +9902,17 @@ window.showAdminTab=function(id,el){
     var p=document.getElementById('adm-inv-mgr');
     if(p){p.classList.add('on');p.style.display='';}
     if(el)el.classList.add('on');invReload();
+  } else if(id==='invsum-mgr'){
+    if(!document.getElementById('adm-invsum-mgr')&&window.injectInvAdminTab)injectInvAdminTab();
+    document.querySelectorAll('.admin-sub').forEach(function(s){s.classList.remove('on');s.style.display='none';});
+    document.querySelectorAll('.atab').forEach(function(t){t.classList.remove('on');});
+    var p2=document.getElementById('adm-invsum-mgr');
+    if(p2){p2.classList.add('on');p2.style.display='';}
+    if(el)el.classList.add('on');invSumReload();
   } else {if(_origSAT)_origSAT.apply(this,arguments);}
+// ─────────────────────────────────────────────────────────── §MANUAL-VIEWER
+// คู่มือ / Word viewer / ดาวน์โหลดคู่มือ
+// ───────────────────────────────────────────────────────────
 };
 
 var _origCAP=window.checkAdminPin;
@@ -9616,6 +10180,9 @@ function manDL(fmt){
   var mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   var xml = '<?xml version="1.0" encoding="UTF-8"?>'
     +'<?mso-application progid="Excel.Sheet"?>'
+// ─────────────────────────────────────────────────────────── §CHANGE-PIN
+// เปลี่ยน PIN ผู้ใช้
+// ───────────────────────────────────────────────────────────
     +'<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"'
     +' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
     +'<Styles>'
