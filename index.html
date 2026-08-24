@@ -2732,10 +2732,6 @@ function toggleTheme(){
         <tbody id="pfBack"></tbody>
       </table>
       <div id="pfColResizersBackTop"></div>
-      <div class="pf-rowbtns" style="margin-top:4px;display:flex;gap:8px">
-        <button style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:700;border-radius:6px;border:1px solid #10b981;background:#e6f7f1;color:#0a6b4f;cursor:pointer" onclick="pfBackAppend()" title="เพิ่มแถวท้ายตารางยืมคืน">＋ เพิ่มแถว</button>
-        <button style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:700;border-radius:6px;border:1px solid #ef4444;background:#fdecec;color:#a12a2a;cursor:pointer" onclick="pfBackRemoveLast()" title="ลบแถวท้ายตารางยืมคืน">－ ลดแถว</button>
-      </div>
 
       <div id="pfManualZone">
       <div class="pf-sumwrap" style="display:flex;gap:0;margin-top:8px;align-items:stretch">
@@ -2754,7 +2750,7 @@ function toggleTheme(){
                โดยเจตนา (ยืนยันชัดเจน 2 รอบ แม้ทราบแล้วว่าเป็นข้อมูลเฉพาะวันที่ 19-20 ส.ค. 2569
                ไม่ใช่ค่าที่คำนวณทั่วไป) — ถ้าต้องการเปลี่ยน ให้แก้ตัวเลขในแถวด้านล่างตรงๆ -->
           <tbody id="pfSbBody">
-          <tr><td rowspan="11" class="pf-vs" id="pfSbLabel" contenteditable>stand by</td><td class="tl" contenteditable>อช</td><td contenteditable>49</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td rowspan="15" class="pf-vs" id="pfSbLabel" contenteditable>stand by</td><td class="tl" contenteditable>อช</td><td contenteditable>49</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>อญ</td><td contenteditable>42</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>ศช</td><td contenteditable>14</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>ศญ</td><td contenteditable>73</td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
@@ -2765,13 +2761,13 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           </tbody>
         </table>
         <div id="pfColResizersSum1"></div>
-        <div class="pf-rowbtns" style="margin-top:4px;display:flex;gap:6px">
-          <button style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:700;border-radius:6px;border:1px solid #10b981;background:#e6f7f1;color:#0a6b4f;cursor:pointer" onclick="pfSumAddAll()" title="เพิ่มแถวท้ายทั้ง 3 ตาราง (สรุปยอดยืม-คืน/HME/ตึก) พร้อมกัน">＋ เพิ่มแถว</button>
-          <button style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:700;border-radius:6px;border:1px solid #ef4444;background:#fdecec;color:#a12a2a;cursor:pointer" onclick="pfSumDelAll()" title="ลบแถวท้ายทั้ง 3 ตาราง (สรุปยอดยืม-คืน/HME/ตึก) พร้อมกัน">－ ลดแถว</button>
-        </div>
         </div>
 
         <!-- ── บล็อก 2: การใช้ HME ── -->
@@ -2796,6 +2792,10 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td></tr>
           </tbody>
         </table>
         <div id="pfColResizersSum2"></div>
@@ -2807,7 +2807,7 @@ function toggleTheme(){
           <colgroup id="pfSumCols3"><col style="width:30%"><col style="width:20%"><col style="width:50%"></colgroup>
           <tr><td class="pf-sec" colspan="2" contenteditable>การใช้ HME</td><td class="pf-sec" contenteditable>ปัญหาข้อขัดข้อง/ข้อเสนอแนะ</td></tr>
           <tbody id="pfProbBody">
-          <tr><td contenteditable>ตึก</td><td contenteditable>จำนวน</td><td rowspan="16" id="pfProbNote" contenteditable style="vertical-align:top"></td></tr>
+          <tr><td contenteditable>ตึก</td><td contenteditable>จำนวน</td><td rowspan="20" id="pfProbNote" contenteditable style="vertical-align:top"></td></tr>
           <tr><td class="tl" contenteditable>100/9</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>100/6</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>80/10</td><td contenteditable></td></tr>
@@ -2822,6 +2822,10 @@ function toggleTheme(){
           <tr><td class="tl" contenteditable>CICU</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>SICU</td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable>MICU</td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
+          <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
           <tr><td class="tl" contenteditable></td><td contenteditable></td></tr>
           </tbody>
         </table>
@@ -3467,9 +3471,6 @@ async function loadAll(){
   try{
     var[ld,bd]=await Promise.all([API.getAllLoans(),API.getAllBorrows()]);
     loans=ld;borrows=bd;
-    // โหลดทะเบียนเครื่องมือรายตัว — ไม่ await ตรงนี้ ให้ทำงานคู่ขนานแบบไม่บล็อก
-    // การแสดงผลหลัก (loans/borrows สำคัญกว่า ต้องไม่ช้าเพราะรอทะเบียนเครื่องมือ)
-    if(typeof loadEquipmentUnits==='function')loadEquipmentUnits().catch(function(e){console.error('loadEquipmentUnits:',e);});
     // ทุกครั้งที่รีเฟรชข้อมูล (ไม่ว่าจะจากการเปิดหน้า, กดปุ่ม, หรือบันทึกใบยืม/ใบบันทึกยืมเอง)
     // ให้อัปเดต "ใบล่าสุดที่เคยเห็น" ของระบบแจ้งเตือนด้วยเสมอ กันแจ้งเตือนใบที่เครื่องนี้เพิ่งทำเอง
     if(typeof initNewLoanAlertBaseline==='function')initNewLoanAlertBaseline();
@@ -3697,30 +3698,17 @@ function clearLoan(){
   clearStandby();
   setToday();
 }
-// ยกเลิก/ลบใบยืมทั้งใบ — ต้องคืนสถานะทะเบียนของทุกเครื่องที่ยัง ACTIVE ในใบนั้น
-// กลับเป็น "คงเหลือ" ด้วย (ไม่งั้นทะเบียนจะค้างว่า "ยืม" อยู่ทั้งที่ยกเลิกไปแล้ว)
-function _invSyncLoanCancelled(lid){
-  try{
-    if(!window.expanded)return;
-    var items=expanded().filter(function(it){return S(it.loan.LoanID)===S(lid)&&it.status==='ACTIVE';});
-    items.forEach(function(it){
-      var type=it.eq?S(it.eq.name):'';
-      var no=it.borrow?S(it.borrow.EquipmentNo):'';
-      if(type&&no)_invSyncStatus(type,no,'คงเหลือ');
-    });
-  }catch(e){console.warn('sync ทะเบียนตอนยกเลิก/ลบใบยืมไม่สำเร็จ:',e);}
-}
-async function cancelLoan(lid){if(!confirm('ยืนยันการยกเลิกใบยืม '+lid+' ?'))return;try{_invSyncLoanCancelled(lid);await API.cancelLoan(lid);bigToast('ยกเลิกใบยืมแล้ว\n'+lid,'warning');setTimeout(loadAll,1500);}catch(e){bigToast('เกิดข้อผิดพลาด:\n'+e.message,'error');}}
-async function deleteLoan(lid){if(!confirm('ลบรายการ '+lid+' ออกจากระบบ? (ไม่สามารถกู้คืนได้)'))return;try{_invSyncLoanCancelled(lid);await API.deleteLoan(lid);bigToast('ลบรายการแล้ว\n'+lid,'success');setTimeout(loadAll,1500);}catch(e){bigToast('เกิดข้อผิดพลาด:\n'+e.message,'error');}}
+async function cancelLoan(lid){if(!confirm('ยืนยันการยกเลิกใบยืม '+lid+' ?'))return;try{await API.cancelLoan(lid);bigToast('ยกเลิกใบยืมแล้ว\n'+lid,'warning');setTimeout(loadAll,1500);}catch(e){bigToast('เกิดข้อผิดพลาด:\n'+e.message,'error');}}
+async function deleteLoan(lid){if(!confirm('ลบรายการ '+lid+' ออกจากระบบ? (ไม่สามารถกู้คืนได้)'))return;try{await API.deleteLoan(lid);bigToast('ลบรายการแล้ว\n'+lid,'success');setTimeout(loadAll,1500);}catch(e){bigToast('เกิดข้อผิดพลาด:\n'+e.message,'error');}}
 
 async function autoRecalcLoan(loanID){if(!loanID||!loans||!borrows)return;var exp=expanded();var items=exp.filter(function(item){return S(item.loan.LoanID)===S(loanID);});if(!items.length)return;var statuses=items.map(function(i){return i.status;});var hasPending=statuses.indexOf('PENDING')>=0;var hasActive=statuses.indexOf('ACTIVE')>=0;var hasAccP=statuses.indexOf('ACC_PENDING')>=0;var allRet=statuses.every(function(s){return s==='RETURNED'||s==='ACC_PENDING';});var allCancelled=statuses.every(function(s){return s==='CANCELLED';});var newStatus=allCancelled?'CANCELLED':hasPending?'PENDING':hasActive?'ACTIVE':hasAccP?'ACC_PENDING':allRet?'RETURNED':'PENDING';var current=loans.find(function(l){return S(l.LoanID)===S(loanID);});if(current&&S(current.Status)!==newStatus){try{await API.updateLoan(loanID,{status:newStatus});}catch(e){console.warn('autoRecalcLoan error:',e);}}}
 function openBorrow(loanID,idx){var loan=loans.find(function(l){return S(l.LoanID)===S(loanID);});var eq=loan?(loan.EquipmentList||[])[idx]:null;_borrowEqName=eq?S(eq.name):'';document.getElementById('bLoanID').value=S(loanID);document.getElementById('bIdx').value=idx;document.getElementById('giverSel').value='';document.getElementById('giverOth').style.display='none';document.getElementById('giverOth').value='';document.getElementById('eqNo').value='';selAccs={};buildAccTable();renderAccTags();document.getElementById('bInfo').innerHTML=loan?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><div>📅 '+loan.LoanDate+'</div><div>ผู้ยืม: <strong>'+ES(loan.BorrowerName)+'</strong></div><div>แผนก: <strong>'+ES(loan.DeptName)+'</strong></div><div>ผู้ป่วย: '+ES(loan.PatientName)+'</div></div>':'';document.getElementById('bItem').innerHTML=eq?'🔧 <span style="color:var(--ac)">'+ES(eq.name)+'</span>'+(eq.detail?' — '+esc(eq.detail):''):'-';openM('mBorrow');}
-async function saveBorrow(){var loanID=S(document.getElementById('bLoanID').value);var idx=N(document.getElementById('bIdx').value);var giver=getStaff('giver');var eqNo=S(document.getElementById('eqNo').value);if(!loanID){bigToast('ไม่พบ LoanID','error');return;}if(!giver){bigToast('กรุณาเลือกหรือระบุผู้ให้ยืม','error');return;}Object.keys(selAccs).forEach(function(id){var n=document.getElementById('accno_'+id);if(n)selAccs[id].no=String(n.value).trim();});var btn=document.getElementById('saveBBtn');if(btn){btn.disabled=true;btn.innerHTML='⏳ กำลังบันทึก...';}try{var r=await API.submitBorrow({loanID,equipItemIndex:idx,giverName:giver,equipmentNo:eqNo,equipmentName:_borrowEqName,accessories:Object.values(selAccs)});if(btn){btn.disabled=false;btn.innerHTML='💾 บันทึก';}if(r&&r.duplicate){bigToast(r.error,'warning');return;}_invSyncStatus(_borrowEqName,eqNo,'ยืม');bigToast('บันทึกสำเร็จ!\n'+r.recordID,'success');closeM('mBorrow');setTimeout(async function(){await loadAll();await autoRecalcLoan(loanID);},800);}catch(e){if(btn){btn.disabled=false;btn.innerHTML='💾 บันทึก';}bigToast('บันทึกล้มเหลว:\n'+e.message,'error');}}
+async function saveBorrow(){var loanID=S(document.getElementById('bLoanID').value);var idx=N(document.getElementById('bIdx').value);var giver=getStaff('giver');var eqNo=S(document.getElementById('eqNo').value);if(!loanID){bigToast('ไม่พบ LoanID','error');return;}if(!giver){bigToast('กรุณาเลือกหรือระบุผู้ให้ยืม','error');return;}Object.keys(selAccs).forEach(function(id){var n=document.getElementById('accno_'+id);if(n)selAccs[id].no=String(n.value).trim();});var btn=document.getElementById('saveBBtn');if(btn){btn.disabled=true;btn.innerHTML='⏳ กำลังบันทึก...';}try{var r=await API.submitBorrow({loanID,equipItemIndex:idx,giverName:giver,equipmentNo:eqNo,equipmentName:_borrowEqName,accessories:Object.values(selAccs)});if(btn){btn.disabled=false;btn.innerHTML='💾 บันทึก';}if(r&&r.duplicate){bigToast(r.error,'warning');return;}bigToast('บันทึกสำเร็จ!\n'+r.recordID,'success');closeM('mBorrow');setTimeout(async function(){await loadAll();await autoRecalcLoan(loanID);},800);}catch(e){if(btn){btn.disabled=false;btn.innerHTML='💾 บันทึก';}bigToast('บันทึกล้มเหลว:\n'+e.message,'error');}}
 
 function openReturn(recID,loanID,idx){if(!recID){bigToast('ไม่พบข้อมูลการยืม\nกรุณาบันทึกการยืมก่อน','error');return;}var loan=loans.find(function(l){return S(l.LoanID)===S(loanID);});var bw=borrows.find(function(b){return S(b.RecordID)===S(recID);});if(!bw){bigToast('ไม่พบข้อมูลการยืม (RecordID: '+recID+')','error');return;}var eq=loan?(loan.EquipmentList||[])[idx]:null;_retBorrowData.accs=bw.Accessories||[];_retBorrowData.retAccs=bw.ReturnedAccs||[];_retBorrowData.recID=recID;_retBorrowData.loanID=S(loanID);_retBorrowData.eqName=eq?S(eq.name):'?';_retBorrowData.eqNo=S(bw.EquipmentNo||'—');_retBorrowData.machineAlreadyReturned=bw.MachineReturned===true;document.getElementById('retRecID').value=recID;document.getElementById('receiverSel').value='';document.getElementById('receiverOth').style.display='none';document.getElementById('retRemark').value='';document.getElementById('retDet').value='';document.getElementById('retDetGrp').style.display='none';document.getElementById('retDate').value=localDateStr(new Date());var trailSection=bw.TransferHistory&&bw.TransferHistory.length&&loan?'<div style="margin-top:6px">'+buildTransferTrail(loan,bw)+'</div>':'';document.getElementById('retInfo').innerHTML='<strong>'+esc(_retBorrowData.eqName)+'</strong> เลขเครื่อง: <span style="font-family:var(--mo);color:var(--ac)">'+esc(_retBorrowData.eqNo)+'</span><br>แผนก: <strong>'+(loan?ES(loan.DeptName):'-')+'</strong> | ผู้ป่วย: '+(loan?ES(loan.PatientName):'-')+' | ผู้ให้ยืม: '+ES(bw.GiverName||'-')+trailSection;var machineCb=document.getElementById('retMachineCb');var machineStatus=document.getElementById('retMachineStatus');document.getElementById('retMachineLbl').textContent=_retBorrowData.eqName+' (เลขเครื่อง: '+_retBorrowData.eqNo+')';if(_retBorrowData.machineAlreadyReturned){machineCb.checked=true;machineCb.disabled=true;machineCb.style.opacity='0.5';machineStatus.textContent='✓ คืนแล้ว';machineStatus.style.color='var(--ok)';var rrg=document.getElementById('retRemarkGrp');if(rrg)rrg.style.display='none';var rdg=document.getElementById('retDetGrp');if(rdg)rdg.style.display='none';}else{machineCb.checked=false;machineCb.disabled=false;machineCb.style.opacity='1';machineStatus.textContent='⏳ ยังไม่คืน';machineStatus.style.color='var(--er)';var rrg2=document.getElementById('retRemarkGrp');if(rrg2)rrg2.style.display='none';}var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var retAccSection=document.getElementById('retAccSection'),retAccList=document.getElementById('retAccList');if(accs.length>0){retAccSection.style.display='block';var rhtml='';accs.forEach(function(a){var isRet=retAccs.some(function(r){return r.id===a.id;});var nameHtml=esc(a.name||'?')+(a.no?' <span style="font-family:var(--mo);color:var(--ac);font-size:11px">No.'+esc(a.no)+'</span>':'');if(isRet){rhtml+='<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--bd);opacity:.6"><span style="width:20px;height:20px;border-radius:4px;background:var(--ok);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">✓</span><span style="font-size:13px;text-decoration:line-through">'+nameHtml+'</span><span style="font-size:11px;color:var(--ok);margin-left:auto">คืนแล้ว</span></div>';}else{rhtml+='<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--bd)"><input type="checkbox" id="retcb_'+a.id+'" value="'+a.id+'" style="width:18px;height:18px;accent-color:var(--ac);cursor:pointer;flex-shrink:0" onchange="retUpdateStatus()"><label for="retcb_'+a.id+'" style="font-size:13px;cursor:pointer;flex:1">'+nameHtml+'</label><span style="font-size:11px;color:var(--er)">⏳ ยังไม่คืน</span></div>';}});retAccList.innerHTML=rhtml;}else{retAccSection.style.display='none';}retUpdateStatus();openM('mReturn');}
 function retUpdateStatus(){var machineCb=document.getElementById('retMachineCb');var machineStatus=document.getElementById('retMachineStatus');var machineReturned=_retBorrowData.machineAlreadyReturned||(machineCb&&machineCb.checked);if(machineStatus&&!_retBorrowData.machineAlreadyReturned){machineStatus.textContent=machineCb&&machineCb.checked?'✓ คืนแล้ว':'⏳ ยังไม่คืน';machineStatus.style.color=machineCb&&machineCb.checked?'var(--ok)':'var(--er)';}var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var alreadyCount=0;accs.forEach(function(a){if(retAccs.some(function(r){return r.id===a.id;}))alreadyCount++;});var newlyChecked=0;accs.forEach(function(a){var cb=document.getElementById('retcb_'+a.id);if(cb&&cb.checked)newlyChecked++;});var totalAccRet=alreadyCount+newlyChecked,accRem=accs.length-totalAccRet;var summary=document.getElementById('retAccSummary');if(summary&&accs.length>0)summary.textContent='อุปกรณ์คืนแล้ว '+totalAccRet+'/'+accs.length+' รายการ'+(accRem>0?' — ค้างอีก '+accRem+' รายการ':'');var statusBox=document.getElementById('retStatusBox');if(statusBox){if(!machineReturned&&newlyChecked===0)statusBox.innerHTML='<span style="color:var(--mu)">เลือกรายการที่ต้องการคืนในครั้งนี้</span>';else if(!machineReturned&&newlyChecked>0)statusBox.innerHTML='<span style="color:var(--wn)">⚠️ คืนเฉพาะอุปกรณ์ — ตัวเครื่องยังไม่คืน สถานะยังเป็น "ยืม"</span>';else if(accs.length===0||accRem===0)statusBox.innerHTML='<span style="color:var(--ok)">✅ คืนครบทั้งหมด — สถานะจะเปลี่ยนเป็น "คืน"</span>';else statusBox.innerHTML='<span style="color:var(--ok)">✅ คืนตัวเครื่องแล้ว — สถานะเปลี่ยนเป็น "คืน"<br><span style="color:var(--wn);font-size:11px">⚠️ อุปกรณ์ยังค้าง '+accRem+' รายการ</span></span>';}}
 function showRetDet(){var v=document.getElementById('retRemark').value;document.getElementById('retDetGrp').style.display=(RETREMARKS_NEEDDETAIL.indexOf(v)!==-1)?'block':'none';}
-async function saveReturn(){var recID=S(document.getElementById('retRecID').value);var receiver=getStaff('receiver');var remark=document.getElementById('retRemark').value;var detail=document.getElementById('retDet').value.trim();var date=document.getElementById('retDate').value;var machineCb=document.getElementById('retMachineCb');var machineChecked=machineCb&&machineCb.checked;var needRemark=machineChecked&&!_retBorrowData.machineAlreadyReturned;if(!recID||!receiver||(needRemark&&!remark)||!date){bigToast('กรุณากรอกข้อมูลให้ครบถ้วน','error');return;}var machineReturned=_retBorrowData.machineAlreadyReturned||(machineCb&&machineCb.checked);var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var newRetAccs=[];accs.forEach(function(a){var cb=document.getElementById('retcb_'+a.id);if(cb&&cb.checked)newRetAccs.push({id:a.id,name:a.name||'',no:a.no||'',date:date,receiver:receiver});});if(_retBorrowData.machineAlreadyReturned&&newRetAccs.length===0){bigToast('กรุณาเลือกอุปกรณ์ที่ต้องการคืน','error');return;}if(!machineReturned&&newRetAccs.length===0){bigToast('กรุณาเลือกรายการที่ต้องการคืน','error');return;}var totalAccAfter=retAccs.length+newRetAccs.length;var allAccRet=(accs.length===0)||(totalAccAfter>=accs.length);try{await API.returnEquipment(recID,{receiverName:receiver,returnRemark:remark,returnDetail:detail,returnDate:date,newReturnedAccs:newRetAccs,machineReturned,allReturned:machineReturned,machineAlreadyReturned:_retBorrowData.machineAlreadyReturned});if(machineReturned)_invSyncStatus(_retBorrowData.eqName,_retBorrowData.eqNo,'คงเหลือ');var msg,typ;if(_retBorrowData.machineAlreadyReturned){msg=allAccRet?'คืนอุปกรณ์ครบแล้ว!':'บันทึกคืนอุปกรณ์ '+newRetAccs.length+' รายการ';typ='success';}else if(machineReturned){var accMsg=accs.length>0&&!allAccRet?'\nอุปกรณ์ยังค้าง '+(accs.length-totalAccAfter)+' รายการ':'';msg='คืนสำเร็จ! สถานะเปลี่ยนเป็น "คืน"'+accMsg;typ='success';}else{msg='บันทึกคืนอุปกรณ์ '+newRetAccs.length+' รายการ\nตัวเครื่องยังไม่คืน';typ='warning';}bigToast(msg,typ);closeM('mReturn');var _retLID=_retBorrowData.loanID||'';setTimeout(async function(){await loadAll();if(_retLID)await autoRecalcLoan(_retLID);},800);}catch(e){bigToast('บันทึกการคืนล้มเหลว\n'+e.message,'error');}}
+async function saveReturn(){var recID=S(document.getElementById('retRecID').value);var receiver=getStaff('receiver');var remark=document.getElementById('retRemark').value;var detail=document.getElementById('retDet').value.trim();var date=document.getElementById('retDate').value;var machineCb=document.getElementById('retMachineCb');var machineChecked=machineCb&&machineCb.checked;var needRemark=machineChecked&&!_retBorrowData.machineAlreadyReturned;if(!recID||!receiver||(needRemark&&!remark)||!date){bigToast('กรุณากรอกข้อมูลให้ครบถ้วน','error');return;}var machineReturned=_retBorrowData.machineAlreadyReturned||(machineCb&&machineCb.checked);var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var newRetAccs=[];accs.forEach(function(a){var cb=document.getElementById('retcb_'+a.id);if(cb&&cb.checked)newRetAccs.push({id:a.id,name:a.name||'',no:a.no||'',date:date,receiver:receiver});});if(_retBorrowData.machineAlreadyReturned&&newRetAccs.length===0){bigToast('กรุณาเลือกอุปกรณ์ที่ต้องการคืน','error');return;}if(!machineReturned&&newRetAccs.length===0){bigToast('กรุณาเลือกรายการที่ต้องการคืน','error');return;}var totalAccAfter=retAccs.length+newRetAccs.length;var allAccRet=(accs.length===0)||(totalAccAfter>=accs.length);try{await API.returnEquipment(recID,{receiverName:receiver,returnRemark:remark,returnDetail:detail,returnDate:date,newReturnedAccs:newRetAccs,machineReturned,allReturned:machineReturned,machineAlreadyReturned:_retBorrowData.machineAlreadyReturned});var msg,typ;if(_retBorrowData.machineAlreadyReturned){msg=allAccRet?'คืนอุปกรณ์ครบแล้ว!':'บันทึกคืนอุปกรณ์ '+newRetAccs.length+' รายการ';typ='success';}else if(machineReturned){var accMsg=accs.length>0&&!allAccRet?'\nอุปกรณ์ยังค้าง '+(accs.length-totalAccAfter)+' รายการ':'';msg='คืนสำเร็จ! สถานะเปลี่ยนเป็น "คืน"'+accMsg;typ='success';}else{msg='บันทึกคืนอุปกรณ์ '+newRetAccs.length+' รายการ\nตัวเครื่องยังไม่คืน';typ='warning';}bigToast(msg,typ);closeM('mReturn');var _retLID=_retBorrowData.loanID||'';setTimeout(async function(){await loadAll();if(_retLID)await autoRecalcLoan(_retLID);},800);}catch(e){bigToast('บันทึกการคืนล้มเหลว\n'+e.message,'error');}}
 function openReturnAcc(recID,loanID,idx){openReturn(recID,loanID,idx);_retBorrowData.machineAlreadyReturned=true;var mttl=document.querySelector('#mReturn .mttl');if(mttl)mttl.textContent='📦 คืนอุปกรณ์ที่ค้าง';var ri=document.getElementById('retInfo');if(ri)ri.innerHTML+='<div style="margin-top:6px;padding:5px 8px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:4px;font-size:12px;color:var(--ok)">✓ ตัวเครื่องคืนแล้ว — กรุณาเลือกอุปกรณ์ที่ต้องการคืนเพิ่ม</div>';}
 function openTransfer(recID,fromDept,loanID,idx){if(!recID){toast('ไม่พบข้อมูลการยืม','error');return;}document.getElementById('trRecID').value=recID;document.getElementById('transfererSel').value='';document.getElementById('transfererOth').style.display='none';['trDeptCode','trDeptName','trDeptSearch'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('trDeptDisp').style.display='none';document.getElementById('trNote').value='โอนจาก '+fromDept;document.getElementById('trDate').value=localDateStr(new Date());var loan=loans.find(function(l){return S(l.LoanID)===S(loanID);});var bw=borrows?borrows.find(function(b){return S(b.RecordID)===S(recID);}):null;var trailSection=bw&&bw.TransferHistory&&bw.TransferHistory.length&&loan?'<div style="margin-top:7px">'+buildTransferTrail(loan,bw)+'</div>':'';var eq=loan?(loan.EquipmentList||[])[idx]:null;document.getElementById('trInfo').innerHTML=(eq?'🔧 <strong>'+ES(eq.name)+'</strong> | แผนกปัจจุบัน: <span style="color:var(--ac)">'+esc(fromDept)+'</span>':'')+trailSection;openM('mTransfer');}
 async function saveTransfer(){var recID=S(document.getElementById('trRecID').value);var transferer=getStaff('transferer');var toCode=S(document.getElementById('trDeptCode').value);var toDept=S(document.getElementById('trDeptName').value);var date=document.getElementById('trDate').value;var note=document.getElementById('trNote').value;if(!transferer){toast('กรุณาเลือกผู้โอน','error');return;}if(!toCode){toast('กรุณาเลือกแผนกที่โอนไป','error');return;}try{var _fromDept=S(document.getElementById('trNote').value).replace(/^โอนจาก\s*/,'');await API.transferEquipment(recID,{date,fromDept:_fromDept,toDept,toDeptCode:toCode,note,transfererName:transferer});toast('โอนสำเร็จ!');closeM('mTransfer');setTimeout(loadAll,2000);}catch(e){toast('เกิดข้อผิดพลาด: '+e.message,'error');}}
@@ -8515,27 +8503,6 @@ function pfRenderBack(){
   }
   b.innerHTML=h;
 }
-// ปุ่มมุมซ้ายล่างใต้ตารางยืมคืน (pfBack) — เพิ่ม/ลบแถวท้ายตาราง
-function pfBackAppend(){
-  var b=document.getElementById('pfBack');if(!b)return;
-  if(typeof _pfPushUndo==='function')_pfPushUndo();
-  var tr=document.createElement('tr');
-  var h='<td contenteditable></td>';
-  for(var k=0;k<20;k++)h+=_pfCell();
-  h+='<td contenteditable></td>';
-  tr.innerHTML=h;
-  b.appendChild(tr);
-  if(typeof _pfFitBack==='function')_pfFitBack();
-  if(typeof _pfSaveManualData==='function')_pfSaveManualData();
-}
-function pfBackRemoveLast(){
-  var b=document.getElementById('pfBack');if(!b)return;
-  if(b.children.length<=1)return;
-  if(typeof _pfPushUndo==='function')_pfPushUndo();
-  b.lastElementChild.remove();
-  if(typeof _pfFitBack==='function')_pfFitBack();
-  if(typeof _pfSaveManualData==='function')_pfSaveManualData();
-}
 // วัด 1mm = กี่ px จริงในเบราว์เซอร์ (สำหรับคำนวณขอบ A4 แม่นยำ)
 function _pfMM(){
   var d=document.createElement('div');d.style.cssText='height:100mm;position:absolute;visibility:hidden';
@@ -8813,10 +8780,9 @@ function _pfFitBack(){
       for(var i=0;i<bd.children.length;i++)bd.children[i].style.height=maxRowH.toFixed(2)+'px';
     });
     var totals=[];
-    var blockDivs=[document.getElementById('pfSumBlock1'),document.getElementById('pfSumBlock2'),document.getElementById('pfSumBlock3')];
-    for(var t=0;t<blockDivs.length;t++)totals.push(blockDivs[t]?blockDivs[t].getBoundingClientRect().height:0);
+    for(var t=0;t<wrap.children.length;t++)totals.push(wrap.children[t].getBoundingClientRect().height);
     var maxTotal=Math.max.apply(null,totals);
-    for(var t=0;t<blockDivs.length;t++){
+    for(var t=0;t<wrap.children.length;t++){
       var diff=maxTotal-totals[t];
       if(diff>0.5){
         var bd=bodies[t];
@@ -9328,10 +9294,7 @@ window.renderInventoryTable=function(){
     +'</div>';
 };
 
-window.refreshInventoryTable=async function(){
-  // ขยายเล็กน้อยจากเดิม: โหลดทะเบียนรายเครื่องใหม่ด้วย (ไม่ใช่แค่ localStorage)
-  // เพื่อให้การ์ดสรุปในหน้า Dashboard ตรงกับทะเบียนล่าสุดเสมอ
-  try{if(typeof loadEquipmentUnits==='function')await loadEquipmentUnits();}catch(e){console.error(e);}
+window.refreshInventoryTable=function(){
   window._EQ_INV=_invGet();renderInventoryTable();
   var el=document.getElementById('invLastUpdate');
   if(el)el.textContent=new Date().toLocaleString('th-TH');
@@ -9442,503 +9405,80 @@ window.cancelRecordItem=async function(key){
 // ════════════════════════════════════════════════════════════════
 // ADMIN: Equipment Inventory Manager tab
 // ════════════════════════════════════════════════════════════════
-// ── ทะเบียนเครื่องมือรายตัว (equipment_units) ──────────────────────
-// แต่ละชนิดเครื่องมือ (Ventilator, HFNC, ...) มีเครื่องจริงแยกทีละหมายเลข
-// (No.1-74 ฯลฯ) พร้อม NVH No./หมายเลขทะเบียนคุรุภัณฑ์/ยี่ห้อ/รุ่น/สถานะ — โหลดจาก Supabase
-// ตาราง equipment_units แล้วนับสรุป Total/ซ่อม/รอจำหน่าย/ForDept อัตโนมัติ
-// ป้อนกลับเข้า _invGet()/_EQ_INV เดิม (คงโครงสร้างเดิมไว้) เพื่อให้ทุกจุดที่
-// เคยอ่าน total/inactive/forDept จาก inventory เดิม (Dashboard, พิมพ์ฟอร์ม,
-// กราฟเปรียบเทียบปี ฯลฯ) ยังทำงานถูกต้องเหมือนเดิมโดยไม่ต้องแก้จุดอื่นเลย
-window._EQ_UNITS={};        // {equipment_type: [unit,...]} เรียงตาม unit_no
-window._EQ_UNITS_BY_ID={};  // {id: unit} สำหรับหาแถวเร็วตอนแก้ทีละช่อง
-var _invExpandedSet=new Set();
-var INV_STATUSES=['คงเหลือ','ยืม','ซ่อม','รอจำหน่าย','ใช้ประจำแผนก','ว่าง'];
-var INV_STATUS_COLOR={'คงเหลือ':'var(--ok)','ยืม':'var(--ac)','ซ่อม':'#f59e0b','รอจำหน่าย':'var(--er)','ใช้ประจำแผนก':'#a78bfa','ว่าง':'var(--mu)'};
-
-// เรียงแบบ "รู้จักตัวเลข" — ถ้าเป็นเลขล้วนเรียงตามค่าจริง (1,2,3...223)
-// ถ้าเป็นตัวอักษร (เช่น O2FLO1/MEK1) เรียงเป็นกลุ่มต่อท้ายเลขล้วนเสมอ
-function _invNaturalCompare(a,b){
-  var na=parseInt(a,10),nb=parseInt(b,10);
-  var aNum=!isNaN(na)&&String(na)===String(a).trim();
-  var bNum=!isNaN(nb)&&String(nb)===String(b).trim();
-  if(aNum&&bNum)return na-nb;
-  if(aNum&&!bNum)return -1;
-  if(!aNum&&bNum)return 1;
-  return String(a).localeCompare(String(b),'th');
-}
-
-async function loadEquipmentUnits(){
-  var rows=await SB.get('equipment_units','order=equipment_type.asc,id.asc&limit=5000');
-  var grp={},byId={};
-  rows.forEach(function(r){
-    if(!grp[r.equipment_type])grp[r.equipment_type]=[];
-    grp[r.equipment_type].push(r);
-    byId[r.id]=r;
-  });
-  // เรียงแต่ละชนิดด้วย natural sort ของ unit_no โดยตรง — ไม่พึ่งลำดับที่ฐานข้อมูล
-  // คืนมา (ตอน seed ข้อมูลรอบแรกไม่ได้ล็อกลำดับ insert ต่อชนิดไว้ชัดเจน)
-  Object.keys(grp).forEach(function(type){grp[type].sort(function(x,y){return _invNaturalCompare(x.unit_no,y.unit_no);});});
-  window._EQ_UNITS=grp;
-  window._EQ_UNITS_BY_ID=byId;
-  _invRecalcFromUnits();
-}
-
-// นับ Total/ซ่อม/รอจำหน่าย/ForDept จากรายเครื่องจริง แล้วเขียนกลับเข้า
-// _invGet()/_EQ_INV/app_settings เดิม — คงชื่อชนิดตามลำดับเดิมไว้เสมอ
-function _invRecalcFromUnits(){
-  var oldInv=_invGet();
-  var orderedNames=oldInv.map(function(e){return e.name;});
-  Object.keys(window._EQ_UNITS||{}).forEach(function(n){if(orderedNames.indexOf(n)===-1)orderedNames.push(n);});
-  var newInv=orderedNames.map(function(name){
-    var units=(window._EQ_UNITS&&window._EQ_UNITS[name])||[];
-    var repair=0,dispose=0,dept=0,vacant=0;
-    units.forEach(function(u){
-      if(u.status==='ซ่อม')repair++;
-      else if(u.status==='รอจำหน่าย')dispose++;
-      else if(u.status==='ใช้ประจำแผนก')dept++;
-      else if(u.status==='ว่าง')vacant++;
-    });
-    // "ว่าง" = เลขที่จำหน่ายไปแล้วยังไม่มีเครื่องมาแทน — ไม่นับรวมใน Total ตามที่ตกลง
-    return{name:name,total:units.length-vacant,inactive:repair+dispose,forDept:dept};
-  });
-  _invSet(newInv);
-  window._EQ_INV=newInv;
-  saveConfig('inventory',newInv);
-}
-
-function _csvRow(arr){return arr.map(function(v){v=String(v==null?'':v);return'"'+v.replace(/"/g,'""')+'"';}).join(',');}
-
-// ═══════════════════════════════════════════════════════════════
-//  เฟส 2 — เชื่อมระบบยืม-คืนกับทะเบียนรายเครื่อง (equipment_units)
-// ═══════════════════════════════════════════════════════════════
-// ยืมสำเร็จ → ตั้งสถานะเครื่องนั้นในทะเบียนเป็น "ยืม" อัตโนมัติ
-// คืนเครื่อง (ตัวเครื่องจริง ไม่ใช่แค่อุปกรณ์เสริม) → ตั้งกลับเป็น "คงเหลือ" เสมอ
-// (ไม่ลัดไป "ซ่อม" ตามที่ตกลงกันไว้ก่อนหน้า)
-// จับคู่ด้วย "ชนิดเครื่องมือ + หมายเลขเครื่อง" ตรงกับที่พิมพ์ในฟอร์มยืม-คืน —
-// ถ้าเลขนั้นยังไม่มีในทะเบียน (เช่น ทะเบียนกรอกไม่ครบ) จะข้ามเงียบๆ **ไม่บล็อก
-// การยืม-คืนจริงเด็ดขาด** เพราะทะเบียนเป็นแค่ข้อมูลเสริม ไม่ใช่หัวใจของระบบ
-async function _invSyncStatus(type,no,newStatus){
-  try{
-    if(!type||!no)return;
-    if(typeof window._EQ_UNITS==='undefined'||!window._EQ_UNITS)return;
-    var units=window._EQ_UNITS[type]||[];
-    var u=units.find(function(x){return S(x.unit_no)===S(no);});
-    if(!u)return; // เลขนี้ยังไม่มีในทะเบียน — ข้ามเงียบๆ
-    if(u.status===newStatus)return; // ตรงอยู่แล้ว ไม่ต้องเขียนซ้ำ
-    await SB.patch('equipment_units','id=eq.'+u.id,{status:newStatus});
-    u.status=newStatus;
-    if(typeof _invRecalcFromUnits==='function')_invRecalcFromUnits();
-  }catch(e){
-    console.warn('sync สถานะทะเบียนเครื่องมือไม่สำเร็จ (ไม่กระทบการยืม-คืนจริง):',e);
-  }
-}
-
-// ซิงก์ครั้งแรก/ซิงก์ตามต้องการ — ไล่เทียบทะเบียนกับใบยืมที่ ACTIVE อยู่จริง
-// ทั้งหมด ณ ตอนนี้ แล้วปรับสถานะยืม/คงเหลือให้ตรง จำเป็นตอนติดตั้งเฟส 2 ครั้งแรก
-// เพราะใบยืมที่ยืมออกไปก่อนติดตั้งเฟส 2 จะยังไม่ถูกเปลี่ยนสถานะอัตโนมัติ
-window.invSyncAllActiveLoans=async function(){
-  if(!window.expanded){if(window.toast)window.toast('ยังไม่มีข้อมูลใบยืม (ลองรีเฟรชหน้าก่อน)','warning');return;}
-  if(!window._EQ_UNITS||!Object.keys(window._EQ_UNITS).length){if(window.toast)window.toast('ทะเบียนยังไม่โหลด (ลองรีเฟรชหน้าก่อน)','warning');return;}
-  var activeSet={};
-  expanded().forEach(function(it){
-    if(it.status!=='ACTIVE')return;
-    var type=it.eq?S(it.eq.name):'';
-    var no=it.borrow?S(it.borrow.EquipmentNo):'';
-    if(type&&no)activeSet[type+'‖'+no]=true;
-  });
-  var toUpdate=[];
-  Object.keys(window._EQ_UNITS).forEach(function(type){
-    window._EQ_UNITS[type].forEach(function(u){
-      var shouldBeLoaned=!!activeSet[type+'‖'+S(u.unit_no)];
-      if(shouldBeLoaned&&u.status!=='ยืม')toUpdate.push({u:u,newStatus:'ยืม'});
-      else if(!shouldBeLoaned&&u.status==='ยืม')toUpdate.push({u:u,newStatus:'คงเหลือ'});
-    });
-  });
-  if(!toUpdate.length){if(window.toast)window.toast('สถานะยืม/คงเหลือตรงกับใบยืมปัจจุบันอยู่แล้ว ไม่มีอะไรต้องแก้','success');return;}
-  if(!confirm('พบ '+toUpdate.length+' เครื่องที่สถานะไม่ตรงกับใบยืมที่ ACTIVE อยู่จริง จะปรับให้ตรงเดี๋ยวนี้หรือไม่?'))return;
-  var okCount=0;
-  for(var i=0;i<toUpdate.length;i++){
-    try{
-      await SB.patch('equipment_units','id=eq.'+toUpdate[i].u.id,{status:toUpdate[i].newStatus});
-      toUpdate[i].u.status=toUpdate[i].newStatus;
-      okCount++;
-    }catch(e){console.warn('sync unit failed',toUpdate[i].u,e);}
-  }
-  if(typeof _invRecalcFromUnits==='function')_invRecalcFromUnits();
-  var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
-  if(window.toast)window.toast('ซิงก์สำเร็จ '+okCount+'/'+toUpdate.length+' เครื่อง','success');
-};
-
-function buildInvRows(){
-  var inv=_invGet();
-  var onLoanMap=getOnLoanByName();
-  return inv.map(function(eq){
-    var units=(window._EQ_UNITS&&window._EQ_UNITS[eq.name])||[];
-    var repair=0,dispose=0,dept=0,vacant=0;
-    units.forEach(function(u){
-      if(u.status==='ซ่อม')repair++;
-      else if(u.status==='รอจำหน่าย')dispose++;
-      else if(u.status==='ใช้ประจำแผนก')dept++;
-      else if(u.status==='ว่าง')vacant++;
-    });
-    var total=units.length-vacant; // "ว่าง" ไม่นับรวมใน Total
-    var onLoan=onLoanMap[eq.name]||0;
-    var active=total-repair-dispose-dept;
-    var available=active-onLoan;
-    var isOpen=_invExpandedSet.has(eq.name);
-    var out='<tr data-eqtype="'+esc(eq.name)+'" onmouseover="this.style.background=\'rgba(245,158,11,.04)\'" onmouseout="this.style.background=\'transparent\'">'
-      +'<td style="padding:7px 8px;border-bottom:1px solid var(--bd);width:22px;text-align:center;cursor:pointer;color:var(--ac);font-size:11px" onclick="invToggleExpand(this)">'+(isOpen?'▼':'▶')+'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);font-weight:600">'+esc(eq.name)+'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo)">'+total+'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:#f59e0b">'+repair+'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:var(--er)">'+dispose+'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:#a78bfa">'+dept+'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:var(--ac)">'+onLoan+'</td>'
-      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center;font-family:var(--mo);color:var(--ok);font-weight:700">'+available+'</td>'
+function buildInvRows(inv){
+  return inv.map(function(eq,i){
+    return '<tr onmouseover="this.style.background=\'rgba(245,158,11,.04)\'" onmouseout="this.style.background=\'transparent\'">'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd)">'
+        +'<input class="inline-edit" style="width:220px;font-size:12px" value="'+eq.name.replace(/"/g,'&quot;')+'" onchange="invUpdateName('+i+',this.value)">'
+      +'</td>'
       +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
-        +'<button class="abt" style="font-size:11px;border-color:var(--er);color:var(--er)" onclick="invRemoveType(this)">✕ ลบ</button>'
+        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center" value="'+(eq.total||0)+'" onchange="invUpdate('+i+',\'total\',this.value)">'
+      +'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
+        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center;border-color:var(--er)" value="'+(eq.inactive||0)+'" onchange="invUpdate('+i+',\'inactive\',this.value)">'
+      +'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
+        +'<input type="number" min="0" class="inline-edit" style="width:72px;text-align:center;border-color:#f59e0b" value="'+(eq.forDept||0)+'" onchange="invUpdate('+i+',\'forDept\',this.value)">'
+      +'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid var(--bd);text-align:center">'
+        +'<button class="abt" style="font-size:11px;border-color:var(--er);color:var(--er)" onclick="invRemove('+i+')">✕ ลบ</button>'
       +'</td></tr>';
-    if(isOpen){
-      out+='<tr><td colspan="9" style="padding:0;border-bottom:1px solid var(--bd)"><div style="padding:10px 14px;background:var(--bg)">'+buildUnitTable(eq.name,units)+'</div></td></tr>';
-    }
-    return out;
   }).join('');
 }
-
-// หาเลขที่ "ตัวเลขล้วน" สูงสุดในทะเบียน (ใช้แค่แนะนำเลขถัดไปตอนเพิ่มเครื่องใหม่
-// เท่านั้น ไม่ยุ่งกับเลขที่ตั้งชื่อเป็นตัวอักษรเช่น O2FLO1/MEK1)
-function _invMaxNumericNo(units){
-  var max=0;
-  units.forEach(function(u){
-    var n=parseInt(u.unit_no,10);
-    if(!isNaN(n)&&n>max)max=n;
-  });
-  return max;
-}
-
-function buildUnitTable(typeName,units){
-  var maxNo=_invMaxNumericNo(units);
-  var rowsHtml=units.map(function(u){
-    var c=INV_STATUS_COLOR[u.status]||'var(--mu)';
-    var opts=INV_STATUSES.map(function(s){return'<option'+(s===u.status?' selected':'')+'>'+s+'</option>';}).join('');
-    return '<tr style="border-bottom:1px solid var(--bd)">'
-      +'<td style="padding:4px 6px"><input class="inline-edit" style="width:100%;text-align:center;font-family:var(--mo)" value="'+esc(u.unit_no)+'" onchange="invUnitField('+u.id+',\'unit_no\',this.value,this)"></td>'
-      +'<td style="padding:4px 6px"><select class="inline-edit" style="color:'+c+';font-weight:700" onchange="invUnitStatus('+u.id+',this.value)">'+opts+'</select></td>'
-      +'<td style="padding:4px 6px"><input class="inline-edit" style="width:100%" placeholder="เฉพาะกรณีใช้ประจำแผนก" value="'+esc(u.dept_name||'')+'" onchange="invUnitField('+u.id+',\'dept_name\',this.value,this)"></td>'
-      +'<td style="padding:4px 6px;text-align:center"><button class="abt" style="font-size:11px;border-color:var(--er);color:var(--er)" onclick="invDeleteUnit('+u.id+')">✕</button></td>'
-      +'</tr>';
-  }).join('');
-  return '<div class="inv-unit-wrap" data-eqtype="'+esc(typeName)+'" data-maxno="'+maxNo+'">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">'
-    +'<div style="font-size:11px;color:var(--mu)">ทะเบียนรายเครื่อง — '+units.length+' เครื่อง (แก้เลขที่ได้โดยตรง — เช่น O2FLO1, MEK1 — แก้แล้วเรียงตำแหน่งใหม่ให้อัตโนมัติ)</div>'
-    +'<button class="btn bg sm" onclick="invExportUnitsCSV(this)">⬇ Export ชนิดนี้</button>'
-    +'</div>'
-    +(units.length?('<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
-      +'<thead><tr style="color:var(--mu);font-size:10px;text-transform:uppercase">'
-      +'<th style="text-align:center;padding:4px 6px">No.</th><th style="text-align:left;padding:4px 6px">สถานะ</th><th style="text-align:left;padding:4px 6px">แผนกประจำ</th><th style="text-align:center;padding:4px 6px">จัดการ</th>'
-      +'</tr></thead><tbody>'+rowsHtml+'</tbody></table></div>')
-      :'<div style="color:var(--mu);font-size:12px;padding:8px 0">ยังไม่มีเครื่องในทะเบียน — กด "เพิ่มเครื่องใหม่" ด้านล่าง</div>')
-    +'<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd)">'
-    +'<button class="btn bg sm" onclick="invShowAddForm(this)">➕ เพิ่มเครื่องใหม่</button>'
-    +'<div class="inv-add-box" style="display:none;margin-top:8px"></div>'
-    +'</div></div>';
-}
-
-window.invToggleExpand=function(el){
-  var tr=el.closest('tr[data-eqtype]');if(!tr)return;
-  var name=tr.getAttribute('data-eqtype');
-  if(_invExpandedSet.has(name))_invExpandedSet.delete(name);else _invExpandedSet.add(name);
-  var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
-};
-
-window.invUnitField=async function(id,field,value,el){
-  var u=window._EQ_UNITS_BY_ID[id];if(!u)return;
-  var old=u[field];
-  var body={};body[field]=value;
-  try{
-    await SB.patch('equipment_units','id=eq.'+id,body);
-    u[field]=value;
-  }catch(e){
-    var dup=field==='unit_no'&&/duplicate|unique/i.test(e.message||'');
-    var msg=dup?('เลข "'+value+'" ซ้ำกับเครื่องอื่นในชนิดเดียวกันแล้ว — ใช้เลขอื่น'):('บันทึกไม่สำเร็จ: '+e.message);
-    if(window.toast)window.toast(msg,'error');
-    if(el)el.value=old||'';
-  }
-};
-
-window.invUnitStatus=async function(id,value){
-  var u=window._EQ_UNITS_BY_ID[id];if(!u)return;
-  try{
-    await SB.patch('equipment_units','id=eq.'+id,{status:value});
-    u.status=value;
-    _invRecalcFromUnits();
-    var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
-    if(window.toast)window.toast('เปลี่ยนสถานะเป็น "'+value+'" แล้ว','success');
-  }catch(e){if(window.toast)window.toast('เปลี่ยนสถานะไม่สำเร็จ: '+e.message,'error');}
-};
-
-window.invShowAddForm=function(el){
-  var wrap=el.closest('.inv-unit-wrap');if(!wrap)return;
-  var box=wrap.querySelector('.inv-add-box');if(!box)return;
-  box.style.display='block';
-  box.innerHTML='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
-    +'<label style="font-size:11px;color:var(--mu)">จำนวนเครื่องที่รับเข้าใหม่</label>'
-    +'<input type="number" min="1" max="200" value="1" class="inline-edit" style="width:70px" id="invAddQty" oninput="invAddPreview(this)">'
-    +'<span style="font-size:11px;color:var(--mu)">เครื่อง — แก้เลขที่แต่ละแถวได้ก่อนยืนยัน (เช่น O2FLO4, MEK6)</span>'
-    +'</div>'
-    +'<div id="invAddPreviewBox"></div>'
-    +'<div style="margin-top:8px;display:flex;gap:8px">'
-    +'<button class="btn bok sm" onclick="invConfirmAdd(this)">✓ ยืนยันเพิ่ม</button>'
-    +'<button class="btn bg sm" onclick="this.closest(\'.inv-add-box\').style.display=\'none\'">ยกเลิก</button>'
-    +'</div>';
-  el.style.display='none';
-  invAddPreview(document.getElementById('invAddQty'));
-};
-
-window.invAddPreview=function(qtyEl){
-  var box=document.getElementById('invAddPreviewBox');if(!box)return;
-  var wrap=qtyEl.closest('.inv-unit-wrap');if(!wrap)return;
-  var maxNo=parseInt(wrap.getAttribute('data-maxno'),10)||0;
-  var qty=Math.max(1,Math.min(200,parseInt(qtyEl.value,10)||1));
-  var html='<div style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">';
-  for(var i=1;i<=qty;i++){
-    html+='<input class="inline-edit invAddLabel" style="width:140px" value="'+(maxNo+i)+'">';
-  }
-  html+='</div>';
-  box.innerHTML=html;
-};
-
-window.invConfirmAdd=async function(el){
-  var wrap=el.closest('.inv-unit-wrap');if(!wrap)return;
-  var type=wrap.getAttribute('data-eqtype');
-  var labelInputs=wrap.querySelectorAll('.invAddLabel');
-  var labels=Array.prototype.map.call(labelInputs,function(inp){return inp.value.trim();}).filter(Boolean);
-  if(!labels.length){if(window.toast)window.toast('กรุณาระบุจำนวนเครื่อง','error');return;}
-  var seen={};
-  for(var i=0;i<labels.length;i++){
-    if(seen[labels[i]]){if(window.toast)window.toast('เลข "'+labels[i]+'" ซ้ำกันเองในรายการที่กำลังเพิ่ม','error');return;}
-    seen[labels[i]]=true;
-  }
-  var rows=labels.map(function(no){return{equipment_type:type,unit_no:no};});
-  try{
-    await SB.post('equipment_units',rows);
-    await loadEquipmentUnits();
-    var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
-    if(window.toast)window.toast('เพิ่ม '+labels.length+' เครื่องสำเร็จ','success');
-  }catch(e){
-    var dup=/duplicate|unique/i.test(e.message||'');
-    if(window.toast)window.toast(dup?'มีเลขที่ซ้ำกับเครื่องเดิมในทะเบียน — แก้เลขแล้วลองใหม่':('เพิ่มไม่สำเร็จ: '+e.message),'error');
-  }
-};
-
-// ✕ ลบเฉพาะแถวที่เลือก — เลือกลบเครื่องตัวไหนก็ได้ตรงๆ ไม่ต้องเป็นตัวสุดท้าย
-// (ปกติเครื่องที่จำหน่ายจริงให้เปลี่ยนสถานะเป็น "ว่าง" แทนการลบ เพื่อคงเลขที่ไว้
-// ไม่เอาไปใช้ซ้ำ ตามที่ตกลงกันไว้ — ปุ่มนี้ไว้ใช้แก้กรณีเพิ่มผิด/เพิ่มเกินโดยไม่ตั้งใจ)
-window.invDeleteUnit=async function(id){
-  var u=window._EQ_UNITS_BY_ID[id];if(!u)return;
-  if(!confirm('ลบ '+u.equipment_type+' No.'+u.unit_no+' ออกจากทะเบียน?\n(ข้อมูลสถานะ/แผนกประจำของเครื่องนี้จะหายไปถาวร — ถ้าแค่จำหน่ายแล้วยังไม่มีของแทน แนะนำเปลี่ยนสถานะเป็น "ว่าง" แทนการลบ)'))return;
-  try{
-    await SB.del('equipment_units','id=eq.'+id);
-    await loadEquipmentUnits();
-    var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows();
-    if(window.toast)window.toast('ลบ No.'+u.unit_no+' สำเร็จ','success');
-  }catch(e){if(window.toast)window.toast('ลบไม่สำเร็จ: '+e.message,'error');}
-};
-
-window.invExportUnitsCSV=function(el){
-  var wrap=el.closest('.inv-unit-wrap');if(!wrap)return;
-  var type=wrap.getAttribute('data-eqtype');
-  var units=(window._EQ_UNITS&&window._EQ_UNITS[type])||[];
-  var lines=[_csvRow(['ชนิดเครื่องมือ','No.','สถานะ','แผนกประจำ'])];
-  units.forEach(function(u){lines.push(_csvRow([type,u.unit_no,u.status,u.dept_name||'']));});
-  dlCSV(lines.join('\r\n'),'ทะเบียนเครื่องมือ_'+type+'.csv');
-};
-
-window.invExportAllCSV=function(){
-  var lines=[_csvRow(['ชนิดเครื่องมือ','No.','สถานะ','แผนกประจำ'])];
-  Object.keys(window._EQ_UNITS||{}).forEach(function(type){
-    (window._EQ_UNITS[type]||[]).forEach(function(u){lines.push(_csvRow([type,u.unit_no,u.status,u.dept_name||'']));});
-  });
-  dlCSV(lines.join('\r\n'),'ทะเบียนเครื่องมือทั้งหมด_'+localDateStr(new Date())+'.csv');
-};
 
 function buildInvAdminHTML(){
+  var inv=_invGet();
   return '<div class="card">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
     +'<div class="ctitle" style="margin:0;color:#f59e0b">📊 จัดการสถานะเครื่องมือแพทย์</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-    +'<button class="btn badm sm" onclick="invSyncAllActiveLoans()" title="ไล่เทียบกับใบยืมที่ ACTIVE อยู่จริงทั้งหมด แล้วปรับสถานะยืม/คงเหลือให้ตรง — ใช้ตอนติดตั้งเฟส 2 ครั้งแรก หรือสงสัยว่าทะเบียนไม่ตรงกับใบยืมจริง">🔗 ซิงก์สถานะยืม</button>'
-    +'<button class="btn bg sm" onclick="invReload()">🔄 รีเฟรช</button>'
-    +'<button class="btn bg sm" onclick="invExportAllCSV()">⬇ Export ทั้งหมด</button></div></div>'
+    +'<button class="btn bg sm" onclick="invReload()">🔄 โหลด</button>'
+    +'<button class="btn badm sm" onclick="invSave()">✅ บันทึก</button></div></div>'
     +'<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:var(--mu)">'
-    +'Total/ซ่อม/รอจำหน่าย/For Dept นับอัตโนมัติจากทะเบียนรายเครื่อง (กด ▶ เพื่อดู/แก้รายเครื่อง) &nbsp;|&nbsp; Active = Total−ซ่อม−รอจำหน่าย−ForDept &nbsp;|&nbsp; On Loan = อัตโนมัติ &nbsp;|&nbsp; Available = Active−OnLoan'
+    +'Active = Total−Inactive−ForDept &nbsp;|&nbsp; On Loan = อัตโนมัติ &nbsp;|&nbsp; Available = Active−OnLoan &nbsp;|&nbsp; % คำนวณอัตโนมัติ'
     +'</div>'
     +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'
     +'<thead><tr style="background:var(--s2)">'
-    +'<th style="width:22px;border-bottom:2px solid var(--bd)"></th>'
     +'<th style="text-align:left;padding:8px 10px;font-size:10px;color:var(--mu);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">ชื่อเครื่องมือ</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Total</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:#f59e0b;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">ซ่อม</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--er);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">รอจำหน่าย</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:#a78bfa;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">For Dept Use</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--ac);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">ยืม</th>'
-    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--ok);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">คงเหลือ</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Total ✏️</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--er);font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Inactive ✏️</th>'
+    +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:#f59e0b;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">For Dept Use ✏️</th>'
     +'<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--mu);font-weight:700;border-bottom:2px solid var(--bd)">จัดการ</th>'
     +'</tr></thead>'
-    +'<tbody id="invAdminBody">'+buildInvRows()+'</tbody></table></div>'
+    +'<tbody id="invAdminBody">'+buildInvRows(inv)+'</tbody></table></div>'
     +'<div style="margin-top:14px;padding:14px;background:var(--s2);border-radius:8px">'
-    +'<div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:10px">➕ เพิ่มชนิดเครื่องมือใหม่</div>'
+    +'<div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:10px">➕ เพิ่มรายการเครื่องมือใหม่</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">'
-    +'<div class="fg"><label>ชื่อเครื่องมือ *</label><input type="text" id="newInvName" placeholder="เช่น New Device" style="min-width:220px"></div>'
-    +'<button class="btn badm" style="margin-bottom:3px" onclick="invAddType()">➕ เพิ่ม</button>'
-    +'</div><div style="font-size:11px;color:var(--mu);margin-top:6px">เพิ่มชนิดใหม่แล้วจะเริ่มจาก 0 เครื่อง — กด ▶ ที่แถวนั้นแล้วกด "เพิ่มเครื่องใหม่" เพื่อใส่จำนวนเครื่องจริง</div>'
-    +'</div></div>';
+    +'<div class="fg"><label>ชื่อเครื่องมือ *</label><input type="text" id="newInvName" placeholder="เช่น New Device" style="min-width:180px"></div>'
+    +'<div class="fg"><label>Total</label><input type="number" min="0" id="newInvTotal" value="0" style="width:80px;text-align:center"></div>'
+    +'<div class="fg"><label>Inactive</label><input type="number" min="0" id="newInvInactive" value="0" style="width:80px;text-align:center"></div>'
+    +'<div class="fg"><label>For Dept Use</label><input type="number" min="0" id="newInvForDept" value="0" style="width:80px;text-align:center"></div>'
+    +'<button class="btn badm" style="margin-bottom:3px" onclick="invAdd()">➕ เพิ่ม</button>'
+    +'</div></div></div>';
 }
 
-window.invAddType=function(){
+window.invUpdate=function(i,field,val){var inv=_invGet();if(!inv[i])return;inv[i][field]=parseInt(val,10)||0;_invSet(inv);window._EQ_INV=inv;};
+window.invUpdateName=function(i,val){var inv=_invGet();if(!inv[i])return;inv[i].name=(val||'').trim();_invSet(inv);window._EQ_INV=inv;};
+window.invAdd=function(){
   var name=(document.getElementById('newInvName').value||'').trim();
   if(!name){if(window.toast)window.toast('กรุณาระบุชื่อเครื่องมือ','error');return;}
   var inv=_invGet();
-  if(inv.some(function(e){return e.name===name;})){if(window.toast)window.toast('มีชื่อนี้อยู่แล้ว','warning');return;}
-  inv.push({name:name,total:0,inactive:0,forDept:0});
+  inv.push({name:name,total:parseInt(document.getElementById('newInvTotal').value,10)||0,inactive:parseInt(document.getElementById('newInvInactive').value,10)||0,forDept:parseInt(document.getElementById('newInvForDept').value,10)||0});
   _invSet(inv);window._EQ_INV=inv;saveConfig('inventory',inv);
   document.getElementById('newInvName').value='';
-  invReload();
-  if(window.toast)window.toast('เพิ่มชนิด "'+name+'" แล้ว (0 เครื่อง)','success');
+  document.getElementById('newInvTotal').value='0';
+  document.getElementById('newInvInactive').value='0';
+  document.getElementById('newInvForDept').value='0';
+  var b=document.getElementById('invAdminBody');if(b)b.innerHTML=buildInvRows(_invGet());
+  if(window.toast)window.toast('เพิ่มรายการสำเร็จ','success');
 };
-
-window.invRemoveType=async function(el){
-  var tr=el.closest('tr[data-eqtype]');if(!tr)return;
-  var name=tr.getAttribute('data-eqtype');
-  var units=(window._EQ_UNITS&&window._EQ_UNITS[name])||[];
-  var msg=units.length?('ลบ "'+name+'" — จะลบเครื่องทั้งหมด '+units.length+' เครื่องในทะเบียนด้วย ลบแล้วกู้คืนไม่ได้ ยืนยัน?'):('ลบ "'+name+'" ?');
-  if(!confirm(msg))return;
-  try{
-    if(units.length)await SB.del('equipment_units','equipment_type=eq.'+encodeURIComponent(name));
-    var inv=_invGet().filter(function(e){return e.name!==name;});
-    _invSet(inv);window._EQ_INV=inv;
-    delete window._EQ_UNITS[name];
-    _invExpandedSet.delete(name);
-    saveConfig('inventory',inv);
-    var p=document.getElementById('adm-inv-mgr');if(p)p.innerHTML=buildInvAdminHTML();
-    if(window.toast)window.toast('ลบสำเร็จ','success');
-  }catch(e){if(window.toast)window.toast('ลบไม่สำเร็จ: '+e.message,'error');}
+window.invRemove=function(i){
+  var inv=_invGet();if(!inv[i])return;
+  if(!confirm('ลบ "'+inv[i].name+'" ?'))return;
+  inv.splice(i,1);_invSet(inv);window._EQ_INV=inv;saveConfig('inventory',inv);invReload();
 };
-
-window.invReload=async function(){
-  try{await loadEquipmentUnits();}catch(e){console.error('loadEquipmentUnits failed:',e);}
-  var p=document.getElementById('adm-inv-mgr');if(p)p.innerHTML=buildInvAdminHTML();
-};
-
-// ── สรุปรายเครื่อง (แท็บแยกต่างหาก) ────────────────────────────────
-// "ยืม" ในสรุปนี้ดึงจากใบยืมที่ ACTIVE จริง (จับคู่หมายเลขเครื่อง+ชนิด)
-// ไม่ใช่จาก status ในทะเบียน — เพราะระบบยืม-คืนยังไม่เชื่อมกับทะเบียน
-// อัตโนมัติ (เฟส 2) การอ่านข้อมูลสดแบบนี้จึงแม่นกว่าและไม่ต้องรอเฟส 2
-var INV_SUM_ORDER=['ยืม','ใช้ประจำแผนก','คงเหลือ','ซ่อม','รอจำหน่าย','ว่าง'];
-var INV_SUM_COLOR={'ยืม':'#00c8ff','คงเหลือ':'#10b981','ซ่อม':'#f59e0b','รอจำหน่าย':'#ef4444','ใช้ประจำแผนก':'#a78bfa','ว่าง':'#8b949e'};
-
-function _liveLoansByTypeNo(type){
-  var map={};
-  if(!window.expanded)return map;
-  (window.expanded()||[]).forEach(function(item){
-    if(item.status!=='ACTIVE')return;
-    var n=(item.eq&&item.eq.name)||'';
-    if(S(n)!==S(type))return;
-    var no=item.borrow?S(item.borrow.EquipmentNo):'';
-    if(!no)return;
-    map[no]=(item.loan&&item.loan.DeptName)?S(item.loan.DeptName):'';
-  });
-  return map;
-}
-
-function _invSumGroups(type){
-  var units=(window._EQ_UNITS&&window._EQ_UNITS[type])||[];
-  var loanMap=_liveLoansByTypeNo(type);
-  var groups={'ยืม':[],'คงเหลือ':[],'ซ่อม':[],'รอจำหน่าย':[],'ใช้ประจำแผนก':[],'ว่าง':[]};
-  units.forEach(function(u){
-    var noStr=String(u.unit_no);
-    if(Object.prototype.hasOwnProperty.call(loanMap,noStr)){
-      groups['ยืม'].push({no:u.unit_no,dept:loanMap[noStr]||'ไม่ระบุแผนก'});
-    }else if(u.status==='ใช้ประจำแผนก'){
-      groups['ใช้ประจำแผนก'].push({no:u.unit_no,dept:u.dept_name||'ยังไม่ระบุแผนก'});
-    }else if(u.status==='ซ่อม'){
-      groups['ซ่อม'].push({no:u.unit_no});
-    }else if(u.status==='รอจำหน่าย'){
-      groups['รอจำหน่าย'].push({no:u.unit_no});
-    }else if(u.status==='ว่าง'){
-      groups['ว่าง'].push({no:u.unit_no});
-    }else{
-      groups['คงเหลือ'].push({no:u.unit_no});
-    }
-  });
-  Object.keys(groups).forEach(function(k){groups[k].sort(function(a,b){return a.no-b.no;});});
-  return groups;
-}
-
-function buildInvSummaryHTML(){
-  var inv=_invGet();
-  var first=inv[0]?inv[0].name:'';
-  return '<div class="card">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
-    +'<div class="ctitle" style="margin:0;color:#f59e0b">📋 สรุปรายเครื่อง</div>'
-    +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
-    +'<select id="invSumType" class="inline-edit" style="min-width:220px" onchange="invSumRender()">'
-    +inv.map(function(e){return'<option value="'+esc(e.name)+'">'+esc(e.name)+'</option>';}).join('')
-    +'</select>'
-    +'<button class="btn bg sm" onclick="invSumReload()">🔄 รีเฟรช</button>'
-    +'<button class="btn bg sm" onclick="invSumExportCSV()">⬇ Export</button>'
-    +'</div></div>'
-    +'<div style="font-size:11px;color:var(--mu);margin-bottom:10px">"ยืม" อ่านจากใบยืมที่ยังไม่คืนจริง (สด) &nbsp;|&nbsp; "ใช้ประจำแผนก" มาจากช่องแผนกประจำในทะเบียนรายเครื่อง</div>'
-    +'<input type="text" id="invSumSearch" class="inline-edit" placeholder="ค้นหาเลขเครื่องหรือแผนก..." style="width:100%;box-sizing:border-box;margin-bottom:10px" oninput="invSumRender()">'
-    +'<div id="invSumBody"></div>'
-    +'</div>';
-}
-
-window.invSumRender=function(){
-  var sel=document.getElementById('invSumType');
-  var type=sel?sel.value:'';
-  var body=document.getElementById('invSumBody');if(!body)return;
-  if(!type){body.innerHTML='<div style="color:var(--mu);font-size:12px">ไม่มีชนิดเครื่องมือ</div>';return;}
-  var qEl=document.getElementById('invSumSearch');
-  var q=qEl?qEl.value.trim().toLowerCase():'';
-  var groups=_invSumGroups(type);
-  body.innerHTML=INV_SUM_ORDER.map(function(label){
-    var items=groups[label]||[];
-    // เรียงตามหมายเลขเสมอ (ไม่จัดกลุ่มตามแผนก) — กรองด้วยคำค้นถ้ามี ไม่เปลี่ยนลำดับ
-    if(q)items=items.filter(function(it){
-      return String(it.no).indexOf(q)!==-1||(it.dept&&it.dept.toLowerCase().indexOf(q)!==-1);
-    });
-    var color=INV_SUM_COLOR[label];
-    var cells=items.length?('<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px">'
-      +items.map(function(it){
-        return '<div style="background:'+color+'0f;border:1px solid '+color+'40;border-radius:6px;padding:5px 4px;text-align:center">'
-          +'<div style="color:'+color+';font-size:14px;font-weight:700;font-family:var(--mo);line-height:1.2">'+it.no+'</div>'
-          +(it.dept?('<div style="color:var(--mu);font-size:10px;line-height:1.2;margin-top:1px">'+esc(it.dept)+'</div>'):'')
-          +'</div>';
-      }).join('')+'</div>')
-      :'<span style="color:var(--mu);font-size:12px">'+(q?'— ไม่พบ —':'— ไม่มี —')+'</span>';
-    return '<div style="margin-bottom:10px;padding:10px 12px;background:var(--s1);border:1px solid var(--bd);border-left:3px solid '+color+';border-radius:6px">'
-      +'<div style="color:'+color+';font-size:12px;font-weight:700;margin-bottom:8px">'+label+' ('+items.length+(q?'/'+(groups[label]||[]).length:'')+')</div>'
-      +cells
-      +'</div>';
-  }).join('');
-};
-
-window.invSumReload=async function(){
-  try{if(typeof loadEquipmentUnits==='function')await loadEquipmentUnits();}catch(e){console.error(e);}
-  invSumRender();
-};
-
-window.invSumExportCSV=function(){
-  var sel=document.getElementById('invSumType');
-  var type=sel?sel.value:'';if(!type)return;
-  var groups=_invSumGroups(type);
-  var lines=[_csvRow(['ชนิดเครื่องมือ','สถานะ','No.','แผนก'])];
-  INV_SUM_ORDER.forEach(function(label){
-    (groups[label]||[]).forEach(function(it){lines.push(_csvRow([type,label,it.no,it.dept||'']));});
-  });
-  dlCSV(lines.join('\r\n'),'สรุปรายเครื่อง_'+type+'.csv');
-};
+window.invSave=function(){_invSet(_invGet());window._EQ_INV=_invGet();saveConfig('inventory',_invGet());renderInventoryTable();if(window.toast)window.toast('บันทึกสำเร็จ!','success');};
+window.invReload=function(){window._EQ_INV=_invGet();var p=document.getElementById('adm-inv-mgr');if(p)p.innerHTML=buildInvAdminHTML();};
 
 function injectInvAdminTab(){
   var ac=document.getElementById('adminContent');if(!ac||document.getElementById('atab-inv'))return;
@@ -9949,22 +9489,12 @@ function injectInvAdminTab(){
     btn.setAttribute('onclick','showAdminTab(\'inv-mgr\',this)');
     btn.innerHTML='📊 จัดการสถานะเครื่องมือ';
     tabs.appendChild(btn);
-    var btn2=document.createElement('button');
-    btn2.className='atab';btn2.id='atab-invsum';
-    btn2.setAttribute('onclick','showAdminTab(\'invsum-mgr\',this)');
-    btn2.innerHTML='📋 สรุปรายเครื่อง';
-    tabs.appendChild(btn2);
   }
   var panel=document.createElement('div');
   panel.className='admin-sub';panel.id='adm-inv-mgr';
   panel.style.display='none';
   panel.innerHTML=buildInvAdminHTML();
   ac.appendChild(panel);
-  var panel2=document.createElement('div');
-  panel2.className='admin-sub';panel2.id='adm-invsum-mgr';
-  panel2.style.display='none';
-  panel2.innerHTML=buildInvSummaryHTML();
-  ac.appendChild(panel2);
 }
 
 var _origSAT=window.showAdminTab;
@@ -9977,13 +9507,6 @@ window.showAdminTab=function(id,el){
     var p=document.getElementById('adm-inv-mgr');
     if(p){p.classList.add('on');p.style.display='';}
     if(el)el.classList.add('on');invReload();
-  } else if(id==='invsum-mgr'){
-    if(!document.getElementById('adm-invsum-mgr')&&window.injectInvAdminTab)injectInvAdminTab();
-    document.querySelectorAll('.admin-sub').forEach(function(s){s.classList.remove('on');s.style.display='none';});
-    document.querySelectorAll('.atab').forEach(function(t){t.classList.remove('on');});
-    var p2=document.getElementById('adm-invsum-mgr');
-    if(p2){p2.classList.add('on');p2.style.display='';}
-    if(el)el.classList.add('on');invSumReload();
   } else {if(_origSAT)_origSAT.apply(this,arguments);}
 // ─────────────────────────────────────────────────────────── §MANUAL-VIEWER
 // คู่มือ / Word viewer / ดาวน์โหลดคู่มือ
