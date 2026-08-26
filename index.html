@@ -686,8 +686,8 @@ from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 <nav class="nav">
   <div class="nav-brand">🏥 เครื่องมือแพทย์</div>
   <div class="nav-tabs">
-    <div class="nt on" onclick="showPg('loan',this)">📋 ลงบันทึกแจ้งยืม</div>
-    <div class="nt" onclick="showPg('rec',this)">📝 ลงบันทึกยืม-คืน-โอน</div>
+    <div class="nt" id="ntLoan" style="display:none" onclick="showPg('loan',this)">📋 ลงบันทึกแจ้งยืม</div>
+    <div class="nt on" onclick="showPg('rec',this)">📝 ลงบันทึกยืม-คืน-โอน</div>
     <div class="nt" onclick="showPg('daily',this)">📅 สรุปรายการยืมประจำวัน</div>
     <div class="nt" onclick="showPg('dash',this)">📊 Dashboard</div>
     <div class="nt" onclick="showPg('all',this)">🗂 ข้อมูลทั้งหมด</div>
@@ -732,7 +732,7 @@ function toggleTheme(){
 <div class="tw" id="tw"></div>
 
 <!-- LOAN PAGE -->
-<div class="pg on" id="pg-loan">
+<div class="pg" id="pg-loan">
   <div class="card">
     <div class="ctitle">📋 ลงบันทึกแจ้งยืมเครื่องมือแพทย์
       <span style="font-size:12px;color:var(--wn);text-transform:none;letter-spacing:0;font-weight:700;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);border-radius:5px;padding:2px 9px;margin-left:6px">( สำหรับแผนกต่างๆ กรอกข้อมูลขอยืม )</span>
@@ -771,10 +771,13 @@ function toggleTheme(){
 </div>
 
 <!-- RECORD PAGE -->
-<div class="pg" id="pg-rec">
+<div class="pg on" id="pg-rec">
   <div class="card">
     <div class="ctitle">🔐 ลงบันทึกยืม-คืน-โอน
       <span style="font-size:12px;color:var(--ac);text-transform:none;letter-spacing:0;font-weight:700;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.25);border-radius:5px;padding:2px 9px;margin-left:6px">( สำหรับ จนท.แผนกบริการเครื่องมือแพทย์ฯ )</span>
+    </div>
+    <div style="padding:0 14px 12px">
+      <button class="btn bp" id="openQuickBorrowBtn" onclick="openQuickBorrow()" title="ยืมได้หลายชนิด/หลายเครื่อง กรอกเลขเครื่อง+อุปกรณ์ประกอบครบในหน้าเดียว ไม่ต้องเปิดยืม-คืนแยกทีหลัง">⚡ บันทึกยืมด่วน (ครบในหน้าเดียว)</button>
     </div>
     <div class="fbar">
       <div class="fg"><label>ค้นหา</label><input type="text" id="recSearch" placeholder="ชื่อ, แผนก, หมายเลข..." oninput="_recFilterChange()" style="min-width:130px"></div>
@@ -1133,6 +1136,7 @@ function toggleTheme(){
         <div style="font-size:12px;color:var(--mu)">แก้ไข เพิ่ม ลบ ข้อมูลได้ทุกรายการ — การเปลี่ยนแปลงบันทึกลง Supabase ทันที</div>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn bg sm" id="loanFormToggleBtn" onclick="toggleLoanFormVisible()" title="เปิด/ปิดฟอร์มแจ้งยืมแบบเดิม (2 ขั้นตอน) ในเมนูหลัก — ค่าเริ่มต้นซ่อนไว้เพราะใช้ฟอร์มด่วนแทนแล้ว ไม่กระทบข้อมูลเก่า เปิด/ปิดได้ตลอดเวลา">📋 เปิดฟอร์มแจ้งยืมแบบเดิม (ตอนนี้ซ่อนอยู่)</button>
         <button class="btn bp sm" id="admRefreshBtn" onclick="adminRefresh()">🔄 Refresh</button>
         <button class="btn bg sm" onclick="lockAdmin()">🔒 ออก</button>
       </div>
@@ -2359,6 +2363,43 @@ function toggleTheme(){
   </div>
 </div>
 
+<!-- MODAL: QUICK BORROW (บันทึกยืมด่วน — รวมแจ้งยืม+บันทึกยืมในหน้าเดียว) -->
+<!-- แยกอิสระจากฟอร์ม "แจ้งยืม" (submitLoan) + "บันทึกยืม" (saveBorrow) เดิมทั้งคู่
+     ไม่แตะของเดิมแม้แต่บรรทัดเดียว — ยืม 1-หลายชนิด/หลายเครื่องได้ในการกดครั้งเดียว
+     โดยเบื้องหลังเรียก API.submitLoan + API.submitBorrow ต่อกันทีละเครื่อง (แตกรายการ
+     อัตโนมัติ) ใช้ตรรกะเดิมเป๊ะ ไม่ได้เขียนวิธีบันทึกใหม่ -->
+<div class="mbk" id="mQuickBorrow">
+  <div class="mdl" style="max-width:760px">
+    <div class="mhd"><div class="mttl">⚡ บันทึกยืมด่วน (ครบในหน้าเดียว)</div><button class="mcls" onclick="closeM('mQuickBorrow')">✕</button></div>
+    <div class="mbdy">
+      <div class="fgrid">
+        <div class="fg"><label>วันที่ยืม *</label><input type="date" id="qbLoanDate"></div>
+        <div class="fg"><label>แผนกที่ยืม *</label>
+          <div class="ssw"><input type="text" id="qbDeptSearch" placeholder="พิมพ์ชื่อแผนก..." oninput="filterSSL('qbDeptList',this.value)" onfocus="openSSL('qbDeptList')" autocomplete="off">
+            <div class="ssl" id="qbDeptList"></div></div>
+          <div class="seld" id="qbSelDeptDisp"></div>
+          <input type="hidden" id="qbSelDeptCode"><input type="hidden" id="qbSelDeptName">
+          <input type="text" id="qbDeptOther" placeholder="ระบุชื่อแผนก/หน่วยงาน..." style="display:none;margin-top:6px;border-color:var(--wn)" oninput="qbUpdateDeptOther()">
+        </div>
+        <div class="fg"><label>ชื่อ-นามสกุลผู้ป่วย *</label><input type="text" id="qbPatientName" placeholder="ชื่อ-นามสกุลผู้ป่วย"></div>
+        <div class="fg"><label>ชื่อผู้ยืม *</label><input type="text" id="qbBorrowerName" placeholder="ชื่อ-นามสกุล"></div>
+        <div class="fg"><label>ผู้ให้ยืม *</label>
+          <select id="qbGiverSel" onchange="handleStaff('qbGiver')"><option value="">— เลือกผู้ให้ยืม —</option><option value="อื่นๆ">อื่นๆ</option></select>
+          <input type="text" id="qbGiverOth" class="sth" placeholder="ระบุชื่อ..."></div>
+      </div>
+      <div style="margin-top:14px;border-top:1px solid var(--bd);padding-top:12px">
+        <div style="font-size:12px;color:var(--mu);margin-bottom:6px">🔧 เลือกเครื่องมือ + จำนวน (เลือกได้หลายชนิด)</div>
+        <div id="qbEqGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px"></div>
+      </div>
+      <div id="qbUnitsWrap" style="margin-top:14px"></div>
+    </div>
+    <div class="mftr">
+      <button class="btn bg" onclick="closeM('mQuickBorrow')">ยกเลิก</button>
+      <button class="btn bp" id="qbSaveBtn" onclick="saveQuickBorrow()">💾 บันทึกยืมด่วนทั้งหมด</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: RETURN -->
 <div class="mbk" id="mReturn">
   <div class="mdl" style="max-width:620px">
@@ -3259,7 +3300,7 @@ function _injectErrorLogTab(){
 // เหมือนเดิมโดยไม่กระทบการทำงาน (loadConfig/saveConfig จะ fail แบบเงียบๆ)
 // ════════════════════════════════════════════════════════════
 var _CFG_TABLE='app_settings';
-var _CFG_KEYS=['depts','eql','accs','staff','eqnums','retremarks','inventory','hfncset','dept_disabled','eql_disabled','retremarks_disabled','retremarks_needdetail','circuit_alert','new_loan_alert','pf_layout_prefs'];
+var _CFG_KEYS=['depts','eql','accs','staff','eqnums','retremarks','inventory','hfncset','dept_disabled','eql_disabled','retremarks_disabled','retremarks_needdetail','circuit_alert','new_loan_alert','pf_layout_prefs','loan_form_visible'];
 
 async function loadConfig(){
   try{
@@ -3282,6 +3323,7 @@ async function loadConfig(){
         case 'retremarks_needdetail': RETREMARKS_NEEDDETAIL=r.value; break;
         case 'circuit_alert': CIRCUIT_ALERT=r.value; if(typeof scheduleCircuitAlert==='function')scheduleCircuitAlert(); break;
         case 'new_loan_alert': NEW_LOAN_ALERT=r.value; if(typeof scheduleNewLoanAlert==='function'){scheduleNewLoanAlert();scheduleStaleLoanAlert();} break;
+        case 'loan_form_visible': LOAN_FORM_VISIBLE=r.value; if(typeof _applyLoanTabVisibility==='function')_applyLoanTabVisibility(); break;
         // 'hfncset': ไม่ต้องตั้งตัวแปรเพิ่ม — _hfncSetGet() อ่านจาก localStorage
         // (ที่ sync แล้วข้างบน) สดทุกครั้งที่ใช้งานอยู่แล้ว
 // ─────────────────────────────────────────────────────────── §INIT-FILTERS
@@ -3320,6 +3362,18 @@ var EQL_DISABLED=_lsGet('eql_disabled',[]);
 var RETREMARKS_DISABLED=_lsGet('retremarks_disabled',[]);
 var RETREMARKS_NEEDDETAIL=_lsGet('retremarks_needdetail',_RETREMARKS_NEEDDETAIL_DEFAULT);
 var CIRCUIT_ALERT=_lsGet('circuit_alert',{mode:'beep',intervalHrs:6});
+// ── เปิด/ปิดหน้า "แจ้งยืม" แบบเดิมในเมนูหลัก (ค่าเริ่มต้น = ซ่อน เพราะใช้ฟอร์มด่วนแทนแล้ว) ──
+var LOAN_FORM_VISIBLE=_lsGet('loan_form_visible',false);
+function _applyLoanTabVisibility(){
+  var t=document.getElementById('ntLoan');if(t)t.style.display=LOAN_FORM_VISIBLE?'':'none';
+}
+async function toggleLoanFormVisible(){
+  LOAN_FORM_VISIBLE=!LOAN_FORM_VISIBLE;
+  _applyLoanTabVisibility();
+  var btn=document.getElementById('loanFormToggleBtn');
+  if(btn)btn.innerHTML=LOAN_FORM_VISIBLE?'📋 ซ่อนฟอร์มแจ้งยืมแบบเดิม (กำลังโชว์อยู่)':'📋 เปิดฟอร์มแจ้งยืมแบบเดิม (ตอนนี้ซ่อนอยู่)';
+  if(typeof saveConfig==='function')await saveConfig('loan_form_visible',LOAN_FORM_VISIBLE);
+}
 var _NEW_LOAN_ALERT_DEFAULT={mode:'beep_speech',speechText:'มีใบยืมใหม่เข้ามา กรุณาตรวจสอบ',staleMin:15,staleSpeechText:'มีใบยืมค้างรอบันทึกอยู่ กรุณาตรวจสอบ'};
 var NEW_LOAN_ALERT=_lsGet('new_loan_alert',_NEW_LOAN_ALERT_DEFAULT);
 function activeDEPTS(){return DEPTS.filter(function(d){return DEPT_DISABLED.indexOf(d.n)===-1;});}
@@ -3347,7 +3401,8 @@ document.addEventListener('DOMContentLoaded',async function(){
   setToday();buildEqCards();buildAccTable();rebuildEqNoDatalist();rebuildRetRemarkSelect();
   buildSSL('deptList',activeDEPTS(),function(c,n){pickDept('deptList',c,n);});
   buildSSL('trDeptList',activeDEPTS(),function(c,n){pickDept('trDeptList',c,n);});
-  buildStaff();initFilters();loadAll().then(function(){scheduleCircuitAlert();initNewLoanAlertBaseline();scheduleNewLoanAlert();scheduleStaleLoanAlert();});
+  buildSSL('qbDeptList',activeDEPTS(),function(c,n){pickDept('qbDeptList',c,n);});
+  buildStaff();initFilters();_applyLoanTabVisibility();loadAll().then(function(){scheduleCircuitAlert();initNewLoanAlertBaseline();scheduleNewLoanAlert();scheduleStaleLoanAlert();});
   // fill addLoan equipment select
   var sel=document.getElementById('addLoanEq');
   activeEQL().forEach(function(e){sel.innerHTML+='<option value="'+e+'">'+e+'</option>';});
@@ -3363,7 +3418,7 @@ function setToday(){
     var e=document.getElementById(id);if(e)e.value=t;
   });
 }
-function buildStaff(){['giverSel','receiverSel','transfererSel'].forEach(function(id){var el=document.getElementById(id);if(!el)return;STAFF.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o);});});}
+function buildStaff(){['giverSel','receiverSel','transfererSel','qbGiverSel'].forEach(function(id){var el=document.getElementById(id);if(!el)return;STAFF.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o);});});}
 function handleStaff(p){var sel=document.getElementById(p+'Sel'),oth=document.getElementById(p+'Oth');if(!sel||!oth)return;oth.style.display=sel.value==='อื่นๆ'?'block':'none';if(sel.value!=='อื่นๆ')oth.value='';}
 function getStaff(p){var sel=document.getElementById(p+'Sel'),oth=document.getElementById(p+'Oth');if(!sel)return'';return sel.value==='อื่นๆ'?(oth?oth.value.trim():''):sel.value;}
 function initFilters(){['allDept','recDept','dailyDept'].forEach(function(id){var el=document.getElementById(id);if(!el)return;DEPTS.forEach(function(d){el.innerHTML+='<option value="'+d.n+'">'+d.n+'</option>';});});['allEq','recEq','dailyFilter'].forEach(function(id){var el=document.getElementById(id);if(!el)return;EQL.forEach(function(e){el.innerHTML+='<option value="'+e+'">'+e+'</option>';});});var _arr=document.getElementById('allRetRemark');if(_arr){RETREMARKS.forEach(function(r){_arr.innerHTML+='<option value="'+esc(r)+'">'+esc(r)+'</option>';});}}
@@ -3557,7 +3612,19 @@ function buildSSL(listId,items,onSel){var el=document.getElementById(listId);if(
 function filterSSL(id,q){var ql=q.toLowerCase();document.getElementById(id).querySelectorAll('.ssi').forEach(function(el){el.style.display=el.textContent.toLowerCase().includes(ql)?'':'none';});}
 function openSSL(id){document.getElementById(id).classList.add('on');}
 document.addEventListener('click',function(e){if(!e.target.closest('.ssw'))document.querySelectorAll('.ssl').forEach(function(l){l.classList.remove('on');});});
-function pickDept(lid,code,name){if(lid==='deptList'){document.getElementById('selDeptCode').value=code;document.getElementById('selDeptName').value=name;document.getElementById('deptSearch').value=name;var d=document.getElementById('selDeptDisp');d.style.display='block';var oi=document.getElementById('deptOther');if(name==='อื่นๆ'){d.innerHTML='✅ <strong>อื่นๆ</strong> — <span style="color:var(--wn);font-size:11px">กรุณาระบุชื่อแผนกด้านล่าง</span>';if(oi){oi.style.display='block';oi.focus();}}else{d.innerHTML='✅ <strong>'+name+'</strong>';if(oi){oi.style.display='none';oi.value='';}}}else{document.getElementById('trDeptCode').value=code;document.getElementById('trDeptName').value=name;document.getElementById('trDeptSearch').value=name;var d2=document.getElementById('trDeptDisp');d2.style.display='block';d2.innerHTML='✅ <strong>'+name+'</strong>';}document.getElementById(lid).classList.remove('on');}
+function pickDept(lid,code,name){
+  var map={deptList:{code:'selDeptCode',name:'selDeptName',search:'deptSearch',disp:'selDeptDisp',other:'deptOther'},
+    trDeptList:{code:'trDeptCode',name:'trDeptName',search:'trDeptSearch',disp:'trDeptDisp',other:null},
+    qbDeptList:{code:'qbSelDeptCode',name:'qbSelDeptName',search:'qbDeptSearch',disp:'qbSelDeptDisp',other:'qbDeptOther'}};
+  var m=map[lid]||map.deptList;
+  document.getElementById(m.code).value=code;document.getElementById(m.name).value=name;
+  var se=document.getElementById(m.search);if(se)se.value=name;
+  var d=document.getElementById(m.disp);d.style.display='block';
+  var oi=m.other?document.getElementById(m.other):null;
+  if(name==='อื่นๆ'&&oi){d.innerHTML='✅ <strong>อื่นๆ</strong> — <span style="color:var(--wn);font-size:11px">กรุณาระบุชื่อแผนกด้านล่าง</span>';oi.style.display='block';oi.focus();}
+  else{d.innerHTML='✅ <strong>'+name+'</strong>';if(oi){oi.style.display='none';oi.value='';}}
+  document.getElementById(lid).classList.remove('on');
+}
 function updateDeptOther(){var oi=document.getElementById('deptOther');var code=document.getElementById('selDeptCode').value;if(code==='9999'&&oi){var val=oi.value.trim();document.getElementById('selDeptName').value=val||'อื่นๆ';var d=document.getElementById('selDeptDisp');if(d)d.innerHTML='✅ <strong>'+(val||'อื่นๆ')+'</strong>';}}
 
 async function loadAll(){
@@ -3796,6 +3863,185 @@ function clearLoan(){
   // clear standby
   clearStandby();
   setToday();
+}
+
+// ═══════════ บันทึกยืมด่วน (ครบในหน้าเดียว) — ไม่แตะ submitLoan/saveBorrow เดิม ═══════════
+// เบื้องหลังเรียก API.submitLoan + API.submitBorrow ต่อกันทีละเครื่อง (แตกรายการ
+// อัตโนมัติถ้าเลือกจำนวน>1) — ใช้ตรรกะ/ตาราง/สถานะเดิมทั้งหมด ไม่ได้คิดระบบใหม่
+var _qbSelected={};   // {typeName: qty}
+var _qbUnitStatus={}; // {key: 'success'|'fail'} — เครื่องที่บันทึกสำเร็จแล้วจะไม่ถูกส่งซ้ำ
+function qbUpdateDeptOther(){
+  var oi=document.getElementById('qbDeptOther');var code=document.getElementById('qbSelDeptCode').value;
+  if(code==='9999'&&oi){var val=oi.value.trim();document.getElementById('qbSelDeptName').value=val||'อื่นๆ';var d=document.getElementById('qbSelDeptDisp');if(d)d.innerHTML='✅ <strong>'+(val||'อื่นๆ')+'</strong>';}
+}
+function openQuickBorrow(){
+  _qbSelected={};
+  _qbUnitStatus={};
+  var dEl=document.getElementById('qbLoanDate');if(dEl&&!dEl.value){var t=new Date();dEl.value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  ['qbBorrowerName','qbPatientName','qbDeptSearch','qbSelDeptCode','qbSelDeptName'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var dd=document.getElementById('qbSelDeptDisp');if(dd)dd.style.display='none';
+  var oi=document.getElementById('qbDeptOther');if(oi){oi.style.display='none';oi.value='';}
+  var gs=document.getElementById('qbGiverSel');if(gs)gs.value='';
+  var go=document.getElementById('qbGiverOth');if(go){go.style.display='none';go.value='';}
+  qbBuildEqGrid();
+  qbUpdateUnits();
+  openM('mQuickBorrow');
+}
+function qbBuildEqGrid(){
+  var grid=document.getElementById('qbEqGrid');if(!grid)return;
+  grid.innerHTML='';
+  EQL.forEach(function(name){
+    if(EQL_DISABLED.indexOf(name)!==-1)return;
+    var sel=!!_qbSelected[name];
+    var card=document.createElement('div');
+    card.style.cssText='border:2px solid '+(sel?'var(--ac)':'var(--bd)')+';border-radius:8px;padding:10px 12px;cursor:pointer;background:'+(sel?'rgba(0,200,255,.06)':'var(--bg)');
+    card.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+      +'<span style="font-size:13px;font-weight:600">'+esc(name)+'</span>'
+      +(sel?'<input type="number" min="1" max="20" value="'+_qbSelected[name]+'" style="width:56px;padding:3px 5px;font-size:13px" onclick="event.stopPropagation()" onchange="qbSetQty(\''+esc(name).replace(/'/g,"\\'")+'\',this.value)">':'')
+      +'</div>';
+    card.addEventListener('click',function(){qbToggleEq(name);});
+    grid.appendChild(card);
+  });
+}
+function qbToggleEq(name){
+  if(_qbSelected[name])delete _qbSelected[name];
+  else _qbSelected[name]=1;
+  qbBuildEqGrid();
+  qbUpdateUnits();
+}
+function qbSetQty(name,val){
+  var q=Math.max(1,Math.min(20,parseInt(val,10)||1));
+  _qbSelected[name]=q;
+  qbUpdateUnits();
+}
+function qbUpdateUnits(){
+  var wrap=document.getElementById('qbUnitsWrap');if(!wrap)return;
+  var names=Object.keys(_qbSelected);
+  if(!names.length){wrap.innerHTML='<div style="font-size:12px;color:var(--mu);text-align:center;padding:10px 0">เลือกเครื่องมือด้านบนก่อน</div>';return;}
+  wrap.innerHTML='<div style="font-size:12px;color:var(--mu);margin-bottom:8px">📋 ระบุเลขเครื่อง + อุปกรณ์ประกอบของแต่ละเครื่อง</div>'
+    +names.map(function(name){
+      var qty=_qbSelected[name];
+      var rows='';
+      for(var i=0;i<qty;i++){
+        var key=(name+'__'+i).replace(/[^a-zA-Z0-9ก-๙]/g,'_');
+        rows+='<div id="qbRow_'+key+'" style="background:var(--s2);border-radius:6px;padding:8px 10px;margin-bottom:6px;border:2px solid transparent">'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">'
+            +'<span style="font-size:12px;font-weight:600;min-width:90px">'+esc(name)+(qty>1?' #'+(i+1):'')+'</span>'
+            +(name==='อื่นๆ'?'<input type="text" id="qbOth_'+key+'" placeholder="ระบุชื่อ/รายละเอียดเครื่องมือ" style="flex:1;min-width:150px;padding:4px 8px;font-size:12px;border-color:var(--wn)">':'')
+            +'<input type="text" id="qbEqNo_'+key+'" placeholder="เลขเครื่อง" style="flex:1;min-width:100px;padding:4px 8px;font-size:12px">'
+          +'</div>'
+          +'<div id="qbStatus_'+key+'"></div>'
+          +'<details style="font-size:11px"><summary style="cursor:pointer;color:var(--mu)">อุปกรณ์ประกอบ (ถ้ามี)</summary>'
+            +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px">'
+            +ACCS.map(function(a){
+              return '<label style="display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;padding:3px 8px;cursor:pointer">'
+                +'<input type="checkbox" id="qbAcc_'+key+'_'+a.id+'" onchange="qbToggleAccExtra(\''+key+'\',\''+a.id+'\')">'
+                +esc(a.n)
+                +(a.no?'<input type="number" id="qbAccNo_'+key+'_'+a.id+'" placeholder="No." style="width:50px;padding:2px 4px;font-size:11px;display:none" onclick="event.stopPropagation()">':'')
+                +(a.det?'<input type="text" id="qbAccNo_'+key+'_'+a.id+'" placeholder="รายละเอียด" style="width:90px;padding:2px 4px;font-size:11px;display:none" onclick="event.stopPropagation()">':'')
+              +'</label>';
+            }).join('')
+            +'</div>'
+          +'</details>'
+        +'</div>';
+      }
+      return rows;
+    }).join('');
+}
+function qbToggleAccExtra(key,accId){
+  var chk=document.getElementById('qbAcc_'+key+'_'+accId);
+  var no=document.getElementById('qbAccNo_'+key+'_'+accId);
+  if(no)no.style.display=chk&&chk.checked?'inline-block':'none';
+}
+async function saveQuickBorrow(){
+  var loanDate=document.getElementById('qbLoanDate').value;
+  var deptCode=document.getElementById('qbSelDeptCode').value;
+  var deptName=document.getElementById('qbSelDeptName').value;
+  var patientName=document.getElementById('qbPatientName').value.trim();
+  var borrowerName=document.getElementById('qbBorrowerName').value.trim();
+  var giver=getStaff('qbGiver');
+  if(!loanDate||!deptCode||!patientName||!borrowerName){bigToast('กรุณากรอกข้อมูลใบยืมให้ครบถ้วน','error');return;}
+  if(deptCode==='9999'){var oi=document.getElementById('qbDeptOther');var ov=oi?oi.value.trim():'';if(!ov){bigToast('กรุณาระบุชื่อแผนก/หน่วยงาน\nในช่อง "อื่นๆ"','error');if(oi)oi.focus();return;}deptName=ov;}
+  if(!giver){bigToast('กรุณาเลือกหรือระบุผู้ให้ยืม','error');return;}
+  var names=Object.keys(_qbSelected);
+  if(!names.length){bigToast('กรุณาเลือกเครื่องมืออย่างน้อย 1 ชนิด','error');return;}
+
+  // รวบรวมแต่ละเครื่อง (แตกตาม qty) พร้อมเลขเครื่อง+อุปกรณ์ประกอบ — ข้ามเครื่องที่
+  // "สำเร็จแล้ว" จากรอบก่อนหน้า (กันส่งซ้ำถ้ากดบันทึกทั้งหมดอีกครั้งหลังแก้บางแถว)
+  var units=[];
+  for(var ni=0;ni<names.length;ni++){
+    var name=names[ni],qty=_qbSelected[name];
+    for(var i=0;i<qty;i++){
+      var key=(name+'__'+i).replace(/[^a-zA-Z0-9ก-๙]/g,'_');
+      if(_qbUnitStatus[key]==='success')continue;
+      var noEl=document.getElementById('qbEqNo_'+key);
+      var eqNo=noEl?noEl.value.trim():'';
+      if(!eqNo){bigToast('กรุณากรอกเลขเครื่อง\n'+name+(qty>1?' #'+(i+1):''),'error');if(noEl)noEl.focus();return;}
+      var detail='';
+      if(name==='อื่นๆ'){var othEl=document.getElementById('qbOth_'+key);detail=othEl?othEl.value.trim():'';}
+      var accs=[];
+      ACCS.forEach(function(a){
+        var chk=document.getElementById('qbAcc_'+key+'_'+a.id);
+        if(chk&&chk.checked){
+          var noI=document.getElementById('qbAccNo_'+key+'_'+a.id);
+          accs.push({id:a.id,name:a.n,no:noI?noI.value.trim():''});
+        }
+      });
+      units.push({key:key,name:name,eqNo:eqNo,detail:detail,accs:accs});
+    }
+  }
+  if(!units.length){bigToast('ไม่มีเครื่องที่ต้องบันทึกเพิ่มแล้ว (สำเร็จครบทุกเครื่องแล้ว)','success');return;}
+
+  var btn=document.getElementById('qbSaveBtn');
+  if(btn){btn.disabled=true;btn.dataset._t=btn.innerHTML;}
+  for(var u=0;u<units.length;u++){
+    if(btn)btn.innerHTML='⏳ กำลังบันทึก '+(u+1)+'/'+units.length+'...';
+    await _qbProcessUnit(units[u],loanDate,deptCode,deptName,patientName,borrowerName,giver);
+  }
+  if(btn){btn.disabled=false;btn.innerHTML=btn.dataset._t;}
+  _qbShowSummary();
+  setTimeout(loadAll,1200);
+}
+// บันทึก 1 เครื่อง + อัปเดตสีกรอบ/ข้อความในแถวนั้นทันที (เขียว=สำเร็จ ล็อกช่องกรอก,
+// แดง=ล้มเหลว พร้อมปุ่ม "ลองใหม่" เฉพาะแถวนั้น ไม่ต้องกดบันทึกทั้งหมดซ้ำ)
+async function _qbProcessUnit(unit,loanDate,deptCode,deptName,patientName,borrowerName,giver){
+  var row=document.getElementById('qbRow_'+unit.key);
+  var status=document.getElementById('qbStatus_'+unit.key);
+  if(row)row.style.borderColor='var(--ac)';
+  if(status)status.innerHTML='<div style="font-size:11px;color:var(--ac);margin-top:4px">⏳ กำลังบันทึก...</div>';
+  try{
+    var loanID=await API.submitLoan({loanDate,borrowerName,deptCode,deptName,patientName,equipmentList:[{name:unit.name,qty:1,detail:unit.detail||''}]});
+    var r=await API.submitBorrow({loanID,equipItemIndex:0,giverName:giver,equipmentNo:unit.eqNo,equipmentName:unit.name,accessories:unit.accs});
+    if(r&&r.duplicate){_qbMarkFail(unit.key,r.error);return;}
+    if(typeof _invSyncStatus==='function')_invSyncStatus(unit.name,unit.eqNo,'ยืม');
+    _qbMarkSuccess(unit.key);
+  }catch(e){_qbMarkFail(unit.key,e.message);}
+}
+function _qbMarkSuccess(key){
+  _qbUnitStatus[key]='success';
+  var row=document.getElementById('qbRow_'+key),status=document.getElementById('qbStatus_'+key);
+  if(row)row.style.cssText+=';border-color:var(--ok);background:rgba(16,185,129,.06)';
+  if(status)status.innerHTML='<div style="font-size:11px;color:var(--ok);margin-top:4px">✅ บันทึกสำเร็จ</div>';
+  [document.getElementById('qbEqNo_'+key),document.getElementById('qbOth_'+key)].forEach(function(el){if(el)el.disabled=true;});
+}
+function _qbMarkFail(key,reason){
+  _qbUnitStatus[key]='fail';
+  var row=document.getElementById('qbRow_'+key),status=document.getElementById('qbStatus_'+key);
+  if(row)row.style.cssText+=';border-color:var(--er);background:rgba(239,68,68,.06)';
+  var noEl=document.getElementById('qbEqNo_'+key);if(noEl)noEl.disabled=true;   // ล็อกไว้กันสับสน — ใบนี้ค้างเป็น PENDING แล้ว ต้องไปจัดการที่หน้ายืม-คืนแทน ไม่ใช่แก้ตรงนี้
+  if(status)status.innerHTML='<div style="font-size:11px;color:var(--er);margin-top:4px;line-height:1.5">❌ '+esc(reason)+'<br><span style="color:var(--mu)">ใบยืมนี้ค้างไว้ที่สถานะ <b>รอดำเนินการ</b> แล้ว — ไปที่หน้า <b>"ยืม-คืน-โอน"</b> คืนเครื่องที่มีสถานะยืมอยู่ก่อน แล้วกลับมากด <b>"📝 บันทึก"</b> ที่ใบนี้อีกครั้ง</span></div>';
+}
+function _qbShowSummary(){
+  var keys=[];
+  Object.keys(_qbSelected).forEach(function(name){for(var i=0;i<_qbSelected[name];i++)keys.push((name+'__'+i).replace(/[^a-zA-Z0-9ก-๙]/g,'_'));});
+  var okCount=keys.filter(function(k){return _qbUnitStatus[k]==='success';}).length;
+  var failCount=keys.filter(function(k){return _qbUnitStatus[k]==='fail';}).length;
+  if(failCount===0){
+    bigToast('บันทึกยืมด่วนสำเร็จทั้งหมด '+okCount+' เครื่อง!','success');
+    closeM('mQuickBorrow');
+  }else{
+    bigToast('สำเร็จ '+okCount+' เครื่อง — เหลือ '+failCount+' เครื่องที่ยังยืมซ้ำ (ดูกรอบสีแดง) ใบยืมค้างไว้ที่ "รอดำเนินการ" แล้ว ไปคืนเครื่องที่มีสถานะยืมอยู่ก่อน แล้วบันทึกที่หน้ายืม-คืน-โอน','warning');
+  }
 }
 // ยกเลิก/ลบใบยืมทั้งใบ — ต้องคืนสถานะทะเบียนของทุกเครื่องที่ยัง ACTIVE ในใบนั้น
 // กลับเป็น "คงเหลือ" ด้วย (ไม่งั้นทะเบียนจะค้างว่า "ยืม" อยู่ทั้งที่ยกเลิกไปแล้ว)
@@ -6900,6 +7146,8 @@ function lockAdmin(){
 }
 function adminRefresh(){
   if(!_adminUnlocked)return;
+  var lfBtn=document.getElementById('loanFormToggleBtn');
+  if(lfBtn)lfBtn.innerHTML=LOAN_FORM_VISIBLE?'📋 ซ่อนฟอร์มแจ้งยืมแบบเดิม (กำลังโชว์อยู่)':'📋 เปิดฟอร์มแจ้งยืมแบบเดิม (ตอนนี้ซ่อนอยู่)';
   var btn=document.getElementById('admRefreshBtn');
   if(btn){btn.disabled=true;btn.innerHTML='⏳ กำลังโหลด...';}
   Promise.all([API.getAllLoans(true),API.getAllBorrows(true)]).then(function(res){
@@ -8218,9 +8466,10 @@ function rebuildAllSelects(){
   // rebuild SSL lists
   buildSSL('deptList',activeDEPTS(),function(c,n){pickDept('deptList',c,n);});
   buildSSL('trDeptList',activeDEPTS(),function(c,n){pickDept('trDeptList',c,n);});
+  buildSSL('qbDeptList',activeDEPTS(),function(c,n){pickDept('qbDeptList',c,n);});
 }
 function rebuildStaffSelects(){
-  ['giverSel','receiverSel','transfererSel'].forEach(function(id){
+  ['giverSel','receiverSel','transfererSel','qbGiverSel'].forEach(function(id){
     var el=document.getElementById(id);if(!el)return;
     var v=el.value;el.innerHTML='<option value="">— เลือก —</option>';
     STAFF.forEach(function(s){el.innerHTML+='<option value="'+s+'">'+s+'</option>';});
