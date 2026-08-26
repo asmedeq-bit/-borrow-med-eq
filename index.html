@@ -9507,10 +9507,19 @@ window.renderInventoryTable=function(){
     var OL=0;
     Object.keys(olMap).forEach(function(k){if(k.trim().toLowerCase()===eq.name.trim().toLowerCase())OL=olMap[k];});
     var AV=Math.max(0,A-OL);
+    // แยก Inactive เป็นซ่อม/รอจำหน่าย — คำนวณจากทะเบียนรายเครื่องตรงๆ (สูตรเดียวกับ
+    // หน้า "จัดการสถานะเครื่องมือ") ไม่แตะ eq.inactive (ผลรวม) ที่จุดอื่นยังใช้อยู่
+    var units=(window._EQ_UNITS&&window._EQ_UNITS[eq.name])||[];
+    var REP=0,DIS=0;
+    units.forEach(function(u){
+      if(u.status==='ซ่อม')REP++;
+      else if(u.status==='รอจำหน่าย')DIS++;
+    });
 
     // % of Total
     var pA  = T>0?A/T*100:0;
-    var pI  = T>0?I/T*100:0;
+    var pREP= T>0?REP/T*100:0;
+    var pDIS= T>0?DIS/T*100:0;
     var pFD = T>0?F/T*100:0;
     // % of Active
     var pOL = A>0?OL/A*100:0;
@@ -9527,10 +9536,15 @@ window.renderInventoryTable=function(){
         +'<div style="font-family:var(--mo);font-weight:700;color:var(--ok)">'+A+'</div>'
         +_pBar(pA,'var(--ok)')
       +'</td>'
-      // Inactive
+      // ซ่อม
       +'<td style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--bd)">'
-        +'<div style="font-family:var(--mo);font-weight:700;color:var(--er)">'+I+'</div>'
-        +_pBar(pI,'var(--er)')
+        +'<div style="font-family:var(--mo);font-weight:700;color:#f59e0b">'+REP+'</div>'
+        +_pBar(pREP,'#f59e0b')
+      +'</td>'
+      // รอจำหน่าย
+      +'<td style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--bd)">'
+        +'<div style="font-family:var(--mo);font-weight:700;color:var(--er)">'+DIS+'</div>'
+        +_pBar(pDIS,'var(--er)')
       +'</td>'
       // For Dept
       +'<td style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--bd)">'
@@ -9551,15 +9565,20 @@ window.renderInventoryTable=function(){
   }).join('');
 
   // Totals
-  var tT=0,tA=0,tI=0,tF=0,tOL=0,tAV=0;
+  var tT=0,tA=0,tREP=0,tDIS=0,tF=0,tOL=0,tAV=0;
   inv.forEach(function(eq){
     var T=eq.total||0,I=eq.inactive||0,F=eq.forDept||0;
     var A=Math.max(0,T-I-F);
     var OL=0;
     Object.keys(olMap).forEach(function(k){if(k.trim().toLowerCase()===eq.name.trim().toLowerCase())OL=olMap[k];});
-    tT+=T;tA+=A;tI+=I;tF+=F;tOL+=OL;tAV+=Math.max(0,A-OL);
+    var units=(window._EQ_UNITS&&window._EQ_UNITS[eq.name])||[];
+    units.forEach(function(u){
+      if(u.status==='ซ่อม')tREP++;
+      else if(u.status==='รอจำหน่าย')tDIS++;
+    });
+    tT+=T;tA+=A;tF+=F;tOL+=OL;tAV+=Math.max(0,A-OL);
   });
-  var tpA=tT>0?tA/tT*100:0,tpI=tT>0?tI/tT*100:0,tpF=tT>0?tF/tT*100:0;
+  var tpA=tT>0?tA/tT*100:0,tpREP=tT>0?tREP/tT*100:0,tpDIS=tT>0?tDIS/tT*100:0,tpF=tT>0?tF/tT*100:0;
   var tpOL=tA>0?tOL/tA*100:0,tpAV=tA>0?tAV/tA*100:0;
 
   cont.innerHTML=
@@ -9571,7 +9590,8 @@ window.renderInventoryTable=function(){
     +'<th style="text-align:left;padding:7px 10px;color:var(--mu);font-size:10px;font-weight:700;text-transform:uppercase;border-bottom:2px solid var(--bd)">Medical Equipment</th>'
     +'<th style="text-align:center;padding:7px 8px;color:var(--mu);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">Total</th>'
     +'<th style="text-align:center;padding:7px 8px;color:var(--ok);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">Active<br><span style="color:var(--mu);font-weight:400">% of Total</span></th>'
-    +'<th style="text-align:center;padding:7px 8px;color:var(--er);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">Inactive<br><span style="color:var(--mu);font-weight:400">% of Total</span></th>'
+    +'<th style="text-align:center;padding:7px 8px;color:#f59e0b;font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">ซ่อม<br><span style="color:var(--mu);font-weight:400">% of Total</span></th>'
+    +'<th style="text-align:center;padding:7px 8px;color:var(--er);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">รอจำหน่าย<br><span style="color:var(--mu);font-weight:400">% of Total</span></th>'
     +'<th style="text-align:center;padding:7px 8px;color:#f59e0b;font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">For Dept Use<br><span style="color:var(--mu);font-weight:400">% of Total</span></th>'
     +'<th style="text-align:center;padding:7px 8px;color:var(--ac);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">On Loan<br><span style="color:var(--mu);font-weight:400">% of Active</span></th>'
     +'<th style="text-align:center;padding:7px 8px;color:var(--ok);font-size:10px;font-weight:700;border-bottom:2px solid var(--bd)">Available<br><span style="color:var(--mu);font-weight:400">% of Active</span></th>'
@@ -9581,14 +9601,16 @@ window.renderInventoryTable=function(){
     +'<td style="padding:8px 10px;font-weight:700;font-size:12px;color:var(--ac)">รวมทั้งหมด</td>'
     +'<td style="text-align:center;font-family:var(--mo);font-weight:700;padding:8px">'+tT+'</td>'
     +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:var(--ok)">'+tA+'</div>'+_pBar(tpA,'var(--ok)')+'</td>'
-    +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:var(--er)">'+tI+'</div>'+_pBar(tpI,'var(--er)')+'</td>'
+    +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:#f59e0b">'+tREP+'</div>'+_pBar(tpREP,'#f59e0b')+'</td>'
+    +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:var(--er)">'+tDIS+'</div>'+_pBar(tpDIS,'var(--er)')+'</td>'
     +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:#f59e0b">'+tF+'</div>'+_pBar(tpF,'#f59e0b')+'</td>'
     +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;color:var(--ac)">'+tOL+'</div>'+_pBar(tpOL,'var(--ac)')+'</td>'
     +'<td style="text-align:center;padding:8px"><div style="font-family:var(--mo);font-weight:700;font-size:14px;color:var(--ok)">'+tAV+'</div>'+_pBar(tpAV,'var(--ok)')+'</td>'
     +'</tr></tfoot></table></div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;padding:8px 12px;background:var(--s2);border-radius:6px;font-size:11px;color:var(--mu)">'
-    +'<span>🟢 <b style="color:var(--ok)">Active</b> = Total−Inactive−ForDept &nbsp;|&nbsp; % of Total</span>'
-    +'<span>🔴 <b style="color:var(--er)">Inactive</b> % of Total</span>'
+    +'<span>🟢 <b style="color:var(--ok)">Active</b> = Total−ซ่อม−รอจำหน่าย−ForDept &nbsp;|&nbsp; % of Total</span>'
+    +'<span>🟠 <b style="color:#f59e0b">ซ่อม</b> % of Total</span>'
+    +'<span>🔴 <b style="color:var(--er)">รอจำหน่าย</b> % of Total</span>'
     +'<span>🟡 <b style="color:#f59e0b">For Dept</b> % of Total</span>'
     +'<span>🔵 <b style="color:var(--ac)">On Loan</b> = ข้อมูลยืมจริง &nbsp;|&nbsp; % of Active</span>'
     +'<span>✅ <b style="color:var(--ok)">Available</b> = Active−OnLoan &nbsp;|&nbsp; % of Active</span>'
