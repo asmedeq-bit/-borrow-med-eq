@@ -9192,6 +9192,10 @@ function pfSumDel(which){
   b.lastElementChild.remove();
   _pfSumSync();
   if(!_pfRestoring&&typeof _pfSaveManualData==='function')_pfSaveManualData();
+  // ลบแถวใน stand by / การใช้ HME ต้องแจ้งส่วนกลางด้วย ไม่งั้นแถวที่ลบไปจะถูก
+  // สร้างขึ้นมาใหม่อัตโนมัติจากข้อมูลเก่าที่เคยส่งไว้ (บั๊กที่เจอจริง — ลบแค่ในเครื่อง
+  // ไม่เคยแจ้งส่วนกลางว่าลบแล้ว)
+  if((which==='sb'||which==='prob')&&!_pfRestoring&&typeof _pfSyncLayoutUp==='function')_pfSyncLayoutUp();
 }
 function _pfSyncTitle(){
   var iso=document.getElementById('pfDate')?document.getElementById('pfDate').value:'';
