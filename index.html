@@ -8779,24 +8779,40 @@ function _pfDeptSnapshot(tbodyId,skipRows){
 function _pfApplyDeptSnapshot(tbodyId,snap,skipRows){
   if(!snap||!Array.isArray(snap)||!snap.length)return;
   var body=document.getElementById(tbodyId);if(!body)return;
+  // เทียบชื่อแผนกแบบไม่สนตัวพิมพ์เล็ก-ใหญ่ (MICU=MICu=micu ถือเป็นแผนกเดียวกัน)
+  // กันพิมพ์เผลอตัวเล็ก/ใหญ่ผิดแล้วสร้างแถวซ้ำ — เจอปัญหานี้จริงมาแล้ว
   var byDept={};
-  snap.forEach(function(s){if(s.dept)byDept[s.dept]=s.values;});
+  snap.forEach(function(s){if(s.dept)byDept[s.dept.toLowerCase()]=s.values;});
   var existingDepts={};
+  var blankRows=[];   // แถวว่างที่เจอระหว่างเดินตาราง — เก็บไว้ใช้ก่อนสร้างแถวใหม่
   Array.prototype.forEach.call(body.children,function(tr,idx){
     if(skipRows&&idx<skipRows)return;
     var cells=_pfDeptRowCells(tr);
     if(!cells.length)return;
     var dept=cells[0].textContent.trim();
-    if(dept)existingDepts[dept]=true;
-    var values=dept?byDept[dept]:null;if(!values)return;
-    for(var i=0;i<values.length&&i+1<cells.length;i++)cells[i+1].textContent=values[i];
+    if(dept){
+      existingDepts[dept.toLowerCase()]=true;
+      var values=byDept[dept.toLowerCase()];if(!values)return;
+      for(var i=0;i<values.length&&i+1<cells.length;i++)cells[i+1].textContent=values[i];
+    } else {
+      blankRows.push(cells);
+    }
   });
-  // สร้างแถวใหม่อัตโนมัติสำหรับแผนกที่ส่วนกลางมีแต่เครื่องนี้ยังไม่มี — จำกัดเพดานกันแถวล้น
+  // เติมแผนกใหม่ที่ยังไม่มี — ใช้แถวว่างที่เหลืออยู่แล้วก่อนเสมอ (คงจำนวนแถวรวมไว้
+  // ตามเดิม ไม่ให้ตารางเสียสมดุลที่จัดให้ 3 บล็อกสูงเท่ากัน) แถวว่างหมดแล้วค่อยสร้างใหม่
   var rowCount=body.children.length;
-  var lastRow=body.children[body.children.length-1];if(!lastRow)return;
-  var colCount=_pfDeptRowCells(lastRow).length;if(!colCount)return;
+  var lastRow=body.children[body.children.length-1];
+  var colCount=lastRow?_pfDeptRowCells(lastRow).length:0;
   snap.forEach(function(s){
-    if(!s.dept||existingDepts[s.dept]||rowCount>=PF_DEPT_TABLE_MAX_ROWS)return;
+    if(!s.dept||existingDepts[s.dept.toLowerCase()])return;
+    if(blankRows.length){
+      var cells=blankRows.shift();
+      cells[0].textContent=s.dept;
+      for(var i=0;i<s.values.length&&i+1<cells.length;i++)cells[i+1].textContent=s.values[i];
+      existingDepts[s.dept.toLowerCase()]=true;
+      return;
+    }
+    if(!colCount||rowCount>=PF_DEPT_TABLE_MAX_ROWS)return;
     var tr=document.createElement('tr');
     for(var i=0;i<colCount;i++){
       var td=document.createElement('td');
@@ -8806,7 +8822,7 @@ function _pfApplyDeptSnapshot(tbodyId,snap,skipRows){
       tr.appendChild(td);
     }
     body.appendChild(tr);
-    existingDepts[s.dept]=true;rowCount++;
+    existingDepts[s.dept.toLowerCase()]=true;rowCount++;
   });
 }
 async function _pfSyncLayoutUp(){
