@@ -920,14 +920,22 @@ function toggleTheme(){
         <option value="pending">รอซ่อม</option>
         <option value="returned">รับคืนแล้ว</option>
       </select>
+      <select id="repairFilterFY" onchange="repairApplyFYFilter()" style="min-width:140px"><option value="">ทุกช่วงเวลา</option></select>
+      <span style="display:flex;align-items:center;gap:5px">
+        <span style="font-size:11px;color:var(--mu)">จาก</span>
+        <input type="date" id="repairDateFrom" onchange="repairClearFYSelect();renderRepair()" style="width:135px">
+        <span style="font-size:11px;color:var(--mu)">ถึง</span>
+        <input type="date" id="repairDateTo" onchange="repairClearFYSelect();renderRepair()" style="width:135px">
+      </span>
       <input type="text" id="repairSearch" placeholder="ค้นหาเลข/NVH/อาการ/ผู้รายงาน..." oninput="renderRepair()" style="flex:1;min-width:160px">
       <button class="btn bg sm" onclick="repairClearFilters()">✕ ล้าง</button>
-      <button class="btn bg sm" onclick="repairExportCSV()">⬇ Export</button>
+      <button class="btn bg sm" onclick="repairExportCSV()">⬇ Export CSV</button>
+      <button class="btn bg sm" onclick="repairExportPDF()">📄 Export PDF</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
       <div style="background:var(--s2);border-radius:8px;padding:10px 12px">
-        <div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:8px">สถิติตามประเภทเครื่องมือ</div>
-        <div id="repairBarChart" style="overflow-x:auto"></div>
+        <div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:8px">สถิติตามประเภทเครื่องมือ <span style="font-weight:400">(คลิกการ์ดเพื่อกรอง)</span></div>
+        <div id="repairBarChart" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px"></div>
       </div>
       <div style="background:var(--s2);border-radius:8px;padding:10px 12px">
         <div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:8px">สถิติรายเดือน</div>
@@ -936,6 +944,7 @@ function toggleTheme(){
     </div>
     <div style="background:var(--s2);border-radius:8px;overflow:hidden">
       <div id="repairTableWrap" style="overflow-x:auto"></div>
+      <div id="repairPager" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 0"></div>
     </div>
   </div>
 </div>
@@ -6506,6 +6515,7 @@ async function saveBorrow(){var loanID=S(document.getElementById('bLoanID').valu
   // ถ้าไม่มีข้อมูลในทะเบียนเลย (โหลดไม่ทัน/เลขนี้ยังไม่ลงทะเบียน) ให้ยืมได้ตามปกติ
   // ไม่เตือน — ไม่บล็อกการยืมจริงเด็ดขาดตามหลักการเดิม
   var _warnStatuses=['ซ่อม','รอจำหน่าย','ใช้ประจำแผนก','ว่าง'];
+  var _wasUnderRepair=false,_borrowUnitId=null;
   if(window._EQ_UNITS&&_borrowEqName&&eqNo){
     var _units=window._EQ_UNITS[_borrowEqName]||[];
     var _u=_units.find(function(x){return S(x.unit_no)===S(eqNo);});
@@ -6514,6 +6524,7 @@ async function saveBorrow(){var loanID=S(document.getElementById('bLoanID').valu
         return;
       }
     }
+    if(_u&&_u.status==='ซ่อม'){_wasUnderRepair=true;_borrowUnitId=_u.id;}
   }
   // เลขนี้ไม่พบในทะเบียนของชนิดเครื่องมือนี้เลย (พิมพ์/สแกนผิด หรือทะเบียนกรอก
   // ไม่ครบ) — เตือนก่อนแล้วให้ตัดสินใจเอง ไม่บล็อกเด็ดขาด
@@ -6522,7 +6533,7 @@ async function saveBorrow(){var loanID=S(document.getElementById('bLoanID').valu
       return;
     }
   }
-  Object.keys(selAccs).forEach(function(id){var n=document.getElementById('accno_'+id);if(n)selAccs[id].no=String(n.value).trim();});var btn=document.getElementById('saveBBtn');if(btn){btn.disabled=true;btn.innerHTML='⏳ กำลังบันทึก...';}try{var r=await API.submitBorrow({loanID,equipItemIndex:idx,giverName:giver,equipmentNo:eqNo,equipmentName:_borrowEqName,accessories:Object.values(selAccs)});if(btn){btn.disabled=false;btn.innerHTML='💾 บันทึก';}if(r&&r.duplicate){bigToast(r.error,'warning');return;}_invSyncStatus(_borrowEqName,eqNo,'ยืม');bigToast('บันทึกสำเร็จ!\n'+r.recordID,'success');closeM('mBorrow');setTimeout(async function(){await loadAll();await autoRecalcLoan(loanID);},800);}catch(e){if(btn){btn.disabled=false;btn.innerHTML='💾 บันทึก';}bigToast('บันทึกล้มเหลว:\n'+e.message,'error');}}
+  Object.keys(selAccs).forEach(function(id){var n=document.getElementById('accno_'+id);if(n)selAccs[id].no=String(n.value).trim();});var btn=document.getElementById('saveBBtn');if(btn){btn.disabled=true;btn.innerHTML='⏳ กำลังบันทึก...';}try{var r=await API.submitBorrow({loanID,equipItemIndex:idx,giverName:giver,equipmentNo:eqNo,equipmentName:_borrowEqName,accessories:Object.values(selAccs)});if(btn){btn.disabled=false;btn.innerHTML='💾 บันทึก';}if(r&&r.duplicate){bigToast(r.error,'warning');return;}_invSyncStatus(_borrowEqName,eqNo,'ยืม');if(_wasUnderRepair&&_borrowUnitId&&typeof _repairAutoCloseIfPending==='function')_repairAutoCloseIfPending(_borrowUnitId,giver);bigToast('บันทึกสำเร็จ!\n'+r.recordID,'success');closeM('mBorrow');setTimeout(async function(){await loadAll();await autoRecalcLoan(loanID);},800);}catch(e){if(btn){btn.disabled=false;btn.innerHTML='💾 บันทึก';}bigToast('บันทึกล้มเหลว:\n'+e.message,'error');}}
 
 function openReturn(recID,loanID,idx){if(!recID){bigToast('ไม่พบข้อมูลการยืม\nกรุณาบันทึกการยืมก่อน','error');return;}var loan=loans.find(function(l){return S(l.LoanID)===S(loanID);});var bw=borrows.find(function(b){return S(b.RecordID)===S(recID);});if(!bw){bigToast('ไม่พบข้อมูลการยืม (RecordID: '+recID+')','error');return;}var eq=loan?(loan.EquipmentList||[])[idx]:null;_retBorrowData.accs=bw.Accessories||[];_retBorrowData.retAccs=bw.ReturnedAccs||[];_retBorrowData.recID=recID;_retBorrowData.loanID=S(loanID);_retBorrowData.eqName=eq?S(eq.name):'?';_retBorrowData.eqNo=S(bw.EquipmentNo||'—');_retBorrowData.machineAlreadyReturned=bw.MachineReturned===true;document.getElementById('retRecID').value=recID;document.getElementById('receiverSel').value='';document.getElementById('receiverOth').style.display='none';document.getElementById('retRemark').value='';document.getElementById('retDet').value='';document.getElementById('retDetGrp').style.display='none';document.getElementById('retDate').value=localDateStr(new Date());var trailSection=bw.TransferHistory&&bw.TransferHistory.length&&loan?'<div style="margin-top:6px">'+buildTransferTrail(loan,bw)+'</div>':'';document.getElementById('retInfo').innerHTML='<strong>'+esc(_retBorrowData.eqName)+'</strong> เลขเครื่อง: <span style="font-family:var(--mo);color:var(--ac)">'+esc(_retBorrowData.eqNo)+'</span><br>แผนก: <strong>'+(loan?ES(loan.DeptName):'-')+'</strong> | ผู้ป่วย: '+(loan?ES(loan.PatientName):'-')+' | ผู้ให้ยืม: '+ES(bw.GiverName||'-')+trailSection;var machineCb=document.getElementById('retMachineCb');var machineStatus=document.getElementById('retMachineStatus');document.getElementById('retMachineLbl').textContent=_retBorrowData.eqName+' (เลขเครื่อง: '+_retBorrowData.eqNo+')';if(_retBorrowData.machineAlreadyReturned){machineCb.checked=true;machineCb.disabled=true;machineCb.style.opacity='0.5';machineStatus.textContent='✓ คืนแล้ว';machineStatus.style.color='var(--ok)';var rrg=document.getElementById('retRemarkGrp');if(rrg)rrg.style.display='none';var rdg=document.getElementById('retDetGrp');if(rdg)rdg.style.display='none';}else{machineCb.checked=false;machineCb.disabled=false;machineCb.style.opacity='1';machineStatus.textContent='⏳ ยังไม่คืน';machineStatus.style.color='var(--er)';var rrg2=document.getElementById('retRemarkGrp');if(rrg2)rrg2.style.display='none';}var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var retAccSection=document.getElementById('retAccSection'),retAccList=document.getElementById('retAccList');if(accs.length>0){retAccSection.style.display='block';var rhtml='';accs.forEach(function(a){var isRet=retAccs.some(function(r){return r.id===a.id;});var nameHtml=esc(a.name||'?')+(a.no?' <span style="font-family:var(--mo);color:var(--ac);font-size:11px">No.'+esc(a.no)+'</span>':'');if(isRet){rhtml+='<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--bd);opacity:.6"><span style="width:20px;height:20px;border-radius:4px;background:var(--ok);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">✓</span><span style="font-size:13px;text-decoration:line-through">'+nameHtml+'</span><span style="font-size:11px;color:var(--ok);margin-left:auto">คืนแล้ว</span></div>';}else{rhtml+='<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--bd)"><input type="checkbox" id="retcb_'+a.id+'" value="'+a.id+'" style="width:18px;height:18px;accent-color:var(--ac);cursor:pointer;flex-shrink:0" onchange="retUpdateStatus()"><label for="retcb_'+a.id+'" style="font-size:13px;cursor:pointer;flex:1">'+nameHtml+'</label><span style="font-size:11px;color:var(--er)">⏳ ยังไม่คืน</span></div>';}});retAccList.innerHTML=rhtml;}else{retAccSection.style.display='none';}retUpdateStatus();openM('mReturn');}
 function retUpdateStatus(){var machineCb=document.getElementById('retMachineCb');var machineStatus=document.getElementById('retMachineStatus');var machineReturned=_retBorrowData.machineAlreadyReturned||(machineCb&&machineCb.checked);if(machineStatus&&!_retBorrowData.machineAlreadyReturned){machineStatus.textContent=machineCb&&machineCb.checked?'✓ คืนแล้ว':'⏳ ยังไม่คืน';machineStatus.style.color=machineCb&&machineCb.checked?'var(--ok)':'var(--er)';}var accs=_retBorrowData.accs,retAccs=_retBorrowData.retAccs;var alreadyCount=0;accs.forEach(function(a){if(retAccs.some(function(r){return r.id===a.id;}))alreadyCount++;});var newlyChecked=0;accs.forEach(function(a){var cb=document.getElementById('retcb_'+a.id);if(cb&&cb.checked)newlyChecked++;});var totalAccRet=alreadyCount+newlyChecked,accRem=accs.length-totalAccRet;var summary=document.getElementById('retAccSummary');if(summary&&accs.length>0)summary.textContent='อุปกรณ์คืนแล้ว '+totalAccRet+'/'+accs.length+' รายการ'+(accRem>0?' — ค้างอีก '+accRem+' รายการ':'');var statusBox=document.getElementById('retStatusBox');if(statusBox){if(!machineReturned&&newlyChecked===0)statusBox.innerHTML='<span style="color:var(--mu)">เลือกรายการที่ต้องการคืนในครั้งนี้</span>';else if(!machineReturned&&newlyChecked>0)statusBox.innerHTML='<span style="color:var(--wn)">⚠️ คืนเฉพาะอุปกรณ์ — ตัวเครื่องยังไม่คืน สถานะยังเป็น "ยืม"</span>';else if(accs.length===0||accRem===0)statusBox.innerHTML='<span style="color:var(--ok)">✅ คืนครบทั้งหมด — สถานะจะเปลี่ยนเป็น "คืน"</span>';else statusBox.innerHTML='<span style="color:var(--ok)">✅ คืนตัวเครื่องแล้ว — สถานะเปลี่ยนเป็น "คืน"<br><span style="color:var(--wn);font-size:11px">⚠️ อุปกรณ์ยังค้าง '+accRem+' รายการ</span></span>';}}
@@ -12911,6 +12922,9 @@ function _qrOpenPrintWindow(units){
 // เครื่องที่ซ่อมหลายรอบจะมีหลายงานแยกกันตามจริง ไม่ปนกัน
 // ══════════════════════════════════════════════════════════════
 var _repairJobsCache=null;
+var _repairPage=1;
+var _repairPageSize=20;
+var _repairFilteredCache=[];
 
 function _repairBuildJobs(logs){
   var byUnit={};
@@ -12954,19 +12968,62 @@ async function renderRepair(){
     typeSel.innerHTML='<option value="">ทุกชนิดเครื่องมือ</option>'+EQL.map(function(t){return'<option value="'+esc(t)+'">'+esc(t)+'</option>';}).join('');
     typeSel.dataset.filled='1';
   }
+  var fySel=document.getElementById('repairFilterFY');
+  if(fySel&&!fySel.dataset.filled){
+    fySel.innerHTML='<option value="">ทุกช่วงเวลา</option>'+_repairFYOptions().map(function(fy){
+      return'<option value="'+fy+'">ปีงบประมาณ '+fy+'</option>';
+    }).join('');
+    fySel.dataset.filled='1';
+  }
   _repairRenderAll();
 }
+// ปีงบประมาณไทย: 1 ต.ค. (ปี ค.ศ. FY-544) — 30 ก.ย. (ปี ค.ศ. FY-543) — FY เป็นปี พ.ศ.
+// คืนรายการปีงบประมาณล่าสุด 6 ปี (ปีปัจจุบันย้อนหลังไป 5 ปี) เรียงใหม่สุดก่อน
+function _repairFYOptions(){
+  var now=new Date();
+  var curFY=now.getFullYear()+543+(now.getMonth()>=9?1:0); // ต.ค.(index 9) เป็นต้นไปนับเป็นปีงบใหม่
+  var out=[];
+  for(var i=0;i<6;i++)out.push(curFY-i);
+  return out;
+}
+function _repairFYToRange(fy){
+  var startY=fy-544,endY=fy-543;
+  return{from:startY+'-10-01',to:endY+'-09-30'};
+}
+window.repairApplyFYFilter=function(){
+  var sel=document.getElementById('repairFilterFY');
+  var fy=sel?parseInt(sel.value,10):NaN;
+  var fromEl=document.getElementById('repairDateFrom'),toEl=document.getElementById('repairDateTo');
+  if(!fy||isNaN(fy)){if(fromEl)fromEl.value='';if(toEl)toEl.value='';}
+  else{
+    var r=_repairFYToRange(fy);
+    if(fromEl)fromEl.value=r.from;if(toEl)toEl.value=r.to;
+  }
+  _repairRenderAll();
+};
+window.repairClearFYSelect=function(){
+  var sel=document.getElementById('repairFilterFY');
+  if(sel)sel.value='';
+};
 
 function _repairRenderAll(){
   var jobs=_repairJobsCache||[];
   var typeF=(document.getElementById('repairFilterType')||{}).value||'';
   var statF=(document.getElementById('repairFilterStatus')||{}).value||'';
+  var fromF=(document.getElementById('repairDateFrom')||{}).value||'';
+  var toF=(document.getElementById('repairDateTo')||{}).value||'';
   var q=((document.getElementById('repairSearch')||{}).value||'').trim().toLowerCase();
   var filtered=jobs.filter(function(j){
     if(typeF&&_repairJobType(j)!==typeF)return false;
     var isPending=!j.returned;
     if(statF==='pending'&&!isPending)return false;
     if(statF==='returned'&&isPending)return false;
+    if(fromF||toF){
+      var effDate=j.sent?j.sent.event_date:(j.returned?j.returned.event_date:'');
+      if(!effDate)return false;
+      if(fromF&&effDate<fromF)return false;
+      if(toF&&effDate>toF)return false;
+    }
     if(q){
       var hay=[_repairJobNo(j),j.sent&&j.sent.nvh_no,j.sent&&j.sent.note,j.sent&&j.sent.reporter,j.returned&&j.returned.note].filter(Boolean).join(' ').toLowerCase();
       if(hay.indexOf(q)<0)return false;
@@ -12989,22 +13046,26 @@ function _repairRenderAll(){
     cardsEl.innerHTML=card(total,'ทั้งหมด','var(--ac)')+card(pending,'รอซ่อม','var(--wn)')+card(returned,'รับคืนแล้ว','var(--ok)')+card(typeCount,'ประเภทเครื่องมือ','var(--ac2)');
   }
 
-  var byType={};jobs.forEach(function(j){var t=_repairJobType(j);if(t)byType[t]=(byType[t]||0)+1;});
-  var typeEntries=Object.entries(byType).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+  var byTypeStat={};jobs.forEach(function(j){
+    var t=_repairJobType(j);if(!t)return;
+    if(!byTypeStat[t])byTypeStat[t]={total:0,pending:0,returned:0};
+    byTypeStat[t].total++;
+    if(j.returned)byTypeStat[t].returned++;else byTypeStat[t].pending++;
+  });
+  var typeStatEntries=Object.entries(byTypeStat).sort(function(a,b){return b[1].total-a[1].total;});
   var barEl=document.getElementById('repairBarChart');
   if(barEl){
-    if(!typeEntries.length){barEl.innerHTML='<div style="color:var(--mu);font-size:12px;padding:10px 0">ไม่มีข้อมูล</div>';}
+    if(!typeStatEntries.length){barEl.innerHTML='<div style="color:var(--mu);font-size:12px;padding:10px 0">ไม่มีข้อมูล</div>';}
     else{
-      var maxV=Math.max.apply(null,typeEntries.map(function(e){return e[1];}).concat([1]));
-      var bw=48,gap=14,bH=90,svgW=typeEntries.length*(bw+gap)+gap;
-      var bars=typeEntries.map(function(e,i){
-        var h=Math.round(e[1]/maxV*bH);
-        var x=gap+i*(bw+gap);
-        return '<rect x="'+x+'" y="'+(bH-h)+'" width="'+bw+'" height="'+h+'" rx="3" fill="var(--ac)"/>'
-          +'<text x="'+(x+bw/2)+'" y="'+(bH-h-6)+'" text-anchor="middle" font-size="11" font-weight="700" fill="var(--tx)">'+e[1]+'</text>'
-          +'<text x="'+(x+bw/2)+'" y="'+(bH+16)+'" text-anchor="middle" font-size="9" fill="var(--mu)">'+esc(e[0].length>10?e[0].slice(0,9)+'…':e[0])+'</text>';
+      barEl.innerHTML=typeStatEntries.map(function(e){
+        var t=e[0],s=e[1],active=typeF===t;
+        return '<div onclick="repairFilterByType(\''+esc(t).replace(/'/g,"\\'")+'\')" title="คลิกเพื่อกรองเฉพาะ '+esc(t)+' (คลิกซ้ำเพื่อยกเลิก)" style="cursor:pointer;user-select:none;border-radius:8px;padding:9px 10px;border:1.5px solid '+(active?'var(--ac)':'var(--bd)')+';background:'+(active?'rgba(0,200,255,.12)':'var(--bg)')+';transition:.12s"'
+          +' onmouseover="this.style.borderColor=\'var(--ac)\'" onmouseout="this.style.borderColor=\''+(active?'var(--ac)':'var(--bd)')+'\'">'
+          +'<div style="font-size:10px;color:var(--mu);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t)+(active?' ✓':'')+'</div>'
+          +'<div style="font-size:20px;font-weight:700;color:'+(active?'var(--ac)':'var(--tx)')+';line-height:1.3">'+s.total+'</div>'
+          +'<div style="font-size:9px;color:var(--mu)">รอซ่อม <b style="color:var(--wn)">'+s.pending+'</b> · คืนแล้ว <b style="color:var(--ok)">'+s.returned+'</b></div>'
+          +'</div>';
       }).join('');
-      barEl.innerHTML='<svg width="'+svgW+'" height="'+(bH+28)+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+bars+'</svg>';
     }
   }
 
@@ -13027,7 +13088,20 @@ function _repairRenderAll(){
     }
   }
 
-  var rowsHtml=filtered.map(function(j){
+  _repairFilteredCache=filtered;
+  _repairPage=1;
+  _repairRenderTablePage();
+}
+
+function _repairRenderTablePage(){
+  var filtered=_repairFilteredCache||[];
+  var total=filtered.length;
+  var totalPages=Math.max(1,Math.ceil(total/_repairPageSize));
+  if(_repairPage>totalPages)_repairPage=totalPages;
+  if(_repairPage<1)_repairPage=1;
+  var start=(_repairPage-1)*_repairPageSize;
+  var pageData=filtered.slice(start,start+_repairPageSize);
+  var rowsHtml=pageData.map(function(j){
     var type=_repairJobType(j),no=_repairJobNo(j);
     var sentDate=j.sent?j.sent.event_date:'—';
     var nvh=j.sent&&j.sent.nvh_no?j.sent.nvh_no:'';
@@ -13039,6 +13113,14 @@ function _repairRenderAll(){
     var statusHtml=isPending
       ?'<span style="background:rgba(245,158,11,.15);color:var(--wn);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700">รอซ่อม</span>'
       :'<span style="background:rgba(16,185,129,.15);color:var(--ok);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700">รับคืนแล้ว</span>';
+    var sentId=j.sent?j.sent.id:'null',retId=j.returned?j.returned.id:'null';
+    var unitId=j.sent?j.sent.unit_id:(j.returned?j.returned.unit_id:'null');
+    var actHtml='<td style="padding:7px 8px;text-align:center;white-space:nowrap">'
+      +'<button class="abt" onclick="repairViewDetail('+sentId+','+retId+')" title="ดูรายละเอียด">📄</button> '
+      +'<button class="abt" onclick="repairEditJob('+sentId+','+retId+')" title="แก้ไข">✏️</button> '
+      +'<button class="abt" onclick="invShowMaintHist('+unitId+')" title="ประวัติซ่อมทั้งหมดของเครื่องนี้">📋</button> '
+      +'<button class="abt" style="border-color:var(--er);color:var(--er)" onclick="repairDeleteJob('+sentId+','+retId+','+unitId+')" title="ลบ">🗑️</button>'
+      +'</td>';
     return '<tr style="border-top:1px solid var(--bd)">'
       +'<td style="padding:7px 8px;font-family:var(--mo)">'+esc(sentDate)+'</td>'
       +'<td style="padding:7px 8px"><span style="background:rgba(0,200,255,.1);color:var(--ac);border-radius:4px;padding:1px 6px;font-size:10px">'+esc(type)+'</span></td>'
@@ -13048,25 +13130,186 @@ function _repairRenderAll(){
       +'<td style="padding:7px 8px;font-family:var(--mo)">'+esc(retDate)+'</td>'
       +'<td style="padding:7px 8px;color:var(--mu)">'+esc(receiver)+'</td>'
       +'<td style="padding:7px 8px;text-align:center">'+statusHtml+'</td>'
+      +actHtml
       +'</tr>';
   }).join('');
   var tableWrap=document.getElementById('repairTableWrap');
   if(tableWrap){
     tableWrap.innerHTML='<div style="padding:8px 12px;font-size:11px;font-weight:700;color:var(--wn);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between">'
-      +'<span>📋 ตารางงานส่งซ่อม</span><span style="color:var(--mu);font-weight:400">'+filtered.length+' รายการ</span></div>'
-      +(filtered.length
+      +'<span>📋 ตารางงานส่งซ่อม</span><span style="color:var(--mu);font-weight:400">'+total+' รายการ</span></div>'
+      +(total
         ?'<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--mu);font-size:10px;text-transform:uppercase">'
           +'<th style="text-align:left;padding:6px 8px">วันที่ส่ง</th><th style="text-align:left;padding:6px 8px">ประเภท</th><th style="text-align:left;padding:6px 8px">เลข/NVH</th>'
           +'<th style="text-align:left;padding:6px 8px">อาการที่พบ</th><th style="text-align:left;padding:6px 8px">ผู้รายงาน</th>'
           +'<th style="text-align:left;padding:6px 8px">วันรับคืน</th><th style="text-align:left;padding:6px 8px">ผู้รับคืน</th>'
-          +'<th style="text-align:center;padding:6px 8px">สถานะ</th></tr></thead><tbody>'+rowsHtml+'</tbody></table>'
-        :'<div style="color:var(--mu);font-size:12px;padding:14px">ไม่พบรายการที่ตรงเงื่อนไข</div>');
+          +'<th style="text-align:center;padding:6px 8px">สถานะ</th><th style="text-align:center;padding:6px 8px">จัดการ</th></tr></thead><tbody>'+rowsHtml+'</tbody></table>'
+        :'<div style="color:var(--mu);font-size:12px;padding:14px">ไม่พบรายการที่ตรงเงื่อนไข</div>')
+      +(total?'<div style="font-size:11px;color:var(--mu);padding:8px 12px;text-align:right">แสดง '+(start+1)+'–'+Math.min(start+_repairPageSize,total)+' จาก '+total+' รายการ</div>':'');
+  }
+  var pager=document.getElementById('repairPager');
+  if(pager){
+    pager.innerHTML=(totalPages<=1?'':
+      '<button class="btn bg sm" '+((_repairPage===1)?'disabled':'')+' onclick="_repairPage--;_repairRenderTablePage()">◀ ก่อนหน้า</button>'
+      +'<span style="color:var(--mu)">หน้า '+_repairPage+' / '+totalPages+'</span>'
+      +'<button class="btn bg sm" '+((_repairPage===totalPages)?'disabled':'')+' onclick="_repairPage++;_repairRenderTablePage()">ถัดไป ▶</button>'
+    );
   }
 }
 
+// ── การ์ด/แก้ไข/ลบ/ดูรายละเอียด รายตัวในตารางงานส่งซ่อม (แยกจาก modal เดิมของ Admin
+//    เพื่อไม่แตะ _openMaintLogModal/saveMaintLog ที่มีชุดทดสอบคุ้มครองอยู่แล้ว) ──
+function _repairFindJob(sentId,retId){
+  var jobs=_repairJobsCache||[];
+  for(var i=0;i<jobs.length;i++){
+    var j=jobs[i];
+    if(sentId!=null&&j.sent&&j.sent.id===sentId)return j;
+    if(retId!=null&&j.returned&&j.returned.id===retId)return j;
+  }
+  return null;
+}
+function _repairOpenSimpleModal(id,title,bodyHtml,footerHtml,maxWidth){
+  var div=document.getElementById(id);
+  if(!div){div=document.createElement('div');div.className='mbk';div.id=id;document.body.appendChild(div);}
+  div.innerHTML='<div class="mdl" style="max-width:'+(maxWidth||480)+'px"><div class="mhd"><div class="mttl">'+title+'</div><button class="mcls" onclick="closeM(\''+id+'\')">✕</button></div>'
+    +'<div class="mbdy">'+bodyHtml+'</div><div class="mft">'+footerHtml+'</div></div>';
+  openM(id);
+}
+window.repairViewDetail=function(sentId,retId){
+  var job=_repairFindJob(sentId,retId);
+  if(!job){if(window.toast)window.toast('ไม่พบข้อมูล','error');return;}
+  var s=job.sent,r=job.returned;
+  var rows=function(pairs){return pairs.filter(function(p){return p[1]!=null&&p[1]!=='';}).map(function(p){
+    return '<tr><td style="padding:4px 8px;color:var(--mu);white-space:nowrap">'+p[0]+'</td><td style="padding:4px 8px">'+esc(String(p[1]))+'</td></tr>';
+  }).join('');};
+  var html='<div style="display:flex;flex-direction:column;gap:14px">'
+    +'<div><div style="font-weight:700;color:var(--ac);margin-bottom:6px">🔧 ข้อมูลส่งซ่อม</div>'
+    +(s?'<table style="width:100%;border-collapse:collapse;font-size:12px">'+rows([
+        ['วันที่ส่ง',s.event_date],['ประเภท',s.equipment_type],['เลขเครื่อง','No.'+s.unit_no],
+        ['NVH No.',s.nvh_no],['ยี่ห้อ/รุ่น',s.brand_model],['อาการที่พบ',s.note],['ผู้รายงาน',s.reporter]
+      ])+'</table>':'<div style="color:var(--mu);font-size:12px">ไม่มีข้อมูล</div>')+'</div>'
+    +'<div><div style="font-weight:700;color:var(--ok);margin-bottom:6px">✅ ข้อมูลรับคืน</div>'
+    +(r?'<table style="width:100%;border-collapse:collapse;font-size:12px">'+rows([
+        ['วันที่รับคืน',r.event_date],['สิ่งที่ซ่อม/เปลี่ยน',r.note],['ผู้รับคืน',r.receiver],
+        ['ผู้รับผิดชอบ/บริษัท',r.responsible],['ค่าใช้จ่าย',r.cost!=null?Number(r.cost).toLocaleString('th-TH')+' บาท':null]
+      ])+'</table>':'<div style="color:var(--mu);font-size:12px">ยังไม่รับคืน</div>')+'</div></div>';
+  _repairOpenSimpleModal('mRepairDetail','📄 รายละเอียดงานซ่อม',html,'<button class="btn bg" onclick="closeM(\'mRepairDetail\')">ปิด</button>');
+};
+window.repairEditJob=function(sentId,retId){
+  var job=_repairFindJob(sentId,retId);
+  if(!job){if(window.toast)window.toast('ไม่พบข้อมูล','error');return;}
+  var s=job.sent,r=job.returned,html='<div style="display:flex;flex-direction:column;gap:10px">';
+  if(s){
+    html+='<div style="font-weight:700;color:var(--ac)">🔧 ข้อมูลส่งซ่อม</div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">วันที่ส่งซ่อม</div><input type="date" id="reEditSentDate" value="'+esc(s.event_date||'')+'" style="width:100%"></div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">อาการที่พบ</div><textarea id="reEditSentNote" rows="2" style="width:100%">'+esc(s.note||'')+'</textarea></div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">ยี่ห้อ/รุ่น</div><input type="text" id="reEditBrand" value="'+esc(s.brand_model||'')+'" style="width:100%"></div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">NVH No.</div><input type="text" id="reEditNvh" value="'+esc(s.nvh_no||'')+'" style="width:100%"></div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">ผู้รายงาน</div><input type="text" id="reEditReporter" value="'+esc(s.reporter||'')+'" style="width:100%"></div>';
+  }
+  if(r){
+    html+='<div style="font-weight:700;color:var(--ok);margin-top:6px">✅ ข้อมูลรับคืน</div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">วันที่รับคืน</div><input type="date" id="reEditRetDate" value="'+esc(r.event_date||'')+'" style="width:100%"></div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">สิ่งที่ซ่อม/เปลี่ยน</div><textarea id="reEditRetNote" rows="2" style="width:100%">'+esc(r.note||'')+'</textarea></div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">ผู้รับคืน</div><input type="text" id="reEditReceiver" value="'+esc(r.receiver||'')+'" style="width:100%"></div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">ผู้รับผิดชอบ/บริษัท</div><input type="text" id="reEditResp" value="'+esc(r.responsible||'')+'" style="width:100%"></div>'
+      +'<div><div style="font-size:11px;color:var(--mu);margin-bottom:4px">ค่าใช้จ่าย (บาท)</div><input type="number" id="reEditCost" value="'+(r.cost!=null?r.cost:'')+'" style="width:100%"></div>';
+  }
+  html+='</div>';
+  window._repairEditIds={sentId:sentId,retId:retId};
+  _repairOpenSimpleModal('mRepairEdit','✏️ แก้ไขรายการส่งซ่อม',html,
+    '<button class="btn bg" onclick="closeM(\'mRepairEdit\')">ยกเลิก</button><button class="btn bp" id="reEditSaveBtn" onclick="repairSaveEdit()">💾 บันทึก</button>',520);
+};
+window.repairSaveEdit=async function(){
+  var ids=window._repairEditIds;if(!ids)return;
+  var btn=document.getElementById('reEditSaveBtn');
+  if(btn){if(btn.disabled)return;btn.disabled=true;btn.textContent='⏳ กำลังบันทึก...';}
+  try{
+    var tasks=[];
+    if(ids.sentId!=null){
+      var sd=document.getElementById('reEditSentDate'),sn=document.getElementById('reEditSentNote'),
+        sb=document.getElementById('reEditBrand'),sv=document.getElementById('reEditNvh'),sr=document.getElementById('reEditReporter');
+      if(sd&&!sd.value){if(window.toast)window.toast('กรุณาเลือกวันที่ส่งซ่อม','error');if(btn){btn.disabled=false;btn.textContent='💾 บันทึก';}return;}
+      tasks.push(SB.patch('equipment_maintenance_log','id=eq.'+ids.sentId,{
+        event_date:sd.value,note:sn.value.trim()||null,brand_model:sb.value.trim()||null,
+        nvh_no:sv.value.trim()||null,reporter:sr.value.trim()||null
+      }));
+    }
+    if(ids.retId!=null){
+      var rd=document.getElementById('reEditRetDate'),rn=document.getElementById('reEditRetNote'),
+        rc=document.getElementById('reEditReceiver'),rp=document.getElementById('reEditResp'),rco=document.getElementById('reEditCost');
+      if(rd&&!rd.value){if(window.toast)window.toast('กรุณาเลือกวันที่รับคืน','error');if(btn){btn.disabled=false;btn.textContent='💾 บันทึก';}return;}
+      var costVal=rco&&rco.value!==''?parseFloat(rco.value):null;
+      tasks.push(SB.patch('equipment_maintenance_log','id=eq.'+ids.retId,{
+        event_date:rd.value,note:rn.value.trim()||null,receiver:rc.value.trim()||null,
+        responsible:rp.value.trim()||null,cost:(costVal!=null&&!isNaN(costVal))?costVal:null
+      }));
+    }
+    await Promise.all(tasks);
+    closeM('mRepairEdit');
+    if(window.toast)window.toast('บันทึกสำเร็จ','success');
+    renderRepair();
+  }catch(e){
+    if(window.toast)window.toast('บันทึกไม่สำเร็จ: '+e.message,'error');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='💾 บันทึก';}
+  }
+};
+window.repairDeleteJob=async function(sentId,retId,unitId){
+  if(!confirm('ลบรายการส่งซ่อมนี้ทั้งหมด?\n(ลบข้อมูลส่งซ่อม'+(retId!=null?'และข้อมูลรับคืน':'')+' ถาวร กู้คืนไม่ได้)'))return;
+  try{
+    var ids=[];if(sentId!=null)ids.push(sentId);if(retId!=null)ids.push(retId);
+    if(!ids.length)return;
+    await SB.del('equipment_maintenance_log','id=in.('+ids.join(',')+')');
+    // งานที่ยังไม่รับคืน (retId เป็น null) แปลว่าตอนส่งซ่อมได้เปลี่ยนสถานะเครื่องเป็น "ซ่อม" ไว้
+    // ถ้าลบแล้ว sync สถานะกลับ "คงเหลือ" ให้อัตโนมัติ — แต่ต้องเช็คสถานะ ณ ตอนนี้ก่อนเสมอ (ไม่เดา)
+    // sync คืนให้เฉพาะกรณีสถานะยังเป็น "ซ่อม" อยู่จริงเท่านั้น ถ้ามีอะไรเปลี่ยนไปแล้ว (ยืม/คงเหลือ/ฯลฯ) จะไม่แตะเลย
+    if(retId==null&&unitId!=null){
+      try{
+        var cur=await SB.get('equipment_units','id=eq.'+unitId+'&select=id,status');
+        if(cur&&cur[0]&&cur[0].status==='ซ่อม'){
+          await SB.patch('equipment_units','id=eq.'+unitId,{status:'คงเหลือ'});
+          if(window._EQ_UNITS_BY_ID&&window._EQ_UNITS_BY_ID[unitId])window._EQ_UNITS_BY_ID[unitId].status='คงเหลือ';
+          if(typeof _invRecalcFromUnits==='function')_invRecalcFromUnits();
+        }
+      }catch(e){console.warn('sync สถานะกลับไม่สำเร็จ (ไม่กระทบการลบ log):',e);}
+    }
+    if(window.toast)window.toast('ลบสำเร็จ','success');
+    renderRepair();
+  }catch(e){
+    if(window.toast)window.toast('ลบไม่สำเร็จ: '+e.message,'error');
+  }
+};
+// ถูกเรียกจาก saveBorrow เมื่อยืมเครื่องที่สถานะทะเบียนยังเป็น "ซ่อม" อยู่ (ผู้ใช้ยืนยันผ่าน confirm แล้ว) —
+// ปิดงานซ่อมที่ค้างอยู่ให้อัตโนมัติ (เขียนแถว "returned" ให้) ไม่บล็อกการยืม เรียกแบบ fire-and-forget
+window._repairAutoCloseIfPending=async function(unitId,giverName){
+  try{
+    var logs=await SB.get('equipment_maintenance_log','unit_id=eq.'+unitId+'&order=event_date.asc,created_at.asc&limit=1000');
+    var jobs=_repairBuildJobs(logs);
+    var pendingJob=null;
+    jobs.forEach(function(j){if(!j.returned)pendingJob=j;});
+    if(!pendingJob||!pendingJob.sent)return;
+    await SB.post('equipment_maintenance_log',{
+      unit_id:unitId,equipment_type:pendingJob.sent.equipment_type,unit_no:pendingJob.sent.unit_no,
+      event_type:'returned',event_date:localDateStr(new Date()),
+      note:'ปิดงานอัตโนมัติ — พบว่าเครื่องถูกนำมายืมออกทั้งที่สถานะทะเบียนยังเป็น "ซ่อม" ค้างอยู่ แสดงว่าเครื่องกลับมาจากซ่อมแล้วจริงแต่ยังไม่มีใครบันทึก "รับคืนจากซ่อม" ไว้ก่อนหน้านี้ (ไม่ทราบวันที่ซ่อมเสร็จจริง ใช้วันที่พบครั้งนี้แทน)',
+      receiver:giverName||null
+    });
+  }catch(e){
+    console.warn('ปิดงานซ่อมอัตโนมัติไม่สำเร็จ (ไม่กระทบการยืมจริง):',e);
+  }
+};
+
+window.repairFilterByType=function(t){
+  var sel=document.getElementById('repairFilterType');
+  if(!sel)return;
+  sel.value=(sel.value===t)?'':t;
+  _repairRenderAll();
+};
 window.repairClearFilters=function(){
   var t=document.getElementById('repairFilterType'),s=document.getElementById('repairFilterStatus'),q=document.getElementById('repairSearch');
+  var fy=document.getElementById('repairFilterFY'),df=document.getElementById('repairDateFrom'),dt=document.getElementById('repairDateTo');
   if(t)t.value='';if(s)s.value='';if(q)q.value='';
+  if(fy)fy.value='';if(df)df.value='';if(dt)dt.value='';
   _repairRenderAll();
 };
 
@@ -13082,6 +13325,23 @@ window.repairExportCSV=function(){
     ]));
   });
   dlCSV(lines.join('\r\n'),'งานส่งซ่อม_'+localDateStr(new Date())+'.csv');
+};
+// ใช้ dlPDF ตัวเดิมที่ใช้อยู่แล้วทั่วทั้งแอป (font Arial,Tahoma,sans-serif ผ่านหน้าต่าง print ของเบราว์เซอร์)
+// เป็นวิธีเดียวกับที่ใช้ export Dashboard/รายงานอื่นอยู่แล้ว — ข้อความไทยไม่เพี้ยนเพราะไม่ได้ฝังฟอนต์เอง
+// แต่ให้เบราว์เซอร์/OS เรนเดอร์ให้ตอนกด "พิมพ์/บันทึกเป็น PDF" เอง (ต่างจากไลบรารีสร้าง PDF ฝั่ง JS
+// อย่าง jsPDF ที่ฟอนต์ default ไม่มีตัวอักษรไทย ทำให้เพี้ยนเป็นสี่เหลี่ยม/หายไปได้)
+window.repairExportPDF=function(){
+  var jobs=_repairJobsCache||[];
+  var rows=[['วันที่ส่ง','ประเภท','เลข','NVH No.','อาการที่พบ','ผู้รายงาน','วันรับคืน','ผู้รับคืน','สถานะ']];
+  jobs.forEach(function(j){
+    rows.push([
+      j.sent?j.sent.event_date:'—',_repairJobType(j),_repairJobNo(j),
+      j.sent&&j.sent.nvh_no||'—',j.sent&&j.sent.note||'—',j.sent&&j.sent.reporter||'—',
+      j.returned?j.returned.event_date:'—',j.returned&&j.returned.receiver||'—',
+      j.returned?'รับคืนแล้ว':'รอซ่อม'
+    ]);
+  });
+  dlPDF('รายงานงานส่งซ่อม',rows);
 };
 
 window.repairShowAddPicker=async function(){
