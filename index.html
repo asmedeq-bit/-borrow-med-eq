@@ -4227,7 +4227,7 @@ function renderDaily(){
     if(search){var txt=(i.borrow?S(i.borrow.EquipmentNo):'')+' '+S(i.loan.PatientName)+' '+S(i.loan.BorrowerName)+' '+(i.borrow?S(i.borrow.GiverName||''):'')+' '+S(i.loan.DeptName)+' '+S(i.eq.name);if(!txt.toLowerCase().includes(search))return false;}
     return true;
   });
-  var grp={};active.forEach(function(item){var k=item.eq.name;if(!grp[k])grp[k]=[];grp[k].push(item);});
+  var grp={};active.forEach(function(item){var k=S(item.eq.name);if(!grp[k])grp[k]=[];grp[k].push(item);});
   var keys=filter?(grp[filter]?[filter]:[]):EQL.filter(function(e){return grp[e];});
   var _dMap={};
   renderDailySumCards(active);
@@ -7347,6 +7347,7 @@ async function admSaveEditLoan(){
   var eqListRaw=document.getElementById('admEditEqList').value;
   var eqList;
   try{eqList=JSON.parse(eqListRaw);}catch(e){bigToast('รายการเครื่องมือ JSON ไม่ถูกต้อง\n'+e.message,'error');return;}
+  if(Array.isArray(eqList))eqList=eqList.map(function(e){if(e&&typeof e.name!=='undefined')e.name=String(e.name).trim();return e;});
   try{
     await API.updateLoan(loanID,{
       loanDate:document.getElementById('admEditLoanDate').value,
