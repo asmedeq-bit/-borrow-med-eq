@@ -6074,6 +6074,11 @@ async function loadAll(){
 }
 
 function S(v){return String(v===null||v===undefined?'':v).trim();}
+// ตัดช่องว่างหัว-ท้าย + ยุบช่องว่างซ้อนกลางคำให้เหลือช่องเดียว — ใช้กับ "ชื่อชนิด
+// เครื่องมือ" ทุกจุดที่รับ free-text ก่อนบันทึก กันปัญหาพิมพ์เว้นวรรคเกินจนชื่อ
+// ดูเหมือนกันแต่เทียบ string ตรงๆ ไม่ตรง (ทำให้สถิติ/On Loan/Utilization นับพลาด
+// แบบเงียบๆ — เจอเคสจริงกับ "Oxygen flow meter with power take off")
+function normEqName(v){return String(v===null||v===undefined?'':v).trim().replace(/\s+/g,' ');}
 function N(v){var n=parseInt(String(v===null||v===undefined?'0':v),10);return isNaN(n)?0:n;}
 // HTML-escape ข้อความที่มาจากผู้ใช้ ก่อนแสดงผลผ่าน innerHTML (ป้องกัน XSS)
 // ใช้กับข้อความ free-text เช่น ชื่อผู้ป่วย/ผู้ยืม/แผนก/เครื่องมือ/หมายเหตุ ฯลฯ — ห้ามใช้กับ HTML ที่ตั้งใจสร้างเอง
@@ -7520,7 +7525,7 @@ async function renderSum(r){
         +(spVals.length>0?'<circle cx="'+Math.round((spVals.length-1)*(spW/(spVals.length-1||1)))+'" cy="'+Math.round(spH-3-(spVals[spVals.length-1]||0)/spMax*(spH-6))+'" r="2.5" fill="'+e.col+'"/>':'')
         +'</svg>';
       var ak='snp_'+e.name.replace(/[^a-zA-Z0-9]/g,'_');_sMap[ak]={type:'eq',eq:e.name};
-      return'<tr class="avg-tbl-row" style="border-bottom:1px solid var(--bd)">'        +'<td style="padding:8px 10px"><div style="display:flex;align-items:center;gap:7px">'          +'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+e.col+';flex-shrink:0"></span>'          +'<strong>'+e.name+'</strong>'          +'<span style="font-size:10px;color:'+trendC+'">'+trendTxt+'</span>'        +'</div></td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--mu)">'+( e.inv.total||'—')+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--ok);font-weight:700">'+( e.inv.active||'—')+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--er)">'+( e.inv.inactive||0)+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+( e.inv.forDept||0)+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.todayVal+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--ok)">'+e.availableNow+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.avg+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:'+(parseFloat(e.ma7)>parseFloat(e.avg)?'var(--er)':parseFloat(e.ma7)<parseFloat(e.avg)?'var(--ok)':'var(--ac2)')+'">'+e.ma7+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+e.peak+'</td>'        +'<td style="text-align:center;padding:6px 8px">'+utilCell+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--mu);font-size:11px">'+e.totalDays+'</td>'        +'<td style="text-align:center">'+spSvg+'</td>'        +'<td style="text-align:center"><button class="abt svb" data-key="'+ak+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">ดู</button></td>'        +'</tr>';
+      return'<tr class="avg-tbl-row" style="border-bottom:1px solid var(--bd)">'        +'<td style="padding:8px 10px"><div style="display:flex;align-items:center;gap:7px">'          +'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+e.col+';flex-shrink:0"></span>'          +'<strong>'+e.name+'</strong>'          +'<span style="font-size:10px;color:'+trendC+'">'+trendTxt+'</span>'        +'</div></td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--mu)">'+( e.inv.total!=null?e.inv.total:'—')+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--ok);font-weight:700">'+( e.inv.active!=null?e.inv.active:'—')+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--er)">'+( e.inv.inactive||0)+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+( e.inv.forDept||0)+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.todayVal+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--ok)">'+e.availableNow+'</td>'        +'<td style="text-align:center;font-family:var(--mo);font-weight:700;font-size:15px;color:var(--ac)">'+e.avg+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:'+(parseFloat(e.ma7)>parseFloat(e.avg)?'var(--er)':parseFloat(e.ma7)<parseFloat(e.avg)?'var(--ok)':'var(--ac2)')+'">'+e.ma7+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--wn)">'+e.peak+'</td>'        +'<td style="text-align:center;padding:6px 8px">'+utilCell+'</td>'        +'<td style="text-align:center;font-family:var(--mo);color:var(--mu);font-size:11px">'+e.totalDays+'</td>'        +'<td style="text-align:center">'+spSvg+'</td>'        +'<td style="text-align:center"><button class="abt svb" data-key="'+ak+'" style="border-color:var(--ac);color:var(--ac);font-size:11px">ดู</button></td>'        +'</tr>';
     }).join('');
 
     // ── Utilization summary ──
@@ -7636,7 +7641,7 @@ async function renderSum(r){
             +'</td>'
             +'<td style="text-align:center;font-family:var(--mo);color:var(--ac);font-weight:700;font-size:14px">'+parseFloat(e.avg).toFixed(1)+'</td>'
             +'<td style="text-align:center;font-family:var(--mo);font-size:13px;color:var(--tx)">'+e.peak+pUtxt+'</td>'
-            +'<td style="text-align:center;font-family:var(--mo);font-size:13px;color:#15803d">'+( e.inv.active||'—')+'</td>'
+            +'<td style="text-align:center;font-family:var(--mo);font-size:13px;color:#15803d">'+( e.inv.active!=null?e.inv.active:'—')+'</td>'
             +'<td style="padding:8px 10px;min-width:160px">'+uCell+'</td>'
             +'<td style="text-align:center;font-size:12px">'+trendTxt+'</td>'
             +'</tr>';
@@ -10304,7 +10309,7 @@ function startEditEq(i){
 }
 function saveEditEq(){
   if(_selEqlIdx2<0)return;
-  var name=document.getElementById('editEqName').value.trim();
+  var name=normEqName(document.getElementById('editEqName').value);
   if(!name){toast('กรุณาระบุชื่อ','error');return;}
   _wEql[_selEqlIdx2]=name;cancelEditEq();renderEqList();
   toast('แก้ไขแล้ว (ยังไม่บันทึก)','warning');
@@ -10327,7 +10332,7 @@ function moveEqItem(dir){
   var tmp=_wEql[i];_wEql[i]=_wEql[j];_wEql[j]=tmp;_selEqlIdx2=j;renderEqList();
 }
 function addEqItem(){
-  var name=document.getElementById('newEqName').value.trim();
+  var name=normEqName(document.getElementById('newEqName').value);
   if(!name){toast('กรุณาระบุชื่อ','error');return;}
   if(_wEql.includes(name)){toast('ชื่อซ้ำ','warning');return;}
   var lastIdx=_wEql.indexOf('อื่นๆ');
@@ -13492,24 +13497,74 @@ function _buildInvAdminHTML(){
     +'</tr></thead>'
     +'<tbody id="invAdminBody">'+_buildInvRows()+'</tbody></table></div>'
     +'<div style="margin-top:14px;padding:14px;background:var(--s2);border-radius:8px">'
-    +'<div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:10px">➕ เพิ่มชนิดเครื่องมือใหม่</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--tx)">➕ เพิ่มชนิดเครื่องมือใหม่</div>'
+      +'<button class="btn bg sm" onclick="invCheckNameConsistency()" title="ไล่เทียบชื่อชนิดเครื่องมือระหว่าง EQL/ตาราง Total/ทะเบียนรายเครื่อง หาชื่อที่สะกด/เว้นวรรคไม่ตรงกัน">🔍 ตรวจสอบชื่อไม่ตรงกัน</button>'
+    +'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">'
-    +'<div class="fg"><label>ชื่อเครื่องมือ *</label><input type="text" id="newInvName" placeholder="เช่น New Device" style="min-width:220px"></div>'
+    +'<div class="fg"><label>ชื่อเครื่องมือ *</label><input type="text" id="newInvName" list="invEqNameSuggest" placeholder="เช่น New Device" style="min-width:220px" autocomplete="off"></div>'
+    // ── datalist แนะนำชื่อจาก EQL (รายการเครื่องมือหน้ายืม) — เลือกจากที่มีอยู่แล้ว
+    // ได้เลย กันพิมพ์ชื่อเดียวกันซ้ำแต่สะกด/เว้นวรรคเพี้ยน (ดู normEqName + คำเตือน
+    // ใน invAddType) — ยังพิมพ์ชื่อใหม่เองได้ตามปกติถ้าตั้งใจเพิ่มชนิดใหม่จริง
+    +'<datalist id="invEqNameSuggest">'+(typeof EQL!=='undefined'?EQL:[]).map(function(n){return'<option value="'+esc(n)+'">';}).join('')+'</datalist>'
     +'<button class="btn badm" style="margin-bottom:3px" onclick="invAddType()">➕ เพิ่ม</button>'
-    +'</div><div style="font-size:11px;color:var(--mu);margin-top:6px">เพิ่มชนิดใหม่แล้วจะเริ่มจาก 0 เครื่อง — กด ▶ ที่แถวนั้นแล้วกด "เพิ่มเครื่องใหม่" เพื่อใส่จำนวนเครื่องจริง</div>'
+    +'</div><div style="font-size:11px;color:var(--mu);margin-top:6px">เพิ่มชนิดใหม่แล้วจะเริ่มจาก 0 เครื่อง — กด ▶ ที่แถวนั้นแล้วกด "เพิ่มเครื่องใหม่" เพื่อใส่จำนวนเครื่องจริง · 💡 พิมพ์แล้วเลือกจากรายการที่ขึ้นมาถ้ามีชนิดนี้อยู่แล้ว กันสะกด/เว้นวรรคเพี้ยน</div>'
     +'</div></div>';
 }
 
 window.invAddType=function(){
-  var name=(document.getElementById('newInvName').value||'').trim();
+  var name=normEqName(document.getElementById('newInvName').value);
   if(!name){if(window.toast)window.toast('กรุณาระบุชื่อเครื่องมือ','error');return;}
   var inv=_invGet();
   if(inv.some(function(e){return e.name===name;})){if(window.toast)window.toast('มีชื่อนี้อยู่แล้ว','warning');return;}
+  // เตือน (ไม่บล็อก) ถ้าชื่อนี้คล้ายกับชื่อใน EQL แบบเทียบไม่สนตัวพิมพ์เล็ก-ใหญ่/
+  // ช่องว่างซ้อน แต่สะกดไม่ตรงเป๊ะ — กันเคสพิมพ์เพี้ยนจนกลายเป็นคนละชื่อ (ดู normEqName)
+  var normLower=name.toLowerCase();
+  var eqlNear=(typeof EQL!=='undefined'?EQL:[]).find(function(e){return normEqName(e).toLowerCase()===normLower&&normEqName(e)!==name;});
+  if(eqlNear&&!confirm('ชื่อนี้ใกล้เคียงกับ "'+eqlNear+'" ในรายการเครื่องมือ (EQL) มาก แต่สะกดไม่ตรงเป๊ะ\nยืนยันจะเพิ่มเป็นชื่อใหม่แยกต่างหากจริงหรือไม่?\n(ถ้าตั้งใจให้เป็นชนิดเดียวกัน ให้กด "ยกเลิก" แล้วพิมพ์ให้ตรงกับ "'+eqlNear+'")')){return;}
   inv.push({name:name,total:0,inactive:0,forDept:0});
   _invSet(inv);window._EQ_INV=inv;saveConfig('inventory',inv);
   document.getElementById('newInvName').value='';
   invReload();
   if(window.toast)window.toast('เพิ่มชนิด "'+name+'" แล้ว (0 เครื่อง)','success');
+};
+
+// ══════════════════════════════════════════════════════════════
+// 🔍 ตรวจสอบชื่อชนิดเครื่องมือไม่ตรงกัน — ไล่เทียบ 3 แหล่ง (EQL / ตาราง Total
+// (_EQ_INV) / ทะเบียนรายเครื่อง equipment_units) หาคู่ที่ normalize แล้วเหมือนกัน
+// (ตัดช่องว่างหัวท้าย+ยุบช่องว่างซ้อน+ไม่สนตัวพิมพ์เล็กใหญ่) แต่สะกดจริงไม่ตรงเป๊ะ
+// — เคสแบบนี้ทำให้สถิติ/On Loan/Utilization นับพลาดแบบเงียบๆ (ไม่ error ให้เห็น)
+// เพราะจุดคำนวณส่วนใหญ่เทียบชื่อแบบตรงตัวเป๊ะ ไม่ได้ normalize ก่อนเทียบ
+// ══════════════════════════════════════════════════════════════
+window.invCheckNameConsistency=function(){
+  var groups={};
+  function add(name,src){
+    if(!name)return;
+    var key=normEqName(name).toLowerCase();
+    if(!groups[key])groups[key]=[];
+    if(!groups[key].some(function(g){return g.name===name&&g.src===src;}))groups[key].push({name:name,src:src});
+  }
+  (typeof EQL!=='undefined'?EQL:[]).forEach(function(n){add(n,'EQL (รายการยืม)');});
+  _invGet().forEach(function(e){add(e.name,'ข้อมูลทั้งหมด (Total)');});
+  Object.keys(window._EQ_UNITS||{}).forEach(function(n){add(n,'ทะเบียนรายเครื่อง');});
+
+  var problems=Object.keys(groups).filter(function(key){
+    var uniq={};groups[key].forEach(function(g){uniq[g.name]=true;});
+    return Object.keys(uniq).length>1;
+  }).map(function(key){return groups[key];});
+
+  if(!problems.length){
+    if(window.toast)window.toast('✅ ตรวจแล้ว — ชื่อชนิดเครื่องมือตรงกันทุกจุด ไม่พบปัญหา','success');
+    return;
+  }
+  var msg='⚠️ พบชื่อสะกด/เว้นวรรคไม่ตรงกัน '+problems.length+' กลุ่ม:\n\n'
+    +problems.map(function(p){
+      var byName={};
+      p.forEach(function(v){(byName[v.name]=byName[v.name]||[]).push(v.src);});
+      return Object.keys(byName).map(function(n){return'  • "'+n+'"  ('+byName[n].join(', ')+')';}).join('\n');
+    }).join('\n\n');
+  console.warn('[invCheckNameConsistency] รายละเอียด:',problems);
+  alert(msg+'\n\n(ดูรายละเอียดเต็มได้ใน Console — กด F12)');
 };
 
 window.invRemoveType=async function(el){
