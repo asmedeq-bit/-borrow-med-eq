@@ -6350,6 +6350,23 @@ var _recPage=1;
 var _recPageSize=20;
 var _recGroupsFiltered=[];
 
+// ── วันคืน "ตัวเครื่อง" — มาตรฐานเดียวทั้งแอป (29 ก.ย. 2569) ──
+// ระบบเก็บวันคืน 2 ช่อง: machine_return_date (บันทึกครั้งเดียวตอนคืนตัวเครื่อง) กับ
+// return_date (ถูกเขียนทับทุกครั้งที่คืน รวมคืนอุปกรณ์ค้างทีหลัง) — เดิมบางหน้าใช้ return_date
+// ทำให้เครื่องที่อุปกรณ์คืนทีหลังถูกนับว่า "คืนวันที่อุปกรณ์คืน" · ตอนนี้ใช้เกณฑ์เดียวกับ
+// daysOf()/หน้ารายละเอียดที่ใช้อยู่แล้ว: ตัวเครื่องคืนแล้ว (MachineReturned หรือสถานะคืน) →
+// MachineReturnDate สำรองด้วย ReturnDate (ข้อมูลเก่าก่อนมี machine_return_date) · ยังไม่คืน → ''
+function _machineReturned(item){return !!(item&&item.borrow&&(item.borrow.MachineReturned===true||item.status==='RETURNED'));}
+function _machineRetDate(item){return _machineReturned(item)?S(item.borrow.MachineReturnDate||item.borrow.ReturnDate):'';}
+// เวลาคืน (เวลาไทย HH:MM) จาก returned_at — เฉพาะเมื่อวันตรงกับวันคืนตัวเครื่อง (ข้อมูลเก่าไม่มีเวลา → '')
+function _retTimeOf(item,d){
+  var ts=item&&item.borrow?item.borrow.ReturnedAt:'';if(!ts||!d)return '';
+  var t=new Date(ts);if(isNaN(t.getTime()))return '';
+  t=new Date(t.getTime()+7*3600*1000);   // ประเทศไทยไม่มี DST
+  var p=function(n){return String(n).padStart(2,'0');};
+  if(t.getUTCFullYear()+'-'+p(t.getUTCMonth()+1)+'-'+p(t.getUTCDate())!==String(d).slice(0,10))return '';
+  return p(t.getUTCHours())+':'+p(t.getUTCMinutes());
+}
 function _getRecGroups(){
   var search=document.getElementById('recSearch').value.toLowerCase();
   var sf=document.getElementById('recStat').value;
@@ -6376,9 +6393,8 @@ function _getRecGroups(){
     // sf='RETURNED'/'ACC_PENDING' (เลือกเฉพาะสถานะคืน) → ใช้ return_date ทุกแถว
     // sf อื่นๆ (รวม '' = ทั้งหมด, TRANSFERRED, ฯลฯ) → ใช้ loan_date ทุกแถว
     var isRet=sf==='RETURNED'||sf==='ACC_PENDING';
-    var dateVal=isRet&&item.borrow&&item.borrow.ReturnDate
-      ? item.borrow.ReturnDate
-      : item.loan.LoanDate;
+    var _mrd=isRet?_machineRetDate(item):'';   // วันคืนตัวเครื่อง (ไม่ใช่วันคืนอุปกรณ์ทีหลัง)
+    var dateVal=_mrd||item.loan.LoanDate;
 
     if(ds&&dateVal&&dateVal<ds)return false;
     if(de&&dateVal&&dateVal>de)return false;
@@ -6395,7 +6411,14 @@ function _getRecGroups(){
   groups.forEach(function(g){
     g._sortKey=Math.min.apply(null,g.items.map(function(i){return STATUS_ORDER[i.status]!==undefined?STATUS_ORDER[i.status]:5;}));
   });
-  groups.sort(function(a,b){if(a._sortKey!==b._sortKey)return a._sortKey-b._sortKey;return(b.loan.LoanDate||'').localeCompare(a.loan.LoanDate||'');});
+  // กรองสถานะคืน → เรียงตามวันคืนตัวเครื่องล่าสุดก่อน (วัน+เวลา) — ใบหลายเครื่องใช้เครื่องที่คืนล่าสุด
+  var _retSort=sf==='RETURNED'||sf==='ACC_PENDING';
+  groups.forEach(function(g){
+    g._retKey='';
+    if(!_retSort)return;
+    g.items.forEach(function(i){var d=_machineRetDate(i);if(!d)return;var k=d.slice(0,10)+' '+_retTimeOf(i,d);if(k>g._retKey)g._retKey=k;});
+  });
+  groups.sort(function(a,b){if(a._sortKey!==b._sortKey)return a._sortKey-b._sortKey;if(_retSort&&a._retKey!==b._retKey)return a._retKey<b._retKey?1:-1;return(b.loan.LoanDate||'').localeCompare(a.loan.LoanDate||'');});
   groups=_exactMatchFirst(groups,search,function(g){
     var f=[S(g.loan.LoanID),S(g.loan.BorrowerName),S(g.loan.DeptName),S(g.loan.PatientName)];
     g.items.forEach(function(i){f.push(S(i.eq.name));if(i.borrow)f.push(S(i.borrow.EquipmentNo));});
@@ -6453,7 +6476,7 @@ function renderRec(){
     var cancelBtn='';
     if(loan.Status!=='CANCELLED'&&loan.Status!=='RETURNED'&&hasPending&&!hasActive)cancelBtn='<button class="abt" style="color:var(--er);border-color:var(--er);font-size:11px" data-act="cancelAll" data-lid="'+S(loan.LoanID)+'">✕ ยกเลิก</button>';
     if(loan.Status==='CANCELLED')cancelBtn='<button class="abt" style="color:var(--er);border-color:var(--er);font-size:11px" data-act="deleteAll" data-lid="'+S(loan.LoanID)+'">🗑 ลบ</button>';
-    var hdr='<tr class="loan-hdr"><td style="font-family:var(--mo);color:var(--mu);font-size:10px;font-weight:700">'+rowN+'</td><td colspan="3" style="padding:8px 10px"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span style="font-family:var(--mo);font-size:11px;color:var(--ac)">'+S(loan.LoanID)+'</span><span>📅 '+loan.LoanDate+'</span><span>ผู้ยืม: <strong>'+ES(loan.BorrowerName)+'</strong></span><span>แผนก: <strong>'+ES(loan.DeptName)+'</strong></span><span>ผู้ป่วย: '+ES(loan.PatientName)+'</span>'+badge(grpStat)+'<span style="font-size:10px;color:var(--mu)">'+g.items.length+' รายการ</span></div></td><td style="text-align:right;white-space:nowrap">'+cancelBtn+'</td></tr>';
+    var hdr='<tr class="loan-hdr"><td style="font-family:var(--mo);color:var(--mu);font-size:10px;font-weight:700">'+rowN+'</td><td colspan="3" style="padding:8px 10px"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span style="font-family:var(--mo);font-size:11px;color:var(--ac)">'+S(loan.LoanID)+'</span><span>📅 '+loan.LoanDate+'</span>'+(g._retKey?'<span style="color:var(--ok)" title="วันที่คืนตัวเครื่อง">↩ คืน '+esc(g._retKey.trim())+'</span>':'')+'<span>ผู้ยืม: <strong>'+ES(loan.BorrowerName)+'</strong></span><span>แผนก: <strong>'+ES(loan.DeptName)+'</strong></span><span>ผู้ป่วย: '+ES(loan.PatientName)+'</span>'+badge(grpStat)+'<span style="font-size:10px;color:var(--mu)">'+g.items.length+' รายการ</span></div></td><td style="text-align:right;white-space:nowrap">'+cancelBtn+'</td></tr>';
     var subRows=sortItems(g.items).map(function(item){var key=S(item.loan.LoanID)+'__'+item.idx;_rMap[key]=item;var eqNo=item.borrow?(ES(item.borrow.EquipmentNo)||'—'):'—';var trailHtml=item.borrow&&item.borrow.TransferHistory&&item.borrow.TransferHistory.length?buildTransferTrail(item.loan,item.borrow):'';var btns='<button class="abt" data-act="view" data-key="'+key+'">👁</button>';if(item.status==='PENDING')btns+=' <button class="abt" style="border-color:var(--ac);color:var(--ac)" data-act="borrow" data-key="'+key+'">📝 บันทึก</button>';if(item.status==='ACTIVE')btns+=' <button class="abt" style="border-color:var(--ok);color:var(--ok)" data-act="return" data-key="'+key+'">↩ คืน</button>';if(item.status==='ACTIVE')btns+=' <button class="abt" style="border-color:var(--wn);color:var(--wn)" data-act="transfer" data-key="'+key+'">🔄 โอน</button>';if(item.status==='ACC_PENDING')btns+=' <button class="abt" style="border-color:#f59e0b;color:#f59e0b" data-act="retacc" data-key="'+key+'">📦 คืนอุปกรณ์</button>';if(item.status==='CANCELLED')btns+=' <button class="abt" style="border-color:var(--er);color:var(--er)" data-act="delete" data-key="'+key+'">🗑 ลบ</button>';return'<tr class="item-row"><td style="text-align:center;font-family:var(--mo);color:var(--mu);font-size:10px">└ '+item.idx+'</td><td><span style="background:var(--s2);border-radius:3px;padding:1px 6px;font-family:var(--mo);font-size:10px;color:var(--ac2)">item '+item.idx+'</span> <strong>'+ES(item.eq.name)+'</strong>'+standbyBadge(item.eq)+(item.eq.detail?'  <span style="font-size:11px;color:var(--mu)">'+esc(item.eq.detail)+'</span>':'')+trailHtml+'</td><td style="font-family:var(--mo);font-size:13px;color:var(--ac)">'+eqNo+'</td><td>'+badge(item.status)+(item.borrow&&item.borrow.TransferHistory&&item.borrow.TransferHistory.length?'<span class="badge btr" style="margin-left:3px;font-size:9px">🔄 โอน '+item.borrow.TransferHistory.length+'x</span>':'')+'</td><td><div style="display:flex;gap:3px;flex-wrap:nowrap">'+btns+'</div></td></tr>';}).join('');
     return hdr+subRows;
   }).join('');
@@ -7146,7 +7169,7 @@ function renderAll(){
     pe.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:8px 4px;margin-top:6px">'+info+exportInfo+'<div style="display:flex;gap:4px;align-items:center">'+btns+'</div></div>';
   }
   var html=pageItems.map(function(item){
-    var ld=item.loan.LoanDate,startD=ld?new Date(ld):null,endD=item.borrow&&item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now;
+    var ld=item.loan.LoanDate,startD=ld?new Date(ld):null,_mrd=_machineRetDate(item),endD=_mrd?new Date(_mrd):now;
     var days=startD&&(item.status==='ACTIVE'||item.status==='RETURNED'||item.status==='ACC_PENDING')?Math.max(0,Math.round((endD-startD)/86400000)):'-';
     var ak=S(item.loan.LoanID)+'__'+item.idx+'_a';_aMap[ak]=item;
     var accs=item.borrow&&Array.isArray(item.borrow.Accessories)?item.borrow.Accessories:[];
@@ -7482,8 +7505,8 @@ async function renderSum(r){
   var expRet=exp.filter(function(item){
     if(item.status!=='RETURNED'&&item.status!=='ACC_PENDING')return false;
     if(secDayEq&&S(item.eq.name)!==secDayEq)return false;
-    if(!item.borrow||!item.borrow.ReturnDate)return false;
-    var rd=item.borrow.ReturnDate;
+    var rd=_machineRetDate(item);   // วันคืนตัวเครื่อง
+    if(!rd)return false;
     if(_dayDateS&&rd<_dayDateS)return false;
     if(_dayDateE&&rd>_dayDateE)return false;
     return true;
@@ -7508,7 +7531,7 @@ async function renderSum(r){
 
   // นับ "คืน" — ใช้ return_date จาก expRet (กรองด้วย return_date แล้ว)
   expRet.forEach(function(item){
-    var rd=item.borrow.ReturnDate;
+    var rd=_machineRetDate(item);
     if(!dayMap[rd])dayMap[rd]={borrow:{},ret:{},accPend:{},pending:{}};
     var n=S(item.eq.name);allEqNames2[n]=true;
     dayMap[rd].ret[n]=(dayMap[rd].ret[n]||0)+1;
@@ -7719,11 +7742,11 @@ async function renderSum(r){
       var loanD=item.loan.LoanDate;
       var todayLocal=localDateStr(now);
       var retD;
-      if(item.status==='ACTIVE'||item.status==='ACC_PENDING'){
+      if(item.status==='ACTIVE'){
         retD=todayLocal;
-      } else if(item.status==='RETURNED'){
-        if(!item.borrow||!item.borrow.ReturnDate)return;
-        retD=item.borrow.ReturnDate;
+      } else if(item.status==='RETURNED'||item.status==='ACC_PENDING'){
+        retD=_machineRetDate(item);   // ตัวเครื่องคืนแล้ว = เลิกนับใช้งาน (อุปกรณ์ค้างไม่นับเป็นเครื่องใช้งาน)
+        if(!retD)return;
       } else { return; }
       rangeDates.forEach(function(d){
         if(d>=loanD&&d<=retD){
@@ -8398,7 +8421,7 @@ async function renderSum(r){
       if(!eqNo||eqNo==='—'||eqNo==='-'||eqNo==='')return;
       var ld=item.loan.LoanDate;if(!ld)return;
       var startD=new Date(ld);
-      var endD=item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now;
+      var _mrd=_machineRetDate(item),endD=_mrd?new Date(_mrd):now;
       var days=Math.max(1,Math.round((endD-startD)/86400000));
       var eqName=S(item.eq.name);
       // key รวม "หมายเลขเครื่อง + ชนิดเครื่องมือ" กันเลขซ้ำข้ามชนิด (เช่น HFNC เลข 20 กับ Infusion pump เลข 20 คือคนละเครื่อง)
@@ -9872,6 +9895,14 @@ function viewDet(loanID){
   var _hasPend=_effStatuses.indexOf('PENDING')>=0,_hasAct=_effStatuses.indexOf('ACTIVE')>=0,_hasAccP=_effStatuses.indexOf('ACC_PENDING')>=0;
   var _allRet=_effStatuses.length>0&&_effStatuses.every(function(s){return s==='RETURNED'||s==='ACC_PENDING';});
   var _effStatus=loan.Status==='CANCELLED'?'CANCELLED':_hasPend?'PENDING':_hasAct?'ACTIVE':_hasAccP?'ACC_PENDING':_allRet?'RETURNED':S(loan.Status);
+  // จำนวนวัน (เน้นตัวเครื่อง): ตัวเครื่องคืนครบทุกเครื่องแล้ว (RETURNED/ACC_PENDING — อุปกรณ์ค้างไม่นับ)
+  // → นับถึงวันคืนตัวเครื่องล่าสุด (MachineReturnDate สำรองด้วย ReturnDate — เกณฑ์เดียวกับ daysOf/_machineRetDate)
+  // · ยังมีเครื่องรอบันทึก/ยืมอยู่ → นับถึงวันนี้เหมือนเดิม
+  if(_allRet){
+    var _endMr='';
+    (loan.EquipmentList||[]).forEach(function(e,idx){var b=bs.find(function(b){return N(b.EquipItemIndex)===idx;});var d=b?S(b.MachineReturnDate||b.ReturnDate):'';if(d>_endMr)_endMr=d;});
+    if(_endMr&&ld)days=Math.max(0,Math.round((new Date(_endMr)-new Date(ld))/86400000));
+  }
   var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px"><div><span style="color:var(--mu);font-size:10px">LOAN ID</span><br><span style="font-family:var(--mo);color:var(--ac)">'+lid+'</span></div><div><span style="color:var(--mu);font-size:10px">สถานะ</span><br>'+badge(_effStatus)+'</div><div><span style="color:var(--mu);font-size:10px">วันที่ยืม</span><br>'+ld+'</div><div><span style="color:var(--mu);font-size:10px">จำนวนวัน</span><br><span style="font-family:var(--mo)">'+days+' วัน</span></div><div><span style="color:var(--mu);font-size:10px">ผู้ยืม</span><br>'+ES(loan.BorrowerName)+'</div><div><span style="color:var(--mu);font-size:10px">แผนก</span><br>'+ES(loan.DeptName)+'</div><div style="grid-column:1/-1"><span style="color:var(--mu);font-size:10px">ผู้ป่วย</span><br>'+ES(loan.PatientName)+'</div></div><div style="background:var(--s2);border-radius:6px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">รายการเครื่องมือ ('+((loan.EquipmentList||[]).length)+' รายการ)</div>'+(loan.EquipmentList||[]).map(function(e,idx){var b=bs.find(function(b){return N(b.EquipItemIndex)===idx;});var itemStatus=computeStatus(b);var accHtml='';if(b&&b.Accessories&&b.Accessories.length){accHtml='<div style="margin-top:6px;padding:6px;background:var(--bg);border-radius:5px;font-size:12px">'+b.Accessories.map(function(a){var isRet=b.ReturnedAccs&&b.ReturnedAccs.some(function(r){return r.id===a.id;});var retAcc=isRet&&b.ReturnedAccs?b.ReturnedAccs.find(function(r){return r.id===a.id;}):null;var retAccDate=retAcc&&retAcc.date?retAcc.date:(isRet&&b.ReturnDate?b.ReturnDate:'');var retAccRcv=retAcc&&retAcc.receiver?retAcc.receiver:'';return'<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--bd)"><span>'+esc(a.name||'?')+(a.no?' No.'+esc(a.no):'')+'</span>'+(isRet?'<span style="color:var(--ok);font-size:11px">✓ คืนแล้ว'+(retAccDate?' <span style="color:var(--mu);font-size:10px">('+retAccDate+')</span>':'')+(retAccRcv?' <span style="color:var(--mu);font-size:10px">ผู้รับ: '+esc(retAccRcv)+'</span>':'')+'</span>':'<span style="color:var(--er);font-size:11px">⏳ ยังไม่คืน</span>')+'</div>';}).join('')+'</div>';}var thHtml='';if(b&&b.TransferHistory&&b.TransferHistory.length){var _th=b.TransferHistory;var _origin;if(_th[0]&&S(_th[0].fromDept)){_origin=esc(S(_th[0].fromDept));}else if(_th[0]&&_th[0].note){var _nm=S(_th[0].note).match(/โอนจาก\s*(.+)/);_origin=_nm&&_nm[1].trim()?esc(_nm[1].trim()):ES(loan.DeptName);}else{_origin=ES(loan.DeptName);}var _bc=[_origin].concat(_th.map(function(t){return ES(t.toDept);}));var _bcHtml=_bc.map(function(d,i){var isCur=i===_bc.length-1;if(isCur)return'<span style="background:rgba(0,200,255,.12);border:1px solid rgba(0,200,255,.4);border-radius:4px;padding:1px 8px;color:var(--ac);font-weight:700;font-size:11px">'+d+' <span style="font-size:9px;opacity:.8">ปัจจุบัน</span></span>';return'<span style="background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:1px 8px;color:var(--mu);font-size:11px">'+d+'</span> <span style="color:var(--mu);font-size:10px">›</span> ';}).join('');var _steps=[{dept:_origin,date:S(loan.LoanDate),who:ES(loan.BorrowerName),isOrigin:true}];_th.forEach(function(t){_steps.push({dept:ES(t.toDept),date:S(t.date),who:ES(t.transfererName||''),isOrigin:false});});var _timelineHtml=_steps.map(function(step,si){var isLast=si===_steps.length-1;var dotStyle=isLast?'width:10px;height:10px;border-radius:50%;background:var(--ac);flex-shrink:0;margin-top:3px':'width:10px;height:10px;border-radius:50%;background:var(--s2);border:1.5px solid var(--bd);flex-shrink:0;margin-top:3px';var lineHtml=!isLast?'<div style="width:1px;flex:1;background:var(--bd);min-height:20px;margin:2px 0"></div>':'';var labelHtml=step.isOrigin?step.dept+' <span style="color:var(--mu);font-weight:400">(ต้นทาง)</span>':'โอน → '+step.dept+(isLast?' <span style="background:rgba(0,200,255,.15);color:var(--ac);font-size:10px;padding:0 6px;border-radius:99px;margin-left:4px">ปัจจุบัน</span>':'');return'<div style="display:flex;gap:10px;align-items:flex-start"><div style="display:flex;flex-direction:column;align-items:center;width:18px"><div style="'+dotStyle+'"></div>'+lineHtml+'</div><div style="padding-bottom:12px"><div style="font-size:12px;font-weight:700;color:var(--tx)">'+labelHtml+'</div><div style="font-size:11px;color:var(--mu);margin-top:2px">'+S(step.date)+(step.who?' · '+step.who:'')+'</div></div></div>';}).join('');thHtml='<div style="margin-top:8px;padding:10px 12px;background:rgba(0,200,255,.04);border:1px solid rgba(0,200,255,.12);border-radius:7px"><div style="font-size:10px;color:var(--ac);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">เส้นทางการโอน</div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bd)"><span style="font-size:11px;color:var(--mu)">เส้นทาง</span> '+_bcHtml+'</div>'+_timelineHtml+'</div>';}return'<div style="padding:5px 0;border-bottom:1px solid var(--bd)"><div style="display:flex;justify-content:space-between;align-items:center"><span><strong>#'+idx+'</strong> '+ES(e.name)+(e.detail?' — '+esc(e.detail):'')+'</span><div>'+badge(itemStatus)+' <span style="font-family:var(--mo)">×'+e.qty+'</span></div></div>'+(b?'<div style="font-size:11px;color:var(--mu);padding-top:2px;padding-left:11px">เลขเครื่อง: <span style="color:var(--ac);font-family:var(--mo)">'+(esc(S(b.EquipmentNo))||'—')+'</span> | ผู้ให้ยืม: '+ES(b.GiverName||'-')+(S(b.ReceiverName)?' | ผู้รับคืนเครื่อง: '+ES(b.ReceiverName):'')+(b.MachineReturnDate?' | <span style="color:var(--ok)">📅 คืนเครื่อง: '+S(b.MachineReturnDate)+'</span>':b.ReturnDate&&b.MachineReturned?' | <span style="color:var(--ok)">📅 คืนเครื่อง: '+S(b.ReturnDate)+'</span>':'')+'</div>':'')+accHtml+thHtml+'</div>';}).join('')+'</div>';
   document.getElementById('detBody').innerHTML=html;openM('mDetail');
 }
@@ -11621,7 +11652,7 @@ function getPageData(page){
       return[S(item.loan.LoanID),S(item.loan.BorrowerName),S(item.loan.DeptName),S(item.loan.PatientName),S(item.eq.name),item.borrow?S(item.borrow.EquipmentNo):''];
     });
     rows.push(['LoanID','วันที่ยืม','ผู้ยืม','แผนก','ผู้ป่วย','เครื่องมือ','หมายเลขเครื่อง','อุปกรณ์ประกอบ','วันที่ใช้','สถานะ','ผู้ให้ยืม','ผู้รับคืน','วันที่คืน','เหตุผลคืน','ประวัติโอน']);
-    items.forEach(function(item){var ld=item.loan.LoanDate,startD=ld?new Date(ld):null,endD=item.borrow&&item.borrow.ReturnDate?new Date(item.borrow.ReturnDate):now;var days=startD&&(item.status==='ACTIVE'||item.status==='RETURNED'||item.status==='ACC_PENDING')?Math.max(0,Math.round((endD-startD)/86400000)):'-';var accs=item.borrow&&Array.isArray(item.borrow.Accessories)?item.borrow.Accessories:[];var th=item.borrow&&Array.isArray(item.borrow.TransferHistory)?item.borrow.TransferHistory:[];rows.push([S(item.loan.LoanID),ld||'',S(item.loan.BorrowerName),S(item.loan.DeptName),S(item.loan.PatientName),S(item.eq.name),item.borrow?S(item.borrow.EquipmentNo||''):'-',accs.length||0,days,({PENDING:'รอดำเนินการจ่าย',ACTIVE:'ยืม',RETURNED:'คืน',ACC_PENDING:'คืน (อุปกรณ์ค้าง)',CANCELLED:'ยกเลิก'}[item.status]||item.status),item.borrow?S(item.borrow.GiverName||''):'-',item.borrow?S(item.borrow.ReceiverName||''):'-',item.borrow?S(item.borrow.ReturnDate||''):'-',item.borrow?S(item.borrow.ReturnRemark||''):'-',th.map(function(t){return t.date+':'+S(t.toDept);}).join('→')]);});
+    items.forEach(function(item){var ld=item.loan.LoanDate,startD=ld?new Date(ld):null,_mrd=_machineRetDate(item),endD=_mrd?new Date(_mrd):now;var days=startD&&(item.status==='ACTIVE'||item.status==='RETURNED'||item.status==='ACC_PENDING')?Math.max(0,Math.round((endD-startD)/86400000)):'-';var accs=item.borrow&&Array.isArray(item.borrow.Accessories)?item.borrow.Accessories:[];var th=item.borrow&&Array.isArray(item.borrow.TransferHistory)?item.borrow.TransferHistory:[];rows.push([S(item.loan.LoanID),ld||'',S(item.loan.BorrowerName),S(item.loan.DeptName),S(item.loan.PatientName),S(item.eq.name),item.borrow?S(item.borrow.EquipmentNo||''):'-',accs.length||0,days,({PENDING:'รอดำเนินการจ่าย',ACTIVE:'ยืม',RETURNED:'คืน',ACC_PENDING:'คืน (อุปกรณ์ค้าง)',CANCELLED:'ยกเลิก'}[item.status]||item.status),item.borrow?S(item.borrow.GiverName||''):'-',item.borrow?S(item.borrow.ReceiverName||''):'-',item.borrow?(_machineRetDate(item)||S(item.borrow.ReturnDate||'')):'-',item.borrow?S(item.borrow.ReturnRemark||''):'-',th.map(function(t){return t.date+':'+S(t.toDept);}).join('→')]);});
   }else if(page==='daily'){var filter=document.getElementById('dailyFilter').value;var activeItems=exp.filter(function(i){return i.status==='ACTIVE'&&(!filter||S(i.eq.name)===filter);});rows.push(['หมายเลขเครื่อง','ชนิดเครื่องมือ','วันที่ยืม','แผนก','ผู้ป่วย','วันที่ใช้','ผู้ให้ยืม','ประวัติโอน','อุปกรณ์ประกอบ']);activeItems.forEach(function(item){var ld=item.loan.LoanDate||'-',days=ld!=='-'?Math.max(0,Math.round((now-new Date(ld))/86400000)):'-';var th=item.borrow&&item.borrow.TransferHistory?item.borrow.TransferHistory:[];rows.push([item.borrow?S(item.borrow.EquipmentNo||'—'):'—',S(item.eq.name),ld,S(item.loan.DeptName),S(item.loan.PatientName),days,item.borrow?S(item.borrow.GiverName||'-'):'-',th.map(function(t){return S(t.toDept)+'('+t.date+')';}).join('→'),(item.borrow&&item.borrow.Accessories?item.borrow.Accessories.length:0)]);});}
   else if(page==='sum'){
     rows.push(['ชนิดเครื่องมือ','กำลังยืม (ACTIVE)','คืนแล้ว','รอดำเนินการ','ค้างอุปกรณ์','รวมทั้งหมด']);
