@@ -20211,5 +20211,135 @@ window._omDeptList=function(){
   }catch(e){try{console.error('[mcmp init]',e);}catch(_){}}
 })();
 </script>
+<script>
+/* §PEAK-REPORT-LINES — ปุ่ม "รายงานสรุป" (หน้าสถิติ)
+   (1) คอลัมน์วันที่ Peak แยกทุกช่วงเป็นบรรทัดๆ (เดิมต่อเป็นบรรทัดเดียว "… | ประวัติ: …")
+   (2) กดปุ่ม → ถามก่อนพิมพ์: "แบบเดิม" หรือ "แบบละเอียด" (เลือกเครื่องมือได้ ค่าเริ่มต้น = ทุกเครื่องมือ)
+       แบบละเอียด = รายงานเดิมทั้งหน้า + ภาคผนวกท้ายเล่ม เครื่องมือละ 1 หน้า (ขึ้นหน้าใหม่ทุกเครื่องมือ) เนื้อหาเหมือนหน้าต่าง "รายละเอียด Peak" ครบ
+       (หัวเรื่อง Peak/Active/AVG + กราฟเต็มช่วง + ตารางช่วงที่ถึง Peak + ช่วงที่ใช้งาน ≥80% ครบทุกช่วง)
+   หลักการ: ไม่แก้โค้ดเดิม · ใช้ _peakDetailOpen/_hi80DetailHtml เดิมสร้างเนื้อหา (ตัวเลขตรงกับหน้าต่างบนจอเสมอ ไม่คำนวณใหม่)
+   ครอบ _sumFullReportPrint แล้วจัดหน้าพิมพ์ตอนเขียนเอกสารเท่านั้น · Excel/ตารางบนจอไม่เปลี่ยน */
+(function(){
+  try{
+    if(typeof window._sumFullReportPrint!=='function')return;
+    var O=window._sumFullReportPrint;
+    var VARS='--bg:#fff;--s1:#fff;--s2:#f1f5f9;--bd:#94a3b8;--tx:#000;--mu:#334155;--ac:#0369a1;--ac2:#6d28d9;--ok:#166534;--wn:#9a3412;--er:#b91c1c;--fn:Sarabun,Tahoma,sans-serif;--mo:"IBM Plex Mono",Consolas,monospace';
+    var esc2=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
+
+    // เนื้อหารายละเอียด Peak ของเครื่องมือหนึ่ง = ตัวเดียวกับหน้าต่างบนจอ (ปิด openM ชั่วคราวไม่ให้หน้าต่างเด้ง · คืนค่า body เดิม)
+    function detailHtml(name){
+      var body=document.getElementById('peakDetailBody');
+      if(!body||typeof window._peakDetailOpen!=='function')return '';
+      var keep=body.innerHTML,om=window.openM;
+      window.openM=function(){};
+      try{window._peakDetailOpen(name);return body.innerHTML;}
+      catch(e){return '';}
+      finally{window.openM=om;body.innerHTML=keep;}
+    }
+    function appendix(names){
+      var blocks=names.map(function(n,i){
+        var h=detailHtml(n);if(!h)return '';
+        return '<section class="pkx" style="page-break-before:always;break-before:page">'
+          +'<div style="font-size:10px;color:#6b7280;margin-bottom:6px">ภาคผนวก — รายละเอียด Peak · '+(i+1)+' / '+names.length+'</div>'
+          +'<div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;background:#fff">'+h+'</div></section>';
+      }).join('');
+      if(!blocks)return '';
+      return '<style>.pkx table{border-collapse:collapse;width:100%}.pkx th,.pkx td{border:1px solid #ddd}.pkx th{background:#f3f4f6;color:#111}'
+        +'.pkx [style*="overflow"]{overflow:visible!important}.pkx [style*="max-height"]{max-height:none!important}.pkx svg{max-width:100%;height:auto}'
+        +'.pkx tr,.pkx svg{break-inside:avoid;page-break-inside:avoid}.pkx *{-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+        +'.pkx polyline[stroke]{stroke:#0369a1!important;stroke-width:2!important}.pkx polyline[fill="#00c8ff"]{fill:#0369a1!important}'
+        +'.pkx{'+VARS+';color:#000;font-family:var(--fn);zoom:1.2}</style>'+blocks;
+    }
+
+    // แนวนอน A4 + ตัวอักษรใหญ่ขึ้น + สีเข้มขึ้น (ใช้กับทั้งแบบเดิมและแบบละเอียด) — ตัวที่เขียนทีหลังชนะ CSS เดิมของรายงาน
+    var PRINT_CSS='<style>@page{size:A4 landscape;margin:10mm}body{font-size:12px;color:#000;padding:10px}h2{font-size:19px;color:#000}.info{font-size:11px;color:#334155}'
+      +'.c{border-color:#64748b}.c .l{font-size:10.5px;color:#334155}.c .v{font-size:17px;color:#000}'
+      +'table{font-size:11px}th{font-size:11px;padding:6px 5px;white-space:normal;vertical-align:bottom}td:nth-child(11),th:nth-child(11){width:34%}td:nth-child(11){word-break:break-word}td:first-child,th:first-child{min-width:110px}td:nth-child(n+2):nth-child(-n+10){white-space:nowrap}td:last-child{white-space:nowrap}td{border:1px solid #64748b;padding:4px 7px;color:#000}tr:nth-child(even) td{background:#eef2f7}'
+      +'td div[style*="font-size:8px"]{font-size:10px!important;color:#1e293b!important}'
+      +'tr{break-inside:avoid;page-break-inside:avoid}thead{display:table-header-group}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>';
+    var MODE=null;   // null = แบบเดิม · array = รายชื่อเครื่องมือที่เลือกในภาคผนวก
+    function fix(h){
+      h=h.replace(/<td>([^<]*?) \| ประวัติ: ([^<]*?)<\/td>/g,function(m,a,b){
+        return '<td>'+a+'<div style="margin-top:3px;font-size:8px;color:#444;line-height:1.55">'
+          +b.split(' / ').map(function(x){return '• '+x;}).join('<br>')+'</div></td>';
+      });
+      h=h.replace('</head>',PRINT_CSS+'</head>');
+      if(MODE&&MODE.length){
+        var ax=appendix(MODE),k=h.indexOf('<br><button onclick="window.print()"');
+        if(ax&&k>0){
+          // ปุ่มพิมพ์ลอยมุมขวาล่าง (ภาคผนวกยาว ไม่ต้องเลื่อนไปหา) · ซ่อนตอนพิมพ์ด้วยกฎ button{display:none} เดิม
+          h=h.slice(0,k)+ax+'<button onclick="window.print()" style="position:fixed;right:16px;bottom:16px;padding:10px 20px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">🖨️ พิมพ์/บันทึก PDF</button>'+h.slice(k).replace(/^<br><button onclick="window\.print\(\)"[^>]*>[^<]*<\/button>/,'');   // ใช้ปุ่มลอยปุ่มเดียว
+        }
+      }
+      return h;
+    }
+    function run(mode){
+      MODE=mode;
+      var ow=window.open;
+      window.open=function(){
+        var w=ow.apply(this,arguments);
+        try{
+          if(w&&w.document&&typeof w.document.write==='function'){
+            var ww=w.document.write;
+            w.document.write=function(h){return ww.call(this,typeof h==='string'?fix(h):h);};
+          }
+        }catch(e){}
+        return w;
+      };
+      try{return O.call(window);}finally{window.open=ow;MODE=null;}
+    }
+
+    // ── หน้าต่างเลือกก่อนพิมพ์ ──
+    function dlg(){
+      var d=window._sumFullReportData;
+      var old=document.getElementById('peakRptDlg');if(old)old.remove();
+      var rows=d.rows.map(function(r,i){
+        return '<label style="display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:5px;cursor:pointer;font-size:12px">'
+          +'<input type="checkbox" class="pkrChk" value="'+esc2(r.name)+'" checked style="accent-color:#0284c7">'
+          +'<span style="flex:1">'+esc2(r.name)+'</span>'
+          +'<span style="font-family:var(--mo);font-size:11px;color:var(--mu)">Peak '+esc2(r.peak)+'</span></label>';
+      }).join('');
+      var ov=document.createElement('div');ov.id='peakRptDlg';
+      ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px';
+      ov.innerHTML='<div style="background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:18px 20px;max-width:440px;width:100%;max-height:90vh;display:flex;flex-direction:column;color:var(--tx)">'
+        +'<div style="font-size:15px;font-weight:700;margin-bottom:4px">🖨️ รายงานสรุป — เลือกแบบพิมพ์</div>'
+        +'<div style="font-size:11px;color:var(--mu);margin-bottom:12px">ช่วงวันที่ตามที่กรองอยู่ในหน้านี้ · ทุกแบบมีตารางสรุปหน้าแรกเหมือนกัน</div>'
+        +'<button id="pkrOld" style="text-align:left;padding:10px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);cursor:pointer;margin-bottom:10px;font-family:inherit">'
+          +'<div style="font-size:13px;font-weight:700">📄 แบบเดิม</div><div style="font-size:11px;color:var(--mu)">ตารางสรุป (Peak ทุกช่วงแยกบรรทัด) — สั้น 1–2 หน้า</div></button>'
+        +'<div style="border:1px solid var(--ac);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;min-height:0">'
+          +'<div style="font-size:13px;font-weight:700">📑 แบบละเอียด</div>'
+          +'<div style="font-size:11px;color:var(--mu);margin-bottom:8px">ตารางสรุป + ภาคผนวก เครื่องมือละ 1 หน้า (กราฟ · ช่วง Peak · ช่วง ≥80% ครบทุกช่วง) — เลือกเครื่องมือได้</div>'
+          +'<div style="display:flex;gap:6px;margin-bottom:6px"><button id="pkrAll" style="font-size:11px;padding:3px 9px;background:var(--s2);border:1px solid var(--bd);border-radius:5px;color:var(--tx);cursor:pointer">เลือกทั้งหมด</button>'
+          +'<button id="pkrNone" style="font-size:11px;padding:3px 9px;background:var(--s2);border:1px solid var(--bd);border-radius:5px;color:var(--tx);cursor:pointer">ล้าง</button>'
+          +'<span id="pkrCnt" style="margin-left:auto;font-size:11px;color:var(--mu);align-self:center"></span></div>'
+          +'<div style="overflow-y:auto;max-height:36vh;border:1px solid var(--bd);border-radius:6px;padding:3px;margin-bottom:10px">'+rows+'</div>'
+          +'<button id="pkrGo" style="padding:10px;background:var(--ac);border:none;border-radius:7px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">🖨️ สร้างรายงานแบบละเอียด</button>'
+        +'</div>'
+        +'<button id="pkrCancel" style="margin-top:10px;padding:8px;background:transparent;border:1px solid var(--bd);border-radius:7px;color:var(--tx);cursor:pointer;font-family:inherit">ยกเลิก</button>'
+        +'</div>';
+      document.body.appendChild(ov);
+      var chks=function(){return Array.prototype.slice.call(ov.querySelectorAll('.pkrChk'));};
+      var cnt=function(){var n=chks().filter(function(c){return c.checked;}).length;ov.querySelector('#pkrCnt').textContent='เลือก '+n+' / '+chks().length;ov.querySelector('#pkrGo').disabled=!n;ov.querySelector('#pkrGo').style.opacity=n?1:.5;};
+      ov.addEventListener('change',cnt);cnt();
+      ov.querySelector('#pkrAll').onclick=function(){chks().forEach(function(c){c.checked=true;});cnt();};
+      ov.querySelector('#pkrNone').onclick=function(){chks().forEach(function(c){c.checked=false;});cnt();};
+      ov.querySelector('#pkrCancel').onclick=function(){ov.remove();};
+      ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+      ov.querySelector('#pkrOld').onclick=function(){ov.remove();run(null);};
+      ov.querySelector('#pkrGo').onclick=function(){
+        var names=chks().filter(function(c){return c.checked;}).map(function(c){return c.value;});
+        if(!names.length)return;ov.remove();run(names);
+      };
+    }
+
+    window._sumFullReportPrint=function(){
+      var d=window._sumFullReportData;
+      if(!d||!d.rows||!d.rows.length)return O.apply(this,arguments);   // ไม่มีข้อมูล → ให้ฟังก์ชันเดิมแจ้งเตือนตามเดิม
+      dlg();
+    };
+    window._sumFullReportPrintDirect=function(mode){return run(mode||null);};   // ใช้ทดสอบ/เรียกตรงโดยไม่ถามหน้าต่าง
+  }catch(e){try{console.warn('[peak-report-lines]',e);}catch(_){}}
+})();
+</script>
 </body>
 </html>
